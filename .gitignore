@@ -1,0 +1,86 @@
+# JVM / Java artifacts
+*.class
+*.war
+*.ear
+*.hprof
+hs_err_pid*
+replay_pid*
+
+# Gradle and machine-local configuration
+.gradle/
+/local.properties
+gradle-app.setting
+
+# Build output for the modules in this repo
+/build/
+/out/
+/android/build/
+/core/build/
+/desktop/build/
+/android/bin/
+/core/bin/
+/desktop/bin/
+/android/gen/
+/android/out/
+/android/release/
+/android/debug/
+/android/.cxx/
+/android/.externalNativeBuild/
+/android/captures/
+/android/obj/
+
+# Android native libraries resolved/generated locally
+/android/libs/armeabi/
+/android/libs/armeabi-v7a/
+/android/libs/arm64-v8a/
+/android/libs/x86/
+/android/libs/x86_64/
+
+# Project-local working content
+/reference/
+/tmp/
+/saves/
+/rankings/
+/assets/saves/
+/assets/rankings/*.sav
+/assets/icon-old.png
+/tools/generated/
+/temp*.txt
+
+# IDE metadata
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.metadata/
+.settings/
+.loadpath
+.externalToolBuilders/
+*.launch
+/nbproject/private/
+/android/nbproject/private/
+/core/nbproject/private/
+/desktop/nbproject/private/
+nbactions.xml
+nb-configuration.xml
+
+# Android generated files
+.apt_generated/
+com_crashlytics_export_strings.xml
+
+# VS Code workspace files are intentionally kept in repo
+
+# Editor and OS noise
+__pycache__/
+*.pyc
+*.tmp
+*.bak
+*.swp
+*.swo
+*.orig
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini

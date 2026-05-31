@@ -1,0 +1,1084 @@
+!!!	actors.mobs.goo.!!!	%21%21%21
+#$%^	actors.mobs.mob.rage	%23%24%25%5E
+%arg% burns up!	actors.buffs.burning.burnsup	%25s%20burns%20up%21
+%arg% hit combo!	actors.buffs.combo.combo	%25d%20hit%20combo%21
+%arg% killed you...	actors.char.kill	%25s%20killed%20you...
+%arg% of affection	items.armor.glyphs.affection.name	%25s%20of%20affection
+%arg% of anti-entropy	items.armor.curses.antientropy.name	%25s%20of%20anti-entropy
+%arg% of displacement	items.armor.curses.displacement.name	%25s%20of%20displacement
+%arg% of entanglement	items.armor.glyphs.entanglement.name	%25s%20of%20entanglement
+%arg% of metabolism	items.armor.curses.metabolism.name	%25s%20of%20metabolism
+%arg% of multiplicity	items.armor.curses.multiplicity.name	%25s%20of%20multiplicity
+%arg% of potential	items.armor.glyphs.potential.name	%25s%20of%20potential
+%arg% of stench	items.armor.curses.stench.name	%25s%20of%20stench
+%arg% of viscosity	items.armor.glyphs.viscosity.name	%25s%20of%20viscosity
+...	actors.hero.hero.wait	...
+???	levels.level.default_name	%3F%3F%3F
+a ramp leads down to the lower depth.	levels.citylevel.exit_desc	A%20ramp%20leads%20down%20to%20the%20lower%20depth.
+a sorrowmoss is a flower (not a moss) with razor-sharp petals, coated with a deadly venom.	plants.sorrowmoss.desc	A%20Sorrowmoss%20is%20a%20flower%20%28not%20a%20moss%29%20with%20razor-sharp%20petals%2C%20coated%20with%20a%20deadly%20venom.
+a vein of some ore is visible on the wall. gold?	levels.caveslevel.wall_deco_desc	A%20vein%20of%20some%20ore%20is%20visible%20on%20the%20wall.%20Gold%3F
+about	scenes.titlescene.about	About
+acidic scorpio	actors.mobs.acidic.name	acidic%20scorpio
+activate	items.artifacts.timekeepershourglass.ac_activate	Activate
+alarm trap	levels.traps.alarmtrap.name	Alarm%20trap
+albino rat	actors.mobs.albino.name	albino%20rat
+ambitious imp	actors.mobs.npcs.imp.name	Ambitious%20imp
+ambitious imp	actors.mobs.npcs.imp.name	ambitious%20imp
+amok	actors.buffs.amok.name	amok
+amulet of yendor	items.amulet.name	Amulet%20of%20Yendor
+animated statue	actors.mobs.statue.name	Animated%20statue
+animated statue	actors.mobs.statue.name	animated%20statue
+ankh	items.ankh.name	Ankh
+apply	items.arcaneresin.ac_apply	APPLY
+are you kiddin' me? where is my pickaxe?!	actors.mobs.npcs.blacksmith.lost_pick	Are%20you%20kiddin%27%20me%3F%20Where%20is%20my%20pickaxe%3F%21
+are you sure you want to drink it? in most cases you should throw such potions at your enemies.	items.potions.potion.sure_drink	Are%20you%20sure%20you%20want%20to%20drink%20it%3F%20In%20most%20cases%20you%20should%20throw%20such%20potions%20at%20your%20enemies.
+are you sure you want to throw it? in most cases it makes sense to drink it.	items.potions.potion.sure_throw	Are%20you%20sure%20you%20want%20to%20throw%20it%3F%20In%20most%20cases%20it%20makes%20sense%20to%20drink%20it.
+armor	journal.catalog.armor.title	armor
+as you take a sip, you feel your wounds heal completely.	actors.blobs.waterofhealth.procced	As%20you%20take%20a%20sip%2C%20you%20feel%20your%20wounds%20heal%20completely.
+assassin	actors.hero.herosubclass.assassin	Assassin
+assassin	actors.hero.herosubclass.assassin	assassin
+attack	scenes.gamescene.attack	attack
+baa!	actors.mobs.npcs.sheep.baa!	Baa%21
+baa.	actors.mobs.npcs.sheep.baa.	Baa.
+baa...	actors.mobs.npcs.sheep.baa...	Baa...
+baa?	actors.mobs.npcs.sheep.baa?	Baa%3F
+back	windows.wndkeybindings.back	Back
+backpack	items.bags.bag.name	backpack
+badges	windows.wndjournal$badgestab.title	Badges
+badges	windows.wndjournal$badgestab.title	badges
+barren land	challenges.no_herbalism	Barren%20land
+barricade	levels.level.barricade_name	Barricade
+battle axe	items.weapon.melee.battleaxe.name	battle%20axe
+battlemage	actors.hero.herosubclass.battlemage	battlemage
+beneficial potion	items.potions.potion.beneficial	Beneficial%20potion
+berserker	actors.hero.herosubclass.berserker	Berserker
+berserker	actors.hero.herosubclass.berserker	berserker
+blazing %arg%	items.weapon.enchantments.blazing.name	blazing%20%25s
+bleeding	actors.buffs.bleeding.name	bleeding
+bomb	items.bombs.bomb.name	bomb
+bow	custom.item.bow.name
+books in ancient languages smoulder in the bookshelf.	levels.hallslevel.bookshelf_desc	Books%20in%20ancient%20languages%20smoulder%20in%20the%20bookshelf.
+bookshelf	levels.level.bookshelf_name	Bookshelf
+boomerang	items.weapon.missiles.boomerang.name	boomerang
+brightness	windows.wndsettings$displaytab.brightness	Brightness
+burning fist	actors.mobs.yogfist$burningfist.name	burning%20fist
+buy for %arg%g	windows.wndtradeitem.buy	Buy%20for%20%25dg
+cast	items.artifacts.etherealchains.ac_cast	Cast
+cave spinner	actors.mobs.spinner.name	cave%20spinner
+chargrilled meat	items.food.chargrilledmeat.name	chargrilled%20meat
+chasm	levels.features.chasm.chasm	Chasm
+chest	items.heap.chest	Chest
+chilling %arg%	items.weapon.enchantments.chilling.name	chilling%20%25s
+cleanse	actors.hero.spells.cleanse.name	Cleanse
+closed door	levels.level.closed_door_name	Closed%20door
+cloth armor	items.armor.clotharmor.name	cloth%20armor
+corpse dust	items.quest.corpsedust.name	corpse%20dust
+crazy bandit	actors.mobs.bandit.name	crazy%20bandit
+crazy thief	actors.mobs.thief.name	crazy%20thief
+crippled	actors.buffs.cripple.name	crippled
+crystal chest	items.heap.crystal_chest	Crystal%20chest
+dagger	items.weapon.melee.dagger.name	Dagger
+dagger	items.weapon.melee.dagger.name	dagger
+damage	items.stones.stoneofaugmentation$wndaugment.damage	Damage
+damage	items.stones.stoneofaugmentation$wndaugment.damage	damage
+dark gold ore	items.quest.darkgold.name	dark%20gold%20ore
+dart	items.weapon.missiles.darts.dart.name	dart
+deferred %arg%	items.armor.glyphs.viscosity.deferred	deferred%20%25d
+dense vegetation blocks the view.	levels.level.high_grass_desc	Dense%20vegetation%20blocks%20the%20view.
+depth entrance	levels.level.entrace_name	Depth%20entrance
+depth exit	levels.level.exit_name	Depth%20exit
+dewdrop	items.dewdrop.name	dewdrop
+dm-300	actors.mobs.dm300.name	DM-300
+dodged	actors.char.def_verb	dodged
+dried rose	items.artifacts.driedrose.name	dried%20rose
+drink	items.potions.potion.ac_drink	DRINK
+drop	items.item.ac_drop	DROP
+durability	windows.wndupgrade.durability	durability
+dwarf monk	actors.mobs.monk.name	dwarf%20monk
+dwarf token	items.quest.dwarftoken.name	dwarf%20token
+dwarf warlock	actors.mobs.warlock.name	dwarf%20warlock
+earthroot	plants.earthroot.name	Earthroot
+eat	items.artifacts.hornofplenty.ac_eat	EAT
+emberfungi	levels.hallslevel.high_grass_name	Emberfungi
+embermoss	levels.hallslevel.grass_name	Embermoss
+embers	levels.level.embers_name	Embers
+embers cover the floor.	levels.level.embers_desc	Embers%20cover%20the%20floor.
+empty well	levels.level.empty_well_name	Empty%20well
+enchantment	items.weapon.weapon$enchantment.enchant	enchantment
+end the game	items.amulet.ac_end	END%20THE%20GAME
+endurance	actors.hero.abilities.warrior.endure$enduretracker.name	Endurance
+enraged	actors.mobs.brute.enraged	enraged
+enter the dungeon	scenes.titlescene.enter	Enter%20The%20Dungeon
+equip	items.equipableitem.ac_equip	EQUIP
+error	windows.wnderror.title	ERROR
+error	windows.wnderror.title	error
+evasion	items.stones.stoneofaugmentation$wndaugment.evasion	Evasion
+evil eye	actors.mobs.eye.name	evil%20eye
+exit game	windows.wndgame.exit	Exit%20Game
+experience	windows.wndgameinprogress.exp	Experience
+fadeleaf	plants.fadeleaf.name	Fadeleaf
+faith is my armor	challenges.no_armor	Faith%20is%20my%20armor
+farewell, adventurer!	windows.wndsadghost.farewell	Farewell%2C%20adventurer%21
+fetid rat	actors.mobs.fetidrat.name	fetid%20rat
+fire elemental	actors.mobs.elemental$fireelemental.name	Fire%20Elemental
+fire elemental	actors.mobs.elemental$fireelemental.name	fire%20elemental
+firebloom	plants.firebloom.name	Firebloom
+floor	levels.level.floor_name	Floor
+fluorescent mushrooms	levels.caveslevel.high_grass_name	Fluorescent%20mushrooms
+food eaten	windows.wndranking$statstab.food	Food%20Eaten
+forbidden runes	challenges.no_scrolls	Forbidden%20runes
+free at last...	actors.mobs.tengu.defeated	Free%20at%20last...
+freerunner	actors.hero.herosubclass.freerunner	freerunner
+frozen carpaccio	items.food.frozencarpaccio.name	frozen%20carpaccio
+furious	actors.buffs.fury.name	furious
+fury	actors.buffs.combo$combomove.fury.name	Fury
+game duration	windows.wndranking$statstab.duration	Game%20Duration
+game over	scenes.surfacescene.exit	Game%20Over
+game over	scenes.surfacescene.exit	Game%20over
+games played:	scenes.rankingsscene.total	Games%20played%3A%20
+garden	journal.notes$landmark.garden	Garden
+giant piranha	actors.mobs.piranha.name	giant%20piranha
+giant rat skull	items.quest.ratskull.name	giant%20rat%20skull
+gladiator	actors.hero.herosubclass.gladiator	Gladiator
+gladiator	actors.hero.herosubclass.gladiator	gladiator
+glaive	items.weapon.melee.glaive.name	glaive
+glurp-glurp!	actors.mobs.goo.notice	GLURP-GLURP%21
+glurp... glurp...	actors.mobs.goo.defeated	glurp...%20glurp...
+glyph	items.armor.armor$glyph.glyph	glyph
+gnoll brute	actors.mobs.brute.name	gnoll%20brute
+gnoll scout	actors.mobs.gnoll.name	gnoll%20scout
+gnoll shaman	actors.mobs.shaman.name	gnoll%20shaman
+god's larva	actors.mobs.yogdzewa$larva.name	god%27s%20larva
+gold	items.gold.name	%20Gold
+gold	items.gold.name	%20gold
+gold	items.gold.name	gold
+gold collected	windows.wndgameinprogress.gold	Gold%20Collected
+golden bee	actors.mobs.bee.name	golden%20bee
+golden key	items.keys.goldenkey.name	golden%20key
+golem	actors.mobs.golem.name	golem
+goo	actors.mobs.goo.name	Goo
+goo is pumping itself up!	actors.mobs.goo.pumpup	Goo%20is%20pumping%20itself%20up%21
+good luck in your quest, %arg%!	windows.wndwandmaker.farewell	Good%20luck%20in%20your%20quest%2C%20%25s%21
+gotcha!	badges$badge.boss_challenge_2.title	Gotcha%21
+grass	levels.level.grass_name	Grass
+grim %arg%	items.weapon.enchantments.grim.name	grim%20%25s
+gripping trap	levels.traps.grippingtrap.name	Gripping%20trap
+harmful potion!	items.potions.potion.harmful	Harmful%20potion%21
+health	windows.wndgameinprogress.health	Health
+health	windows.wndgameinprogress.health	health
+heavy bars block the stairs leading down.	levels.level.locked_exit_desc	Heavy%20bars%20block%20the%20stairs%20leading%20down.
+heroic leap	actors.hero.abilities.warrior.heroicleap.name	HEROIC%20LEAP
+high blooming flowers	levels.citylevel.high_grass_name	High%20blooming%20flowers
+high grass	levels.level.high_grass_name	High%20grass
+honeypot	items.honeypot.name	honeypot
+hot!	items.weapon.curses.explosive.hot	Hot%21
+huge mushrooms block the view.	levels.caveslevel.high_grass_desc	Huge%20mushrooms%20block%20the%20view.
+huntress	actors.hero.heroclass.huntress	Huntress
+huntress	actors.hero.heroclass.huntress	huntress
+i'll decide later	windows.wndchooseability.cancel	I%27ll%20decide%20later
+i'm busy. get lost!	actors.mobs.npcs.blacksmith.get_lost	I%27m%20busy.%20Get%20lost%21
+i'm not done yet	scenes.amuletscene.stay	I%27m%20not%20done%20yet
+i'm not sleeping!	actors.mobs.npcs.ratking.not_sleeping	I%27m%20not%20sleeping%21
+icecap	plants.icecap.name	Icecap
+imbue	items.spells.summonelemental.ac_imbue	imbue
+in a blink of an eye you were teleported to another location of the level.	items.scrolls.scrollofteleportation.tele	In%20a%20blink%20of%20an%20eye%20you%20were%20teleported%20to%20another%20location%20of%20the%20level.
+in case of burning step into the water to extinguish the fire.	levels.level.water_desc	In%20case%20of%20burning%20step%20into%20the%20water%20to%20extinguish%20the%20fire.
+incendiary dart	items.weapon.missiles.darts.incendiarydart.name	incendiary%20dart
+interaction of different types of magic has erased the glyph on this armor!	items.armor.armor.incompatible	Interaction%20of%20different%20types%20of%20magic%20has%20erased%20the%20glyph%20on%20this%20armor%21
+interaction of different types of magic has negated the enchantment on this weapon!	items.weapon.weapon.incompatible	Interaction%20of%20different%20types%20of%20magic%20has%20negated%20the%20enchantment%20on%20this%20weapon%21
+into darkness	challenges.darkness	Into%20darkness
+inventory	windows.wndkeybindings.inventory	inventory
+invisible	actors.buffs.invisibility.name	invisible
+iron key	items.keys.ironkey.name	iron%20key
+items	windows.wndranking.items	Items
+items	windows.wndranking.items	items
+javelin	items.weapon.missiles.javelin.name	javelin
+king of dwarves	actors.mobs.dwarfking.name	King%20of%20Dwarves
+knockback	items.wands.wandofblastwave.upgrade_stat_name_2	KnockBack
+leather armor	items.armor.leatherarmor.name	Leather%20Armor
+leather armor	items.armor.leatherarmor.name	leather%20armor
+let's call it a day	scenes.amuletscene.exit	Let%27s%20call%20it%20a%20day
+level %arg% %arg%	windows.wndgameinprogress.title	Level%20%25d%20%25s
+level up!	actors.hero.hero.level_up	level%20up%21
+light	items.torch.ac_light	LIGHT
+lloyd's beacon	items.artifacts.lloydsbeacon.name	lloyd%27s%20beacon
+locked chest	items.heap.locked_chest	Locked%20chest
+locked depth exit	levels.level.locked_exit_name	Locked%20depth%20exit
+locked door	levels.level.locked_door_name	Locked%20door
+longsword	items.weapon.melee.longsword.name	longsword
+lucky %arg%	items.weapon.enchantments.lucky.name	lucky%20%25s
+mace	items.weapon.melee.mace.name	Mace
+mace	items.weapon.melee.mace.name	mace
+mage	actors.hero.heroclass.mage	Mage
+mage	actors.hero.heroclass.mage	mage
+mail armor	items.armor.mailarmor.name	mail%20armor
+main menu	windows.wndgame.menu	Main%20Menu
+marsupial rat	actors.mobs.rat.name	marsupial%20rat
+mastery	windows.wndclass.mastery	Mastery
+maximum depth	windows.wndgameinprogress.depth	Maximum%20Depth
+meat	items.food.mysterymeat$placeholder.name	Meat
+mimic	actors.mobs.mimic.name	mimic
+mirror image	actors.mobs.npcs.mirrorimage.name	mirror%20image
+mobs killed	windows.wndranking$statstab.enemies	Mobs%20Killed
+mystery meat	items.food.mysterymeat.name	mystery%20meat
+necromancer	actors.mobs.necromancer.name	Necromancer
+never mind	items.stones.stoneofaugmentation$wndaugment.cancel	Never%20mind
+new game	scenes.startscene.new	New%20Game
+no	scenes.heroselectscene.daily_no	No
+no additional information	scenes.rankingsscene.no_info	No%20additional%20information
+no enemies in sight	items.armor.huntressarmor.no_enemies	No%20enemies%20in%20sight
+no games have been played yet.	scenes.rankingsscene.no_games	No%20games%20have%20been%20played%20yet.
+obtained the amulet of yendor	rankings$record.won	Obtained%20the%20Amulet%20of%20Yendor
+oh it's hot!	items.food.mysterymeat.hot	Oh%20it%27s%20hot%21
+oh yes! you are my hero! regarding your reward, i don't have cash with me right now, but i have something better for you. this is my family heirloom ring: my granddad took it off a dead paladin's finger.	windows.wndimp.message	Oh%20yes%21%20You%20are%20my%20hero%21%0ARegarding%20your%20reward%2C%20I%20don%27t%20have%20cash%20with%20me%20right%20now%2C%20but%20I%20have%20something%20better%20for%20you.%20This%20is%20my%20family%20heirloom%20ring%3A%20my%20granddad%20took%20it%20off%20a%20dead%20paladin%27s%20finger.
+old wandmaker	actors.mobs.npcs.wandmaker.name	Old%20wandmaker
+old wandmaker	actors.mobs.npcs.wandmaker.name	old%20wandmaker
+on diet	challenges.no_food	On%20diet
+open door	levels.level.open_door_name	Open%20door
+paralysed	actors.buffs.paralysis.name	paralysed
+pasty	items.food.pasty.name	pasty
+pedestal	levels.level.pedestal_name	Pedestal
+pedestal	levels.level.pedestal_name	pedestal
+pharmacophobia	challenges.no_healing	Pharmacophobia
+pickaxe	items.quest.pickaxe.name	pickaxe
+pillar	levels.hallslevel.statue_name	Pillar
+plant	plants.plant$seed.ac_plant	PLANT
+plants	journal.bestiary.plant.title	Plants
+plants	journal.bestiary.plant.title	plants
+plate armor	items.armor.platearmor.name	plate%20armor
+play	scenes.titlescene.play	Play
+poison dart trap	levels.traps.poisondarttrap.name	Poison%20dart%20trap
+poisoned	actors.buffs.poison.name	poisoned
+potion of experience	items.potions.potionofexperience.name	Potion%20of%20Experience
+potion of frost	items.potions.potionoffrost.name	Potion%20of%20Frost
+potion of healing	items.potions.potionofhealing.name	Potion%20of%20Healing
+potion of invisibility	items.potions.potionofinvisibility.name	Potion%20of%20Invisibility
+potion of levitation	items.potions.potionoflevitation.name	Potion%20of%20Levitation
+potion of liquid flame	items.potions.potionofliquidflame.name	Potion%20of%20Liquid%20Flame
+potion of mind vision	items.potions.potionofmindvision.name	Potion%20of%20Mind%20Vision
+potion of paralytic gas	items.potions.potionofparalyticgas.name	Potion%20of%20Paralytic%20Gas
+potion of strength	items.potions.potionofstrength.name	Potion%20of%20Strength
+potion of toxic gas	items.potions.potionoftoxicgas.name	Potion%20of%20Toxic%20Gas
+potions	journal.catalog.potions.title	Potions
+probably this armor is too heavy for you.	items.armor.armor.probably_too_heavy	Probably%20this%20armor%20is%20too%20heavy%20for%20you.%20
+probably this weapon is too heavy for you.	items.weapon.melee.meleeweapon.probably_too_heavy	Probably%20this%20weapon%20is%20too%20heavy%20for%20you.%20
+psst, %arg%!	actors.mobs.npcs.imp.hey	Psst%2C%20%25s%21
+psychic aura of neighbouring creatures doesn't allow you to use the lloyd's beacon at this moment.	items.artifacts.lloydsbeacon.creatures	Psychic%20aura%20of%20neighbouring%20creatures%20doesn%27t%20allow%20you%20to%20use%20the%20lloyd%27s%20beacon%20at%20this%20moment.
+quantity	windows.wndupgrade.quantity	quantity
+quarterstaff	items.weapon.melee.quarterstaff.name	quarterstaff
+quests	windows.wndscorebreakdown.quests_title	quests
+rat king	actors.mobs.npcs.ratking.name	rat%20king
+ration of food	items.food.food.name	ration%20of%20food
+read	items.artifacts.unstablespellbook.ac_read	READ
+reforge them	windows.wndblacksmith$wndreforge.reforge	Reforge%20them
+refreshing!	items.food.frozencarpaccio.refresh	Refreshing%21
+return	items.artifacts.lloydsbeacon.ac_return	RETURN
+return to game	windows.wndgame.return	Return%20to%20Game
+ring of accuracy	items.rings.ringofaccuracy.name	Ring%20of%20Accuracy
+ring of elements	items.rings.ringofelements.name	Ring%20of%20Elements
+ring of evasion	items.rings.ringofevasion.name	Ring%20of%20Evasion
+ring of haste	items.rings.ringofhaste.name	Ring%20of%20Haste
+rogue	actors.hero.heroclass.rogue	Rogue
+rogue	actors.hero.heroclass.rogue	rogue
+rooted	actors.buffs.roots.name	rooted
+rotberry	plants.rotberry.name	Rotberry
+rotting fist	actors.mobs.yogfist$rottingfist.name	rotting%20fist
+sad ghost	actors.mobs.npcs.ghost.name	Sad%20ghost
+sad ghost	actors.mobs.npcs.ghost.name	sad%20ghost
+scale armor	items.armor.scalearmor.name	scale%20armor
+score	windows.wnddailies.score	score
+scorpio	actors.mobs.scorpio.name	scorpio
+scroll holder	items.bags.scrollholder.name	scroll%20holder
+scroll of challenge	items.scrolls.exotic.scrollofchallenge.name	Scroll%20of%20Challenge
+scroll of enchantment	items.scrolls.exotic.scrollofenchantment.name	Scroll%20of%20Enchantment
+scroll of identify	items.scrolls.scrollofidentify.name	Scroll%20of%20Identify
+scroll of lullaby	items.scrolls.scrolloflullaby.name	Scroll%20of%20Lullaby
+scroll of magic mapping	items.scrolls.scrollofmagicmapping.name	Scroll%20of%20Magic%20Mapping
+scroll of mirror image	items.scrolls.scrollofmirrorimage.name	Scroll%20of%20Mirror%20Image
+scroll of psionic blast	items.scrolls.exotic.scrollofpsionicblast.name	Scroll%20of%20Psionic%20Blast
+scroll of recharging	items.scrolls.scrollofrecharging.name	Scroll%20of%20Recharging
+scroll of remove curse	items.scrolls.scrollofremovecurse.name	Scroll%20of%20Remove%20Curse
+scroll of teleportation	items.scrolls.scrollofteleportation.name	Scroll%20of%20Teleportation
+scroll of terror	items.scrolls.scrollofterror.name	Scroll%20of%20Terror
+scroll of upgrade	items.scrolls.scrollofupgrade.name	Scroll%20of%20Upgrade
+scrolls	journal.catalog.scrolls.title	Scrolls
+search	actors.hero.hero.search	search
+see you, %arg%!	actors.mobs.npcs.imp.cya	See%20you%2C%20%25s%21
+select an item	items.stones.stoneofintuition.inv_title	Select%20an%20item
+sell 1 for %arg%g	windows.wndtradeitem.sell_1	Sell%201%20for%20%25dg
+sell all for %arg%g	windows.wndtradeitem.sell_all	Sell%20all%20for%20%25dg
+sell for %arg%g	windows.wndtradeitem.sell	Sell%20for%20%25dg
+senior monk	actors.mobs.senior.name	senior%20monk
+set	items.artifacts.lloydsbeacon.ac_set	SET
+settings	windows.wndgame.settings	Settings
+several tiles are missing here.	levels.citylevel.deco_desc	Several%20tiles%20are%20missing%20here.
+sewer crab	actors.mobs.crab.name	sewer%20crab
+shadow clone	custom.generated.shadow_clone_820fa4498b	Shadow%20Clone
+shatter	items.honeypot.ac_shatter	SHATTER
+sheep	actors.mobs.npcs.sheep.name	sheep
+shocking %arg%	items.weapon.enchantments.shocking.name	shocking%20%25s
+shopkeeper	actors.mobs.npcs.shopkeeper.name	shopkeeper
+shuriken	items.weapon.missiles.shuriken.name	shuriken
+skeletal remains	items.heap.skeleton	Skeletal%20remains
+skeleton	actors.mobs.skeleton.name	Skeleton
+skeleton	actors.mobs.skeleton.name	skeleton
+skeleton key	items.artifacts.skeletonkey.name	skeleton%20key
+slowed	actors.buffs.slow.name	slowed
+smite	actors.hero.spells.smite.name	Smite
+sniper	actors.hero.herosubclass.sniper	Sniper
+sniper	actors.hero.herosubclass.sniper	sniper
+someone wanted to adorn this place, but failed, obviously.	levels.level.statue_desc	Someone%20wanted%20to%20adorn%20this%20place%2C%20but%20failed%2C%20obviously.
+sorrowmoss	plants.sorrowmoss.name	Sorrowmoss
+spear	items.weapon.melee.spear.name	spear
+spectral blades	actors.hero.abilities.huntress.spectralblades.name	SPECTRAL%20BLADES
+stairs lead down to the lower depth.	levels.level.exit_desc	Stairs%20lead%20down%20to%20the%20lower%20depth.
+stairs lead up to the upper depth.	levels.level.entrance_desc	Stairs%20lead%20up%20to%20the%20upper%20depth.
+start	scenes.heroselectscene.start	Start
+start	scenes.heroselectscene.start	start
+start new game	windows.wndgame.start	Start%20New%20Game
+starving	actors.buffs.hunger.starving	Starving
+stats	windows.wndhero.stats	%20Stats
+stats	windows.wndhero.stats	Stats
+statue	levels.level.statue_name	Statue
+stealth	items.artifacts.cloakofshadows.ac_stealth	Stealth
+store	items.artifacts.hornofplenty.ac_store	STORE
+strength	windows.wndgameinprogress.str	Strength
+strong magic aura of this place prevents you from using the lloyd's beacon!	items.artifacts.lloydsbeacon.preventing	Strong%20magic%20aura%20of%20this%20place%20prevents%20you%20from%20using%20the%20lloyd%27s%20beacon%21
+succubus	actors.mobs.succubus.name	succubus
+summon	items.artifacts.driedrose.ac_summon	Summon
+summoning trap	levels.traps.summoningtrap.name	Summoning%20trap
+sungrass	plants.sungrass.name	Sungrass
+support the game	scenes.supporterscene.title	Support%20The%20Game
+swarm intelligence	challenges.swarm_intelligence	Swarm%20intelligence
+swarm of flies	actors.mobs.swarm.name	swarm%20of%20flies
+sword	items.weapon.melee.sword.name	sword
+take the ring	windows.wndimp.reward	Take%20the%20ring
+tengu	actors.mobs.tengu.name	Tengu
+that food tasted delicious!	items.food.food.eat_msg	That%20food%20tasted%20delicious%21
+that food tasted ok.	items.food.pasty$fishleftover.eat_msg	That%20food%20tasted%20ok.
+that food tasted... strange.	items.food.mysterymeat.eat_msg	That%20food%20tasted...%20strange.
+the atmosphere hints that this floor hides many secrets.	levels.level$feeling.secrets_desc	The%20atmosphere%20hints%20that%20this%20floor%20hides%20many%20secrets.
+the bookshelf is packed with cheap useless books. might it burn?	levels.sewerlevel.bookshelf_desc	The%20bookshelf%20is%20packed%20with%20cheap%20useless%20books.%20Might%20it%20burn%3F
+the ladder leads down to the lower depth.	levels.caveslevel.exit_desc	The%20ladder%20leads%20down%20to%20the%20lower%20depth.
+the lloyd's beacon is successfully set at your current location, now you can return here anytime.	items.artifacts.lloydsbeacon.return	The%20lloyd%27s%20beacon%20is%20successfully%20set%20at%20your%20current%20location%2C%20now%20you%20can%20return%20here%20anytime.
+the pillar is made of real humanoid skulls. awesome.	levels.hallslevel.statue_desc	The%20pillar%20is%20made%20of%20real%20humanoid%20skulls.%20Awesome.
+the rows of books on different disciplines fill the bookshelf.	levels.citylevel.bookshelf_desc	The%20rows%20of%20books%20on%20different%20disciplines%20fill%20the%20bookshelf.
+the scroll emits a brilliant flash of red light and the %arg% flees!	items.scrolls.scrollofterror.one	The%20scroll%20emits%20a%20brilliant%20flash%20of%20red%20light%20and%20the%20%25s%20flees%21
+the scroll emits a brilliant flash of red light and the monsters flee!	items.scrolls.scrollofterror.many	The%20scroll%20emits%20a%20brilliant%20flash%20of%20red%20light%20and%20the%20monsters%20flee%21
+the smell of vegetation is thick in the air.	levels.level$feeling.grass_desc	The%20smell%20of%20vegetation%20is%20thick%20in%20the%20air.
+the statue depicts some dwarf standing in a heroic stance.	levels.citylevel.statue_desc	The%20statue%20depicts%20some%20dwarf%20standing%20in%20a%20heroic%20stance.
+the trap emits a piercing sound that echoes throughout the dungeon!	levels.traps.alarmtrap.alarm	The%20trap%20emits%20a%20piercing%20sound%20that%20echoes%20throughout%20the%20dungeon%21
+the trap has been triggered before and it's not dangerous anymore.	levels.level.inactive_trap_desc	The%20trap%20has%20been%20triggered%20before%20and%20it%27s%20not%20dangerous%20anymore.
+the well has run dry.	levels.level.empty_well_desc	The%20well%20has%20run%20dry.
+the wooden barricade is firmly set but has dried over the years. might it burn?	levels.level.barricade_desc	The%20wooden%20barricade%20is%20firmly%20set%20but%20has%20dried%20over%20the%20years.%20Might%20it%20burn%3F
+thick carpet covers the floor.	levels.citylevel.sp_desc	Thick%20carpet%20covers%20the%20floor.
+this ancient tomb may contain something useful, but its owner will most certainly object to checking.	items.heap.tomb_desc	This%20ancient%20tomb%20may%20contain%20something%20useful%2C%20but%20its%20owner%20will%20most%20certainly%20object%20to%20checking.
+this beacon was set somewhere on the level %arg% of pixel dungeon.	items.artifacts.lloydsbeacon.desc_set	%0A%0AThis%20beacon%20was%20set%20somewhere%20on%20the%20level%20%25d%20of%20Pixel%20Dungeon.
+this door is locked, you need a matching key to unlock it.	levels.level.locked_door_desc	This%20door%20is%20locked%2C%20you%20need%20a%20matching%20key%20to%20unlock%20it.
+this is a %arg%	items.rings.ring.known	This%20is%20a%20%25s
+this is all that's left from one of your predecessors. maybe it's worth checking for any valuables.	items.heap.remains_desc	This%20is%20all%20that%27s%20left%20from%20one%20of%20your%20predecessors.%20Maybe%20it%27s%20worth%20checking%20for%20any%20valuables.
+this is probably a vestige of a prison library. might it burn?	levels.prisonlevel.bookshelf_desc	This%20is%20probably%20a%20vestige%20of%20a%20prison%20library.%20Might%20it%20burn%3F
+throw	items.item.ac_throw	THROW
+tomahawk	items.weapon.missiles.tomahawk.name	tomahawk
+tomb	items.heap.tomb	Tomb
+torch	items.torch.name	torch
+touching a fadeleaf will teleport any creature to a random place on the current level.	plants.fadeleaf.desc	Touching%20a%20Fadeleaf%20will%20teleport%20any%20creature%20to%20a%20random%20place%20on%20the%20current%20level.
+toxic gas trap	levels.traps.toxictrap.name	Toxic%20gas%20trap
+triggered trap	levels.level.inactive_trap_name	Triggered%20trap
+troll blacksmith	actors.mobs.npcs.blacksmith.name	Troll%20blacksmith
+troll blacksmith	actors.mobs.npcs.blacksmith.name	troll%20blacksmith
+unable to load additional information	windows.wndranking.error	Unable%20to%20load%20additional%20information
+unequip	items.equipableitem.ac_unequip	UNEQUIP
+unlocked depth exit	levels.level.unlocked_exit_name	Unlocked%20depth%20exit
+unstable %arg%	items.weapon.enchantments.unstable.name	unstable%20%25s
+vampire bat	actors.mobs.bat.name	vampire%20bat
+vampiric %arg%	items.weapon.enchantments.vampiric.name	vampiric%20%25s
+victory!	badges$badge.victory.title	Victory%21
+wall	levels.level.wall_name	Wall
+wand of disintegration	items.wands.wandofdisintegration.name	Wand%20of%20Disintegration
+wand of lightning	items.wands.wandoflightning.name	Wand%20of%20Lightning
+wand of magic missile	items.wands.wandofmagicmissile.name	Wand%20of%20Magic%20Missile
+wand of regrowth	items.wands.wandofregrowth.name	Wand%20of%20Regrowth
+war hammer	items.weapon.melee.warhammer.name	war%20hammer
+warden	actors.hero.herosubclass.warden	Warden
+warden	actors.hero.herosubclass.warden	warden
+warlock	actors.hero.herosubclass.warlock	Warlock
+warlock	actors.hero.herosubclass.warlock	warlock
+warrior	actors.hero.heroclass.warrior	Warrior
+warrior	actors.hero.heroclass.warrior	warrior
+water	levels.level.water_name	Water
+well	levels.level.well_name	Well
+well of awareness	journal.notes$landmark.well_of_awareness	Well%20of%20Awareness
+well of health	journal.notes$landmark.well_of_health	Well%20of%20Health
+what is it? i have no time for this nonsense. my kingdom won't rule itself!	actors.mobs.npcs.ratking.what_is_it	What%20is%20it%3F%20I%20have%20no%20time%20for%20this%20nonsense.%20My%20kingdom%20won%27t%20rule%20itself%21
+when something touches a firebloom, it bursts into flames.	plants.firebloom.desc	When%20something%20touches%20a%20Firebloom%2C%20it%20bursts%20into%20flames.
+who would need a bookshelf in a cave?	levels.caveslevel.bookshelf_desc	Who%20would%20need%20a%20bookshelf%20in%20a%20cave%3F
+wraith	actors.mobs.wraith.name	wraith
+yes	scenes.heroselectscene.daily_yes	Yes
+yes, i'm positive	items.potions.exotic.exoticpotion.yes	Yes%2C%20I%27m%20positive
+yog-dzewa	actors.mobs.yogdzewa.name	Yog-Dzewa
+you	actors.hero.hero.name	you
+borderless windowed mode	custom.settings.borderless_windowed_mode	Borderless%20Windowed%20Mode
+it is indeed quite short, just a few inches longer, than a dagger.	items.weapon.melee.shortsword.desc	It%20is%20indeed%20quite%20short%2C%20just%20a%20few%20inches%20longer%2C%20than%20a%20dagger.
+long sword	items.weapon.melee.longsword.name	Long%20sword
+short sword	items.weapon.melee.shortsword.name	Short%20sword
+windowed mode	custom.settings.windowed_mode	Windowed%20Mode
+you are bleeding!	actors.buffs.bleeding.heromsg	You%20are%20bleeding%21
+you are blinded!	actors.buffs.blindness.heromsg	You%20are%20blinded%21
+you are charmed!	actors.buffs.charm.heromsg	You%20are%20charmed%21
+you are crippled!	actors.buffs.cripple.heromsg	You%20are%20crippled%21
+you are hungry.	actors.buffs.hunger.onhungry	You%20are%20hungry.
+you are not feeling well.	items.food.mysterymeat.not_well	You%20are%20not%20feeling%20well.
+you are now aware of the level layout.	items.scrolls.scrollofmagicmapping.layout	You%20are%20now%20aware%20of%20the%20level%20layout.
+you are paralysed!	actors.buffs.paralysis.heromsg	You%20are%20paralysed%21
+you are poisoned!	actors.buffs.poison.heromsg	You%20are%20poisoned%21
+you are starving!	actors.buffs.hunger.onstarving	You%20are%20starving%21
+you are stuffed.	items.food.mysterymeat.stuffed	You%20are%20stuffed.
+you become furious!	actors.buffs.fury.heromsg	You%20become%20furious%21
+you bled to death...	actors.buffs.bleeding.ondeath	You%20bled%20to%20death...
+you burned to death...	actors.buffs.burning.ondeath	You%20burned%20to%20death...
+you can somehow feel the presence of other creatures' minds!	items.potions.potionofmindvision.see_mobs	You%20can%20somehow%20feel%20the%20presence%20of%20other%20creatures%27%20minds%21
+you can somehow tell that you are alone on this level at the moment.	items.potions.potionofmindvision.see_none	You%20can%20somehow%20tell%20that%20you%20are%20alone%20on%20this%20level%20at%20the%20moment.
+you can't feel your legs!	items.food.mysterymeat.legs	You%20can%27t%20feel%20your%20legs%21
+you can't move!	actors.buffs.roots.heromsg	You%20can%27t%20move%21
+you can't see the bottom.	levels.level.chasm_desc	You%20can%27t%20see%20the%20bottom.
+you catch fire!	actors.buffs.burning.heromsg	You%20catch%20fire%21
+you died from poison...	actors.buffs.poison.ondeath	You%20died%20from%20poison...
+you don't know what is there.	scenes.gamescene.dont_know	You%20don%27t%20know%20what%20is%20there.
+you feel better!	items.food.frozencarpaccio.better	You%20feel%20better%21
+you feel uncommon freshness in the air.	items.potions.potionofpurity.freshness	You%20feel%20uncommon%20freshness%20in%20the%20air.
+you feel weakened!	actors.buffs.weakness.heromsg	You%20feel%20weakened%21
+you fell to death...	levels.features.chasm.ondeath	You%20fell%20to%20death...
+you float into the air!	items.potions.potionoflevitation.float	You%20float%20into%20the%20air%21
+you killed yourself with your own wand of lightning...	items.wands.wandoflightning.ondeath	You%20killed%20yourself%20with%20your%20own%20Wand%20of%20Lightning...
+you need to be wearing this armor to use its special power!	items.armor.classarmor.not_equipped	You%20need%20to%20be%20wearing%20this%20armor%20to%20use%20its%20special%20power%21
+you see your hands turn invisible!	items.food.frozencarpaccio.invis	You%20see%20your%20hands%20turn%20invisible%21
+you starved to death...	actors.buffs.hunger.ondeath	You%20starved%20to%20death...
+you were killed by the explosion of bones...	actors.mobs.skeleton.explo_kill	You%20were%20killed%20by%20the%20explosion%20of%20bones...
+you won't know what's inside until you open it!	items.heap.chest_desc	You%20won%27t%20know%20what%27s%20inside%20until%20you%20open%20it%21
+you won't know what's inside until you open it! but to open it you need a golden key.	items.heap.locked_chest_desc	You%20won%27t%20know%20what%27s%20inside%20until%20you%20open%20it%21%20But%20to%20open%20it%20you%20need%20a%20golden%20key.
+your badges	windows.wndjournal$badgestab.title_main_menu	Your%20Badges
+your steps echo across the dungeon.	levels.level$feeling.chasm_desc	Your%20steps%20echo%20across%20the%20dungeon.
+zap	items.artifacts.lloydsbeacon.ac_zap	ZAP
+
+play	custom.title.play
+library	custom.title.library
+settings	custom.title.settings
+rankings	custom.title.rankings
+badges	custom.title.badges
+rat king	custom.title.rat_king
+about	custom.title.about
+music	custom.settings.music
+sound fx	custom.settings.sound_fx
+language	custom.settings.language
+sewers	custom.library.theme.sewers
+prison	custom.library.theme.prison
+caves	custom.library.theme.caves
+city	custom.library.theme.city
+halls	custom.library.theme.halls
+a realtime platform adaption of skillful pixel dungeon by bilboldev	custom.title.about_text
+signed	custom.generated.signed_c5d4d41342
+badge unlocked	custom.generated.badge_unlocked_7a11bf6d03
+reach %arg%	custom.generated.reach_arg_9afac0c302
+i acknowledge that the rat king is superior in every way, is stronger than me, is smarter than me, and is faster than me. i will follow his commands in my adventures. i will enteratin him. i will restore his crown and kingdom. all will obey the one true king.	custom.generated.rat_king_contract_5c72c2fef4
+the rat king is just a visual effect and will not assist you in game play. this is pure cosmetics.	custom.generated.rat_king_cosmetics_notice_94a8d4e2bf
+
+%arg% disarmed	custom.generated.arg_disarmed_148e661cab	%25s%20disarmed
+%arg% is %arg% with %arg% skills	custom.generated.arg_is_arg_with_arg_1411df0151	%25s%20is%20%25s%20with%20%25s%20skills
+%arg% joins you	custom.generated.arg_joins_you_095509ead1	%25s%20joins%20you
+%arg% minds sensed	custom.generated.arg_minds_sensed_6a906a8bcc	%25s%20minds%20sensed
+%arg% starts with %arg% health and gains %arg% per level	custom.generated.arg_starts_with_arg_health_429b446bac	%25s%20starts%20with%20%25s%20health%20and%20gains%20%25s%20per%20level
+%arg% starts with %arg% mana and gains %arg% per level	custom.generated.arg_starts_with_arg_mana_e2ffb9715d	%25s%20starts%20with%20%25s%20mana%20and%20gains%20%25s%20per%20level
+%arg% triggered!!!	custom.generated.arg_triggered_141131fc19	%25s%20triggered%21%21%21
+%arg% x %arg%%arg%	custom.generated.arg_x_argarg_efa94b2be6	%25s%20x%20%25d%25s
+%arg%'s attack speed is %arg%.	custom.generated.arg_s_attack_speed_is_arg_3d8f4c3596	%25s%27s%20attack%20speed%20is%20%25s.
+%arg%'s movement speed is %arg%.	custom.generated.arg_s_movement_speed_is_arg_870c8f690a	%25s%27s%20movement%20speed%20is%20%25s.
+%arg%\n%arg%%arg%	custom.generated.arg_nargarg_2b19f60656	%25s%5Cn%25s%25s
+%arg%\n%arg%: %arg%	custom.generated.arg_narg_arg_8ba7bd2a0e	%25s%5Cn%25s%3A%20%25s
+%arg%\n%arg%: %arg%%arg%	custom.generated.arg_narg_argarg_f82da70eb8	%25s%5Cn%25s%3A%20%25s%25s
+%arg%\n%arg%depth reached: %arg%%arg%\n%arg%fell on %arg%%arg%	custom.generated.arg_nargdepth_reached_argarg_nargfell_1b8ec6d70d	%25s%5Cn%25sDepth%20reached%3A%20%25d%25s%5Cn%25sFell%20on%20%25s%25s
+%arg%\n\n%arg%custom.generated.this_is_a_stack_of_878540b56a%arg%	custom.generated.arg_n_nargcustom_generated_this_is_a_stack_of_878540b56aarg_6f8df6a167	%25s%5Cn%5Cn%25scustom.generated.this_is_a_stack_of_878540b56a%25s
+%arg%\n\n%arg%it takes %arg% skill points to learn this skill.%arg%	custom.generated.arg_n_nargit_takes_arg_skill_points_a83ca6ec85	%25s%5Cn%5Cn%25sIt%20takes%20%25d%20skill%20points%20to%20learn%20this%20skill.%25s
+%arg%\n\n%arg%this skill is locked out.	custom.generated.arg_n_nargthis_skill_is_locked_out_55353a34a3	%25s%5Cn%5Cn%25sThis%20skill%20is%20locked%20out.
+%arg%\n\n%arg%this subclass is unlocked by the tome of mastery dropped by tengu.	custom.generated.arg_n_nargthis_subclass_is_unlocked_by_88f39d7bf7	%25s%5Cn%5Cn%25sThis%20subclass%20is%20unlocked%20by%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.
+%arg%\n\n%arg%you have unlocked this skill!	custom.generated.arg_n_nargyou_have_unlocked_this_skill_535841fe2a	%25s%5Cn%5Cn%25sYou%20have%20unlocked%20this%20skill%21
+%arg%\n\nit can also be used to mine dark gold veins for the troll blacksmith.	custom.generated.arg_n_nit_can_also_be_used_5a41d6e456	%25s%5Cn%5CnIt%20can%20also%20be%20used%20to%20mine%20dark%20gold%20veins%20for%20the%20troll%20blacksmith.
+%arg%\n\nthis is a stack of %arg% %arg%	custom.generated.arg_n_nthis_is_a_stack_of_ccb755d32a	%25s%5Cn%5CnThis%20is%20a%20stack%20of%20%25s%20%25s
++%arg% gold	custom.generated.arg_gold_5d60a35ba9	%2B%25s%20gold
++%arg% hp +%arg%%arg% att. speed	custom.generated.arg_hp_argarg_att_speed_4ffcc4dc83	%2B%25d%20HP%20%2B%25d%25%25%20att.%20speed
++%arg% hp +%arg%%arg% damage	custom.generated.arg_hp_argarg_damage_9d503422bc	%2B%25d%20HP%20%2B%25d%25%25%20damage
++%arg% skill point	custom.generated.arg_skill_point_5b980da432	%2B%25d%20Skill%20Point
++%arg% str	custom.generated.arg_str_2fd6a73555	%2B%25d%20STR
++%arg%%arg% chance of avoiding attacks	custom.generated.argarg_chance_of_avoiding_attacks_d6c213d80e	%2B%25d%25%25%20chance%20of%20avoiding%20attacks
++%arg%%arg% damage	custom.generated.argarg_damage_87edbce5a3	%2B%25d%25%25%20damage
++%arg%%arg% defence	custom.generated.argarg_defence_37fd4d063d	%2B%25d%25%25%20defence
++%arg%%arg% mana	custom.generated.argarg_mana_ab4fb35202	%2B%25d%25%25%20mana
++%arg%%arg% regen	custom.generated.argarg_regen_d006248f83	%2B%25d%25%25%20regen
+-%arg% gold	custom.generated.arg_gold_33d3f8fb98	-%25s%20gold
+.properties	custom.generated.properties_3eed475fea
+.title	custom.generated.title_f2e5f12437
+10x shuriken	custom.generated.10x_shuriken_d9425d87a1
+2x rations	custom.generated.2x_rations_b9f63297ef
+30x arrows	custom.generated.30x_arrows_94f71280d2
+3x health pots	custom.generated.3x_health_pots_53532af082
+4x health pots	custom.generated.4x_health_pots_015a213459
+5x health pots	custom.generated.5x_health_pots_a8be573a1c
+5x mana pots	custom.generated.5x_mana_pots_d6d1e98e90
+> +%arg%%arg% damage	custom.generated.argarg_damage_bca85a4de1	%3E%20%2B%25d%25%25%20damage
+> +%arg%%arg% damage\n> +%arg% required strength	custom.generated.argarg_damage_n_arg_required_strength_5086f0ddbc	%3E%20%2B%25d%25%25%20damage%5Cn%3E%20%2B%25d%20required%20strength
+> +%arg%%arg% defence	custom.generated.argarg_defence_f14bc4ce82	%3E%20%2B%25d%25%25%20defence
+> +%arg%%arg% defence\n> +%arg% required strength	custom.generated.argarg_defence_n_arg_required_strength_92684ad3fb	%3E%20%2B%25d%25%25%20defence%5Cn%3E%20%2B%25d%20required%20strength
+> -%arg%%arg% damage	custom.generated.argarg_damage_9a57b72a2a	%3E%20-%25d%25%25%20damage
+> -%arg%%arg% damage\n> -%arg% required strength	custom.generated.argarg_damage_n_arg_required_strength_d790de96ba	%3E%20-%25d%25%25%20damage%5Cn%3E%20-%25d%20required%20strength
+> -%arg%%arg% defence	custom.generated.argarg_defence_6fb4cd4c5d	%3E%20-%25d%25%25%20defence
+> adjacent attackers can be charmed into a brief truce	custom.generated.adjacent_attackers_can_be_charmed_a53fcf31c7
+> adjacent attackers can be knocked away	custom.generated.adjacent_attackers_can_be_knocked_c8fcbd2582
+> adjacent hits can erupt into a toxic gas cloud	custom.generated.adjacent_hits_can_erupt_into_f5e277b782
+> adjacent hits can freeze attackers and ignite the wearer	custom.generated.adjacent_hits_can_freeze_attackers_630ac8647e
+> adjacent hits can unleash shared lightning damage	custom.generated.adjacent_hits_can_unleash_shared_2b85869ab7
+> can convert stored energy into a burst of healing	custom.generated.can_convert_stored_energy_into_b87bce9f86
+> can defer incoming damage into a lingering aftershock	custom.generated.can_defer_incoming_damage_into_0f4bd80805
+> can root attackers while raising earthroot armor around the wearer	custom.generated.can_root_attackers_while_raising_4516e511a5
+> can split off a mirror image when the wearer is struck	custom.generated.can_split_off_a_mirror_1457660515
+> each proc becomes a random enchantment effect	custom.generated.each_proc_becomes_a_random_d510b763ff
+> hits can add fire damage and set enemies burning	custom.generated.hits_can_add_fire_damage_435cb98c63
+> hits can leave enemies paralyzed	custom.generated.hits_can_leave_enemies_paralyzed_3261206d4c
+> hits can leave enemies terrified or heroes reeling with vertigo	custom.generated.hits_can_leave_enemies_terrified_3f14e27568
+> hits can poison enemies over time	custom.generated.hits_can_poison_enemies_over_7ec5f0e7cf
+> hits can slow enemies with biting cold	custom.generated.hits_can_slow_enemies_with_cff9010c0a
+> hits can unleash chain lightning into nearby foes	custom.generated.hits_can_unleash_chain_lightning_f3033b4856
+> hits have a chance to cripple enemies	custom.generated.hits_have_a_chance_to_44477ca5b9
+> rare hits instantly kill non-boss enemies	custom.generated.rare_hits_instantly_kill_non_boss_f80cbf07a7
+> reflects some damage back to attackers	custom.generated.reflects_some_damage_back_to_473e3ac19b
+> rerolls damage and keeps the best result	custom.generated.rerolls_damage_and_keeps_the_5f07064179
+> spends gold to mend the wearer when struck	custom.generated.spends_gold_to_mend_the_3f984f596a
+> stabilizes weak damage rolls into steadier hits	custom.generated.stabilizes_weak_damage_rolls_into_bd3cab54dc
+> successful hits leech health back to the attacker	custom.generated.successful_hits_leech_health_back_d10229d014
+> the wearer can blink to another spot when hurt	custom.generated.the_wearer_can_blink_to_297f73b36c
+a basic ranged weapon for taunting enemies from distance.	custom.generated.a_basic_ranged_weapon_for_404da6488d
+a bigger stack contains %arg%%arg% more quantity.	custom.generated.a_bigger_stack_contains_argarg_5edda83e8d	A%20bigger%20stack%20contains%20%25d%25%25%20more%20quantity.
+a chest holding valuable treasure.\npicking up the treasure may trigger alarms.	custom.generated.a_chest_holding_valuable_treasure__npicking_f3535fa871
+a compact throwing axe that trades ammo count for brutal single-hit damage.	custom.generated.a_compact_throwing_axe_that_34da17d516
+a conjured elemental that crackles with heat and swipes with burning claws once it reaches its target.	custom.generated.a_conjured_elemental_that_crackles_d5a711bf99
+a dependable sword for hire.	custom.generated.a_dependable_sword_for_hire_963ca4b3c3
+a forbidden rite that trades flesh for power. reading it grants %arg% strength at the cost of %arg%%arg% of your current vitality.	custom.generated.a_forbidden_rite_that_trades_918e67af4f	A%20forbidden%20rite%20that%20trades%20flesh%20for%20power.%20Reading%20it%20grants%20%25d%20Strength%20at%20the%20cost%20of%20%25d%25%25%20of%20your%20current%20vitality.
+a hack sword for testing. how did you spawn this?	custom.generated.a_hack_sword_for_testing_867996de0e
+a hateful knot of cursed magic given shape by the ghost's lingering torment.	custom.generated.a_hateful_knot_of_cursed_e5294b677a
+a hearty cut of meat that fills the stomach just like standard rations.	custom.generated.a_hearty_cut_of_meat_28bc2829c6
+a heavy throwing spear that hits hard but is thrown more deliberately.	custom.generated.a_heavy_throwing_spear_that_8ddc3f2c91
+a heroic draught that permanently increases your strength and maximum health.	custom.generated.a_heroic_draught_that_permanently_22aee281b7
+a hostile denizen of the dungeon.	custom.generated.a_hostile_denizen_of_the_21848d898f
+a living gemstone that slowly stores restorative energy while worn.	custom.generated.a_living_gemstone_that_slowly_d97c0d6fc2
+a magically chilled bow whose arrows sap speed from anything they strike.	custom.generated.a_magically_chilled_bow_whose_dcc806cbb0
+a magically heated bow whose arrows explode with extra impact on a clean hit.	custom.generated.a_magically_heated_bow_whose_d922669e3c
+a nasty toxin-tipped dart that briefly cripples what it hits.	custom.generated.a_nasty_toxin_tipped_dart_that_8fa5947c52
+a piece of iron shaped to fit around the knuckles.	custom.generated.a_piece_of_iron_shaped_244a777fd9
+a preparatory script that hardens the reader for the next fight.	custom.generated.a_preparatory_script_that_hardens_d3a58dcb2b
+a psychic detonation that damages and briefly blinds every hostile creature nearby.	custom.generated.a_psychic_detonation_that_damages_4121c2e955
+a rarer brute variant that leans fully into defense, advancing like a shield wall and demanding far more damage to bring down cleanly.	custom.generated.a_rarer_brute_variant_that_fb9a3ede61
+a rarer elder monk whose strikes hit harder than the standard cave disciple and can abruptly swing a close fight.	custom.generated.a_rarer_elder_monk_whose_9280d315d0
+a runic script that lays a magical enchantment on a weapon or a glyph on armor, replacing ordinary modifiers with a special property.	custom.generated.a_runic_script_that_lays_aeca21ee3e
+a scroll of sanctuary warps its reader to a safe room.	custom.generated.a_scroll_of_sanctuary_warps_1c32fd345e
+a scroll.	custom.generated.a_scroll_8d59477957
+a seasoned huntress keeps fresh food on hand.\ngenerates food passively.	custom.generated.a_seasoned_huntress_keeps_fresh_ba406657d7
+a short-lived royal summon that exists to crowd the city boss arena and keep the pressure on.	custom.generated.a_short_lived_royal_summon_that_548f3735ff
+a simple bow tuned for the ranged slot, firing a steady stream of arrows.	custom.generated.a_simple_bow_tuned_for_8903d536f7
+a small iron key that unlocks a locked door on this floor.	custom.generated.a_small_iron_key_that_0576595db9
+a small stack contains %arg%%arg% less quantity.	custom.generated.a_small_stack_contains_argarg_06b5ddeb75	A%20small%20stack%20contains%20%25d%25%25%20less%20quantity.
+a sorrowmoss is a flower with razor-sharp petals, coated with a deadly venom.	custom.generated.a_sorrowmoss_is_a_flower_f6e7ef5d88
+a taunting invocation that rouses every hostile creature on the floor.	custom.generated.a_taunting_invocation_that_rouses_e07166a81c
+a vicious rite that restores the reader completely while bleeding every other creature in the room.	custom.generated.a_vicious_rite_that_restores_f4a76e27e0
+a wand capable of conjuring firebolts.	custom.generated.a_wand_capable_of_conjuring_26049ad405
+a wand capable of hurling fireballs into enemies.	custom.generated.a_wand_capable_of_hurling_430131edad
+a wand that blinks the caster forward to the farthest safe spot in the chosen direction.	custom.generated.a_wand_that_blinks_the_bd14961b77
+a wand that burdens its targets with a heavy, dragging curse.	custom.generated.a_wand_that_burdens_its_ade7c29764
+a wand that conjures a clutch of short-lived mirror images to clog the path ahead.	custom.generated.a_wand_that_conjures_a_eaf07b808f
+a wand that drives struck creatures into a violent, confused frenzy.	custom.generated.a_wand_that_drives_struck_05b8f248cd
+a wand that hurls a crashing burst of stone which breaks into a damaging shockwave on impact.	custom.generated.a_wand_that_hurls_a_2ac51caf74
+a wand that lashes out with force, swapping places with the first enemy it catches.	custom.generated.a_wand_that_lashes_out_470e047a4a
+a wand that launches a venomous blast, dealing damage and poisoning what it strikes.	custom.generated.a_wand_that_launches_a_45ba39ff60
+a wand that projects a scorching beam through every foe in front of the caster.	custom.generated.a_wand_that_projects_a_f51c2c5b1c
+a wand that violently teleports the first creature it strikes to another spot in the room.	custom.generated.a_wand_that_violently_teleports_5845393b6a
+a warrior can never be prepared enough.\ngain %arg% strength	custom.generated.a_warrior_can_never_be_cf5e97eb72	A%20warrior%20can%20never%20be%20prepared%20enough.%5CnGain%20%25d%20strength
+a winter sigil that chills every hostile creature in the room, slowing and damaging them.	custom.generated.a_winter_sigil_that_chills_273ee20d83
+abra something...	custom.generated.abra_something_fdf25a17cc
+accuracy	custom.generated.accuracy_26de05a44d
+achievements	custom.generated.achievements_c8e55211da
+affection glyph	custom.generated.affection_glyph_936e338140
+aggression	custom.generated.aggression_eb8c026c13
+aimed shot	custom.generated.aimed_shot_b9db4b4c20
+an ambitious imp is doing business below.	custom.generated.an_ambitious_imp_is_doing_06865123a9
+an annihilating incantation that destroys non-boss hostiles on the current floor.	custom.generated.an_annihilating_incantation_that_destroys_64fa329c80
+an elixir that instantly replenishes spiritual energy.	custom.generated.an_elixir_that_instantly_replenishes_1eb54d4a52
+an elixir that will instantly return you to full health and cure poison.	custom.generated.an_elixir_that_will_instantly_7d6d5b4b52
+an illusory copy shaped from the reader's silhouette and armed with a weaker echo of their attacks.	custom.generated.an_illusory_copy_shaped_from_5378fc2548
+and	custom.generated.and_cffa50a32c
+anti-entropy glyph	custom.generated.anti_entropy_glyph_d2e622d190
+any luck with a phantom fish? you may want to search the lower prison pools and storerooms.	custom.generated.any_luck_with_a_phantom_c5f956b104
+any luck with a rotberry seed? no? don't worry, i'm not in a hurry.	custom.generated.any_luck_with_a_rotberry_31381d3ad4
+any luck with corpse dust? bone piles are the most obvious places to look.	custom.generated.any_luck_with_corpse_dust_ef2a5a1d54
+archer	custom.generated.archer_29364a2351
+are you an adventurer? i love adventurers! you can always rely on them if something needs to be killed. in my case this is golems who need to be killed. please, kill %arg% of them and a reward is yours.	custom.generated.are_you_an_adventurer_i_7b0328c225	Are%20you%20an%20adventurer%3F%20I%20love%20adventurers%21%20You%20can%20always%20rely%20on%20them%20if%20something%20needs%20to%20be%20killed.%20In%20my%20case%20this%20is%20golems%20who%20need%20to%20be%20killed.%20Please%2C%20kill%20%25d%20of%20them%20and%20a%20reward%20is%20yours.
+are you an adventurer? i love adventurers! you can always rely on them if something needs to be killed. in my case this is monks who need to be killed. please, kill %arg% of them and bring me their tokens.	custom.generated.are_you_an_adventurer_i_efd3f28022	Are%20you%20an%20adventurer%3F%20I%20love%20adventurers%21%20You%20can%20always%20rely%20on%20them%20if%20something%20needs%20to%20be%20killed.%20In%20my%20case%20this%20is%20monks%20who%20need%20to%20be%20killed.%20Please%2C%20kill%20%25d%20of%20them%20and%20bring%20me%20their%20tokens.
+arrow	custom.generated.arrow_39a531d92b
+assassin skills rely on venom, evasion, and finishing blows. unlock assassin through the tome of mastery dropped by tengu.\n%arg%	custom.generated.assassin_skills_rely_on_venom_a83548a90c	Assassin%20skills%20rely%20on%20venom%2C%20evasion%2C%20and%20finishing%20blows.%20Unlock%20Assassin%20through%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.%5Cn%25s
+at the heart of the dungeon, the amulet of yendor waits in silence.	custom.generated.at_the_heart_of_the_cad92474b2
+attack speed:	custom.generated.attack_speed_07efc57e52
+attack:	custom.generated.attack_acbf9d1b11
+auto-repair glyph	custom.generated.auto_repair_glyph_64857830ad
+awareness	custom.generated.awareness_eee3afcf4f
+back off!	custom.generated.back_off_a47bce1d2b
+backpack is full.	custom.generated.backpack_is_full_70c96ab3e5
+badges$badge.%arg%	custom.generated.badges_badge_arg_3a1a043f7c	badges%24badge.%25s
+balanced throwing stars that fly quickly and can be loosed in rapid succession.	custom.generated.balanced_throwing_stars_that_fly_7898850e0b
+bandit	custom.generated.bandit_0a66e107bb
+battle mage	custom.generated.battle_mage_6cb384c2a7
+battle mages rely on wands and summoned allies in combat.\n- +%arg% max health\n- +%arg% max mana\n- wand melee damage scales with current mana, up to +%arg%\n- successful wand hits restore %arg% mana\n- locks out warlock	custom.generated.battle_mages_rely_on_wands_8567f3fb10	Battle%20mages%20rely%20on%20wands%20and%20summoned%20allies%20in%20combat.%5Cn-%20%2B%25d%20max%20health%5Cn-%20%2B%25d%20max%20mana%5Cn-%20Wand%20melee%20damage%20scales%20with%20current%20mana%2C%20up%20to%20%2B%25d%5Cn-%20Successful%20wand%20hits%20restore%20%25d%20mana%5Cn-%20Locks%20out%20Warlock
+beat game	custom.generated.beat_game_c7832852d1
+being at war for so long can make warriors... more violent.\n+%arg%%arg% damage	custom.generated.being_at_war_for_so_45f9b9829d	Being%20at%20war%20for%20so%20long%20can%20make%20warriors...%20more%20violent.%5Cn%2B%25d%25%25%20damage
+berries of this shrub taste like sweet, sweet death.	custom.generated.berries_of_this_shrub_taste_714ca0fb15
+berserker skills reward aggression and low-health fighting. unlock berserker through the tome of mastery dropped by tengu.\n%arg%	custom.generated.berserker_skills_reward_aggression_and_4ac6066ba0	Berserker%20skills%20reward%20aggression%20and%20low-health%20fighting.%20Unlock%20Berserker%20through%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.%5Cn%25s
+better stats	custom.generated.better_stats_10cb90650e
+birthday suit	custom.generated.birthday_suit_d54bb981cf
+blast	custom.generated.blast_531b7acc9f
+blazing enchantment	custom.generated.blazing_enchantment_c79bdef238
+blind	custom.generated.blind_7afb6295c7
+blinds target reducing their line of sight.	custom.generated.blinds_target_reducing_their_line_6922c7cb54
+bombvoyage	custom.generated.bombvoyage_37de27c9a2
+bounce glyph	custom.generated.bounce_glyph_4661367446
+broken	custom.generated.broken_0b8a1caec2
+brute	custom.generated.brute_48a111b581
+brutes are strong mercenaries who rely on physical fitness.	custom.generated.brutes_are_strong_mercenaries_who_ee3bf17ab0
+burp	custom.generated.burp_53bfdeba85
+by projecting a spiritual shield around themselves, heroes can reduce incoming damage.\n- cast on hero and allies in same room\n- mana armor absorbs up to %arg% damage\n- cannot absorb more than %arg%%arg% of incoming damage	custom.generated.by_projecting_a_spiritual_shield_a693171bdd	By%20projecting%20a%20spiritual%20shield%20around%20themselves%2C%20heroes%20can%20reduce%20incoming%20damage.%5Cn-%20Cast%20on%20hero%20and%20allies%20in%20same%20room%5Cn-%20Mana%20armor%20absorbs%20up%20to%20%25d%20damage%5Cn-%20Cannot%20absorb%20more%20than%20%25d%25%25%20of%20incoming%20damage
+by projecting a spiritual shield around themselves, heroes can reduce incoming damage.\n- mana armor absorbs up to %arg% damage\n- cannot absorb more than %arg%%arg% of incoming damage	custom.generated.by_projecting_a_spiritual_shield_20cc41c3b8	By%20projecting%20a%20spiritual%20shield%20around%20themselves%2C%20heroes%20can%20reduce%20incoming%20damage.%5Cn-%20Mana%20armor%20absorbs%20up%20to%20%25d%20damage%5Cn-%20Cannot%20absorb%20more%20than%20%25d%25%25%20of%20incoming%20damage
+challenge!	custom.generated.challenge_aa69935f07
+champions who find themselves in close combat quite often undergo special physical training to endure damage.\n+%arg%%arg% health	custom.generated.champions_who_find_themselves_in_0facadb5dd	Champions%20who%20find%20themselves%20in%20close%20combat%20quite%20often%20undergo%20special%20physical%20training%20to%20endure%20damage.%5Cn%2B%25d%25%25%20health
+charge:	custom.generated.charge_00a394668e
+chilling enchantment	custom.generated.chilling_enchantment_273d00f8d9
+chipped	custom.generated.chipped_c4196bc596
+choose a weapon for %arg%.	custom.generated.choose_a_weapon_for_arg_e05b0774bf	Choose%20a%20weapon%20for%20%25s.
+choose armor for %arg%.	custom.generated.choose_armor_for_arg_96ae44ea74	Choose%20armor%20for%20%25s.
+choose the path you will master.	custom.generated.choose_the_path_you_will_a62f783223
+class:	custom.generated.class_ef958ab46a
+coat your next attacks in venom.\n- %arg% mana\n- next %arg% attacks deal +%arg%%arg% damage\n- %arg%%arg% chance to poison a target	custom.generated.coat_your_next_attacks_in_b2438f1929	Coat%20your%20next%20attacks%20in%20venom.%5Cn-%20%25d%20mana%5Cn-%20Next%20%25d%20attacks%20deal%20%2B%25d%25%25%20damage%5Cn-%20%25d%25%25%20chance%20to%20poison%20a%20target
+confuse	custom.generated.confuse_27d748cf56
+confuses the target making it not capable of differentiating friend from foe.	custom.generated.confuses_the_target_making_it_7dce9e175c
+could not save the current run.	custom.generated.could_not_save_the_current_f328078cc2
+crippling enchantment	custom.generated.crippling_enchantment_3491f58ef3
+curare dart	custom.generated.curare_dart_f1f9a829f6
+cursed	custom.generated.cursed_5cc0c0a556
+damage:	custom.generated.damage_135aee2ea3
+dark gold ore. %arg% pieces. seriously, is it dat hard?	custom.generated.dark_gold_ore_arg_pieces_e104f7a12b	Dark%20gold%20ore.%20%25d%20pieces.%20Seriously%2C%20is%20it%20dat%20hard%3F
+dark skills	custom.generated.dark_skills_39f696b61c
+deals damage to all enemies in range.	custom.generated.deals_damage_to_all_enemies_6d5753d49d
+defense:	custom.generated.defense_e862804131
+defensive agility	custom.generated.defensive_agility_952b0df7f0
+depth reached: %arg%	custom.generated.depth_reached_arg_62564b89c4	Depth%20reached%3A%20%25d
+description:	custom.generated.description_4e767418be
+difficulty-progression	custom.generated.difficulty_progression_ec73a8c37e
+disabled	custom.generated.disabled_07596f183f
+disappear	custom.generated.disappear_dbec95941d
+disappear into a cloud of smoke, refreshing your invisibility for a short time.\n- %arg% mana\n- %arg% second cooldown	custom.generated.disappear_into_a_cloud_of_14a1f1ef14	Disappear%20into%20a%20cloud%20of%20smoke%2C%20refreshing%20your%20invisibility%20for%20a%20short%20time.%5Cn-%20%25d%20mana%5Cn-%20%25d%20second%20cooldown
+displacement glyph	custom.generated.displacement_glyph_d29d1411b4
+dominate	custom.generated.dominate_9204a20d3c
+dominate the target turning it into nothing more than a slave of your will for a duration.	custom.generated.dominate_the_target_turning_it_77b1303939
+donation required	custom.generated.donation_required_e289a7f07f
+double shot	custom.generated.double_shot_28e6086cf6
+dreamweed	custom.generated.dreamweed_a516f8d0d5
+eldritch enchantment	custom.generated.eldritch_enchantment_8e219df264
+embraces the assassin path.\n- +%arg% health\n- hero is harder to spot\n- surprise attacks from stealth or against sleeping foes deal bonus damage	custom.generated.embraces_the_assassin_path__n_arg_66f4532006	Embraces%20the%20assassin%20path.%5Cn-%20%2B%25d%20health%5Cn-%20Hero%20is%20harder%20to%20spot%5Cn-%20Surprise%20attacks%20from%20stealth%20or%20against%20sleeping%20foes%20deal%20bonus%20damage
+embraces the freerunner path.\n- +%arg%%arg% move speed\n- doubled evasion while not starving\n- +%arg% health	custom.generated.embraces_the_freerunner_path__n_argarg_553e28b1d0	Embraces%20the%20freerunner%20path.%5Cn-%20%2B%25d%25%25%20move%20speed%5Cn-%20Doubled%20evasion%20while%20not%20starving%5Cn-%20%2B%25d%20health
+embraces the sniper path.\n- +%arg% health\n- never miss with the bow\n- bow attacks ignore enemy armor	custom.generated.embraces_the_sniper_path__n_arg_e291198b23	Embraces%20the%20sniper%20path.%5Cn-%20%2B%25d%20health%5Cn-%20Never%20miss%20with%20the%20bow%5Cn-%20Bow%20attacks%20ignore%20enemy%20armor
+embraces the warden path.\n- +%arg% health\n- double fletching rate	custom.generated.embraces_the_warden_path__n_arg_3fa9624b26	Embraces%20the%20warden%20path.%5Cn-%20%2B%25d%20health%5Cn-%20Double%20fletching%20rate
+enchanted	custom.generated.enchanted_baf0771328
+enrage	custom.generated.enrage_2ec68128d8
+enrages the target making it attack recklessly with no regards for its own safety.\n- target does %arg%%arg% more damage\n- target takes %arg%%arg% more damage	custom.generated.enrages_the_target_making_it_789232b1f1	Enrages%20the%20target%20making%20it%20attack%20recklessly%20with%20no%20regards%20for%20its%20own%20safety.%5Cn-%20Target%20does%20%25d%25%25%20more%20damage%5Cn-%20Target%20takes%20%25d%25%25%20more%20damage
+entanglement glyph	custom.generated.entanglement_glyph_3cb0ec11eb
+excellent	custom.generated.excellent_8065c94672
+execution	custom.generated.execution_1e21474598
+exit	custom.generated.exit_de3ac21778
+experience:	custom.generated.experience_622789f2db
+extensive training and focus allows the champion to control two summons at the same time.	custom.generated.extensive_training_and_focus_allows_88dee3abb9
+extra summon	custom.generated.extra_summon_d2ec7557f1
+fast	custom.generated.fast_0afde56699
+fell on %arg%	custom.generated.fell_on_arg_98621b693a	Fell%20on%20%25s
+few creatures can withstand the crushing blow of this towering mass of lead and steel, but only the strongest of adventurers can use it effectively.	custom.generated.few_creatures_can_withstand_the_c53e7d5861
+fire a carefully lined up bow shot.\n- %arg% mana\n- consumes %arg% arrow\n- +%arg%%arg% accuracy\n- +%arg%%arg% damage	custom.generated.fire_a_carefully_lined_up_199517e64d	Fire%20a%20carefully%20lined%20up%20bow%20shot.%5Cn-%20%25d%20mana%5Cn-%20Consumes%20%25d%20arrow%5Cn-%20%2B%25d%25%25%20accuracy%5Cn-%20%2B%25d%25%25%20damage
+fire a cruel shot aimed for the legs.\n- %arg% mana\n- consumes %arg% arrow\n- +%arg%%arg% damage\n- chance to cripple enemy	custom.generated.fire_a_cruel_shot_aimed_91254cca76	Fire%20a%20cruel%20shot%20aimed%20for%20the%20legs.%5Cn-%20%25d%20mana%5Cn-%20Consumes%20%25d%20arrow%5Cn-%20%2B%25d%25%25%20damage%5Cn-%20Chance%20to%20cripple%20enemy
+fire a heavy iron-tipped arrow that keeps going through the fight.\n- %arg% mana\n- consumes %arg% arrow\n- arrow passes through enemies	custom.generated.fire_a_heavy_iron_tipped_arrow_0a016706e1	Fire%20a%20heavy%20iron-tipped%20arrow%20that%20keeps%20going%20through%20the%20fight.%5Cn-%20%25d%20mana%5Cn-%20Consumes%20%25d%20arrow%5Cn-%20Arrow%20passes%20through%20enemies
+fire an explosive arrowhead that spreads damage beyond the main target.\n- %arg% mana\n- consumes %arg% arrow\n- %arg%%arg% aoe damage	custom.generated.fire_an_explosive_arrowhead_that_8faf660003	Fire%20an%20explosive%20arrowhead%20that%20spreads%20damage%20beyond%20the%20main%20target.%5Cn-%20%25d%20mana%5Cn-%20Consumes%20%25d%20arrow%5Cn-%20%25d%25%25%20AOE%20damage
+fire is an easy element to manipulate. only after it is mastered can one use it to its full effect.\n- +%arg%%arg% damage from wands	custom.generated.fire_is_an_easy_element_e7a5acfce9	Fire%20is%20an%20easy%20element%20to%20manipulate.%20Only%20after%20it%20is%20mastered%20can%20one%20use%20it%20to%20its%20full%20effect.%5Cn-%20%2B%25d%25%25%20damage%20from%20wands
+fire mastery	custom.generated.fire_mastery_6b0a72acfb
+fireball wand	custom.generated.fireball_wand_47a528c842
+firebolt wand	custom.generated.firebolt_wand_e722cffcb9
+fireworks	custom.generated.fireworks_a85f18261c
+fists	custom.generated.fists_34fecf4b1d
+flame bow	custom.generated.flame_bow_2e0dfb9f5f
+flames erupt	custom.generated.flames_erupt_4808ff9f31
+fletched arrow	custom.generated.fletched_arrow_53dd3f5bbb
+fletching	custom.generated.fletching_bc0af336e8
+flying	custom.generated.flying_0974abfe45
+free runner	custom.generated.free_runner_088e3a640b
+free!	custom.generated.free_2b8a9961d0
+freezing cloud	custom.generated.freezing_cloud_2ca33bd343
+frenzy	custom.generated.frenzy_26312adef7
+frost bow	custom.generated.frost_bow_a03f32ded9
+gas neutralized	custom.generated.gas_neutralized_99ea8bc6bb
+gear:	custom.generated.gear_eed826ce2c
+gemstone	custom.generated.gemstone_11fa4328fd
+gone	custom.generated.gone_a6dfdeaa3a
+good luck in your quest!	custom.generated.good_luck_in_your_quest_251ae2ea8b
+grand master	custom.generated.grand_master_66ef53a32c
+grim enchantment	custom.generated.grim_enchantment_fc83398e99
+grounded	custom.generated.grounded_767a3311c1
+guided	custom.generated.guided_5b590af68f
+guided projectiles can reach further distances.	custom.generated.guided_projectiles_can_reach_further_3b9cc6ea65
+hack sword	custom.generated.hack_sword_74d9cfc832
+hammer	custom.generated.hammer_7cc918f959
+health:	custom.generated.health_9b98040294
+heaven protect us	custom.generated.heaven_protect_us_2aaf2f2069
+heavy	custom.generated.heavy_7e85183c21
+heightened awareness helps rogues evade incoming shots.\n- +%arg%%arg% chance of dodging ranged attacks	custom.generated.heightened_awareness_helps_rogues_evade_cc3ceabd02	Heightened%20awareness%20helps%20rogues%20evade%20incoming%20shots.%5Cn-%20%2B%25d%25%25%20chance%20of%20dodging%20ranged%20attacks
+heightened awareness keeps the huntress ready for incoming missiles.\n+%arg%%arg% defense from ranged attacks	custom.generated.heightened_awareness_keeps_the_huntress_69324b9f7e	Heightened%20awareness%20keeps%20the%20huntress%20ready%20for%20incoming%20missiles.%5Cn%2B%25d%25%25%20defense%20from%20ranged%20attacks
+hello adventurer... once i was like you - strong and confident... and now i'm dead... but i can't leave this place, as i am bound by a horrid curse... please... help me... destroy the curse...	custom.generated.hello_adventurer_once_i_was_31d46ea80e
+hello adventurer... once i was like you - strong and confident... and now i'm dead... but i can't leave this place... not until i have my dried rose... it's very important to me... some monster stole it from my body...	custom.generated.hello_adventurer_once_i_was_9e9e8d4442
+hello adventurer... once i was like you - strong and confident... and now i'm dead... but i can't leave this place... not until i have my revenge... slay the fetid rat that has taken my life...	custom.generated.hello_adventurer_once_i_was_1277e7dcff
+hello, friend! show me what you want to sell... maybe it's worth my time...	custom.generated.hello_friend_show_me_what_735d3ed946
+hey human! wanna be useful, eh? take dis pickaxe and kill a bat wit' it, i need its blood on the head. what do you mean, how am i gonna pay? you greedy... ok, ok, i don't have money to pay, but i can do some smithin' for you. consider yourself lucky, i'm the only blacksmith around.	custom.generated.hey_human_wanna_be_useful_14bcc0da93
+hey human! wanna be useful, eh? take dis pickaxe and mine me some dark gold ore, %arg% pieces should be enough. what do you mean, how am i gonna pay? you greedy... ok, ok, i don't have money to pay, but i can do some smithin' for you. consider yourself lucky, i'm the only blacksmith around.	custom.generated.hey_human_wanna_be_useful_3bd67b5451	Hey%20human%21%20Wanna%20be%20useful%2C%20eh%3F%20Take%20dis%20pickaxe%20and%20mine%20me%20some%20dark%20gold%20ore%2C%20%25d%20pieces%20should%20be%20enough.%20What%20do%20you%20mean%2C%20how%20am%20I%20gonna%20pay%3F%20You%20greedy...%20Ok%2C%20ok%2C%20I%20don%27t%20have%20money%20to%20pay%2C%20but%20I%20can%20do%20some%20smithin%27%20for%20you.%20Consider%20yourself%20lucky%2C%20I%27m%20the%20only%20blacksmith%20around.
+hire	custom.generated.hire_c498ae69ab
+hopeless	custom.generated.hopeless_0a92310758
+how is your golem safari going?	custom.generated.how_is_your_golem_safari_96df600023
+hunting	custom.generated.hunting_cae56215a8
+huntresses choose between warden and sniper after reading the tome of mastery dropped by tengu.\n%arg%	custom.generated.huntresses_choose_between_warden_and_4aaa3b17c7	Huntresses%20choose%20between%20Warden%20and%20Sniper%20after%20reading%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.%5Cn%25s
+huntresses learn to stay unseen while stalking prey.\n- hero is harder to spot	custom.generated.huntresses_learn_to_stay_unseen_bd7ff199bc
+huntresses start with a bow	custom.generated.huntresses_start_with_a_bow_cd1ff949c4
+huntresses start with four healing potions	custom.generated.huntresses_start_with_four_healing_05da9170b0
+huntresses start with thirty arrows	custom.generated.huntresses_start_with_thirty_arrows_aa34c996a6
+huntresses start with two rations	custom.generated.huntresses_start_with_two_rations_112443dd60
+huntresses strike from a distance and prefer to keep enemies at arm's reach.	custom.generated.huntresses_strike_from_a_distance_90a92593e1
+i am ok with that	custom.generated.i_am_ok_with_that_17341ab7b9
+i can't	custom.generated.i_can_t_5e394e2483
+i run out of patience	custom.generated.i_run_out_of_patience_f846ef7211
+i said i need bat blood on the pickaxe. chop chop!	custom.generated.i_said_i_need_bat_0aa978ca5f
+improves rogue poison damage against enemies.\n- +%arg%%arg% poison damage	custom.generated.improves_rogue_poison_damage_against_3b7b4fbcf7	Improves%20rogue%20poison%20damage%20against%20enemies.%5Cn-%20%2B%25d%25%25%20poison%20damage
+in the past these levels were the outskirts of metropolis. after the costly victory in the war with the old god dwarves were too weakened to clear them of remaining demons. gradually demons have tightened their grip on this place and now it's called demon halls.\n\nvery few adventurers have ever descended this far...	custom.generated.in_the_past_these_levels_d51e6a3428
+inactive-body	custom.generated.inactive_body_af109b95dc
+incineration wand	custom.generated.incineration_wand_c625fa92c7
+insight gained	custom.generated.insight_gained_bb840d5f2d
+insufficient gold	custom.generated.insufficient_gold_725c4e6585
+inventory snapshot	custom.generated.inventory_snapshot_70b2c8ec67
+iron tip	custom.generated.iron_tip_737892f1b4
+it bears the %arg%.\n%arg%	custom.generated.it_bears_the_arg__narg_0f07d67472	It%20bears%20the%20%25s.%5Cn%25s
+it bears the %arg%.\n%arg%%arg%	custom.generated.it_bears_the_arg__nargarg_f290b7fb67	It%20bears%20the%20%25s.%5Cn%25s%25s
+it can absorb %arg% damage.	custom.generated.it_can_absorb_arg_damage_67642f1d00	It%20can%20absorb%20%25d%20damage.
+it can absorb %arg% damage.%arg%	custom.generated.it_can_absorb_arg_damage_arg_3e55ef3c31	It%20can%20absorb%20%25d%20damage.%25s
+it can do between %arg% and %arg% damage.	custom.generated.it_can_do_between_arg_4250423d2e	It%20can%20do%20between%20%25d%20and%20%25d%20damage.
+it can do between %arg% and %arg% damage.%arg%	custom.generated.it_can_do_between_arg_83958485e9	It%20can%20do%20between%20%25d%20and%20%25d%20damage.%25s
+it is	custom.generated.it_is_79d4a897f4
+it is %arg%.\n%arg%	custom.generated.it_is_arg__narg_632c48b35b	It%20is%20%25s.%5Cn%25s
+it is %arg%.\n%arg%%arg%	custom.generated.it_is_arg__nargarg_8a0a532887	It%20is%20%25s.%5Cn%25s%25s
+it takes %arg% skill points to learn this skill.	custom.generated.it_takes_arg_skill_points_026bc2dce4	It%20takes%20%25d%20skill%20points%20to%20learn%20this%20skill.
+its magic feels wrong and hostile.	custom.generated.its_magic_feels_wrong_and_e724ca99eb
+its magic has been refined to +	custom.generated.its_magic_has_been_refined_8d06657eba
+knee shot	custom.generated.knee_shot_a0646411c7
+knock back	custom.generated.knock_back_641b1b9399
+knocking an enemy back is a wise tactic especially when surrounded.	custom.generated.knocking_an_enemy_back_is_fcde0ca3b1
+knuckles	custom.generated.knuckles_76e41f69ce
+level %arg%	custom.generated.level_arg_4466275219	Level%20%25s
+level ?	custom.generated.level_cea2736ee2
+level:	custom.generated.level_743e835927
+lock smith	custom.generated.lock_smith_d24534e46d
+loose a pair of arrows at once.\n- %arg% mana\n- consumes %arg% arrows\n- fires two arrows at the same time.	custom.generated.loose_a_pair_of_arrows_9360cafc44	Loose%20a%20pair%20of%20arrows%20at%20once.%5Cn-%20%25d%20mana%5Cn-%20Consumes%20%25d%20arrows%5Cn-%20Fires%20two%20arrows%20at%20the%20same%20time.
+lots of	custom.generated.lots_of_0766435f6f
+lucky enchantment	custom.generated.lucky_enchantment_75a48c2f5d
+makes target more vulnerable to damage.\n- target takes %arg%%arg% more damage	custom.generated.makes_target_more_vulnerable_to_8775216f7c	Makes%20target%20more%20vulnerable%20to%20damage.%5Cn-%20Target%20takes%20%25d%25%25%20more%20damage
+mana armor	custom.generated.mana_armor_87a5b8222c
+mana armor broke!	custom.generated.mana_armor_broke_5a640153df
+mana restored	custom.generated.mana_restored_11354ce33c
+many years of conflict has made this hero durable. what hurts others barely scratches this one.\n+%arg%%arg% defence	custom.generated.many_years_of_conflict_has_1b019ff879	Many%20years%20of%20conflict%20has%20made%20this%20hero%20durable.%20What%20hurts%20others%20barely%20scratches%20this%20one.%5Cn%2B%25d%25%25%20defence
+mass armor	custom.generated.mass_armor_fc55dfb688
+mass mana armor	custom.generated.mass_mana_armor_999d9a26e0
+master	custom.generated.master_4f26aeafdb
+mastering melee weapons allows a warrior to attack at a faster rate.\n+%arg%%arg% melee attack speed	custom.generated.mastering_melee_weapons_allows_a_4812f67fb6	Mastering%20melee%20weapons%20allows%20a%20warrior%20to%20attack%20at%20a%20faster%20rate.%5Cn%2B%25d%25%25%20melee%20attack%20speed
+mastering wands allows a hero to use them with more proficiency.\n- +%arg%%arg% range on wands	custom.generated.mastering_wands_allows_a_hero_80ec7d6aca	Mastering%20wands%20allows%20a%20hero%20to%20use%20them%20with%20more%20proficiency.%5Cn-%20%2B%25d%25%25%20range%20on%20wands
+meditation	custom.generated.meditation_6e77a66b8e
+medium speed	custom.generated.medium_speed_68d5735fbb
+metabolism glyph	custom.generated.metabolism_glyph_86975f41b5
+mirrors rise	custom.generated.mirrors_rise_52bc353329
+mmm.. you're naked...	custom.generated.mmm_you_re_naked_3f27aad7fa
+mobs	custom.generated.mobs_265cf4a078
+more loot	custom.generated.more_loot_57b3a29216
+move speed:	custom.generated.move_speed_292b8295e7
+movement:	custom.generated.movement_0638edfd5d
+multiplicity glyph	custom.generated.multiplicity_glyph_c6746a650e
+my weapon!	custom.generated.my_weapon_dccafb791a
+neutral	custom.generated.neutral_e7fb41a6a0
+nighty night	custom.generated.nighty_night_e15ea4329f
+no ammo	custom.generated.no_ammo_e84d2831e2
+no answer	custom.generated.no_answer_bfca15c22a
+no arrows	custom.generated.no_arrows_80e316136c
+no dark gold vein is within reach from this platform.	custom.generated.no_dark_gold_vein_is_b88630496a
+no fear	custom.generated.no_fear_3dbc47d13a
+no gas	custom.generated.no_gas_019458ab91
+no hostile minds	custom.generated.no_hostile_minds_f2f251b826
+no targets	custom.generated.no_targets_9d0c04966d
+nothing hidden	custom.generated.nothing_hidden_feed6ee3c2
+numbing gas	custom.generated.numbing_gas_36b00624d8
+oh yes! you are my hero! regarding your reward, i don't have cash with me right now, but i have something better for you. this is my family heirloom ring.	custom.generated.oh_yes_you_are_my_14b646c984
+oh, i see you have succeeded! i do hope it hasn't troubled you too much. as i promised, you can choose one of my high quality wands.	custom.generated.oh_i_see_you_have_cef64cb7a7
+oh, what a pleasant surprise to meet a decent person in such place! i came here for a rare ingredient - a rotberry seed. being a magic user, i'm quite able to defend myself against local monsters, but i'm getting lost in no time, it's very embarrassing. probably you could help me? i would be happy to pay for your service with one of my best wands.	custom.generated.oh_what_a_pleasant_surprise_2d5638b531
+oh, what a pleasant surprise to meet a decent person in such place! i came here for a rare ingredient - corpse dust. it can be gathered from skeletal remains and there is an ample number of them in the dungeon. being a magic user, i'm quite able to defend myself against local monsters, but i'm getting lost in no time, it's very embarrassing. probably you could help me? i would be happy to pay for your service with one of my best wands.	custom.generated.oh_what_a_pleasant_surprise_c61a76d7ae
+oh, what a pleasant surprise to meet a decent person in such place! i came here for a rare ingredient: a phantom fish. you can catch it with your bare hands, but it's very hard to notice in the water. being a magic user, i'm quite able to defend myself against local monsters, but i'm getting lost in no time, it's very embarrassing. probably you could help me? i would be happy to pay for your service with one of my best wands.	custom.generated.oh_what_a_pleasant_surprise_d0b76a2632
+oh, you are still alive! just don't forget to grab those monks' tokens.	custom.generated.oh_you_are_still_alive_eb10344973
+oh, you have returned... better late dan never.	custom.generated.oh_you_have_returned_better_178abe4759
+ok, a deal is a deal, dat's what i can do for you: i can reforge %arg% items and turn them into one of a better quality.	custom.generated.ok_a_deal_is_a_e8b7712277	Ok%2C%20a%20deal%20is%20a%20deal%2C%20dat%27s%20what%20I%20can%20do%20for%20you%3A%20I%20can%20reforge%20%25d%20items%20and%20turn%20them%20into%20one%20of%20a%20better%20quality.
+once it reaches %arg% charge, it can be activated to restore health.	custom.generated.once_it_reaches_arg_charge_7865d7194f	Once%20it%20reaches%20%25d%20charge%2C%20it%20can%20be%20activated%20to%20restore%20health.
+only the rare few reach the rank of grand master.\n- +%arg%%arg% range on wands\n- +%arg%%arg% damage on wands	custom.generated.only_the_rare_few_reach_6de674427d	Only%20the%20rare%20few%20reach%20the%20rank%20of%20grand%20master.%5Cn-%20%2B%25d%25%25%20range%20on%20wands%5Cn-%20%2B%25d%25%25%20damage%20on%20wands
+opposed-input	custom.generated.opposed_input_578e05814c
+patient crafting keeps arrows ready for the next fight.\ngenerates arrows passively.	custom.generated.patient_crafting_keeps_arrows_ready_ad216b2be0
+phantom fish	custom.generated.phantom_fish_f08302c02d
+picked up a key	custom.generated.picked_up_a_key_b2fe78ee8d
+please... help me... find the rose...	custom.generated.please_help_me_find_the_78a0d39b3e
+please... help me... slay the abomination...	custom.generated.please_help_me_slay_the_bffa7ad7a4
+poison buff	custom.generated.poison_buff_3e0bc79db5
+poor	custom.generated.poor_2156e40a12
+poorly manufactured projectiles do not reach long distances.	custom.generated.poorly_manufactured_projectiles_do_not_1e38897606
+potential glyph	custom.generated.potential_glyph_da358a1957
+potion of mana	custom.generated.potion_of_mana_7278278513
+potion of might	custom.generated.potion_of_might_1700b318b5
+practicing summoning skills leads to better summons that can do more damage and withstand more.\n- fire elementals have %arg%%arg% more health\n- fire elementals take %arg%%arg% less damage	custom.generated.practicing_summoning_skills_leads_to_ac04bb4622	Practicing%20summoning%20skills%20leads%20to%20better%20summons%20that%20can%20do%20more%20damage%20and%20withstand%20more.%5Cn-%20Fire%20elementals%20have%20%25d%25%25%20more%20health%5Cn-%20Fire%20elementals%20take%20%25d%25%25%20less%20damage
+price:	custom.generated.price_91a29da024
+purified	custom.generated.purified_903ada1687
+rampage	custom.generated.rampage_46d08600a0
+rat-king-support	custom.generated.rat_king_support_505389fa50
+rations	custom.generated.rations_670477096f
+reach %arg%%arg%	custom.generated.reach_argarg_407d8fabcb	REACH%20%25s%25s
+read-only final inventory snapshot for this run.	custom.generated.read_only_final_inventory_snapshot_for_5d30cc18b4
+ready	custom.generated.ready_75c0533730
+regeneration	custom.generated.regeneration_df9a698b88
+requires	custom.generated.requires_d6e7cd005c
+requires %arg%.	custom.generated.requires_arg_4fa2bc0ba7	Requires%20%25s.
+requires %arg%.%arg%	custom.generated.requires_arg_arg_01d150b852	Requires%20%25s.%25s
+restored	custom.generated.restored_6e39dd1851
+ring of detection	custom.generated.ring_of_detection_ab87178790
+ring of haggler	custom.generated.ring_of_haggler_0477979819
+ring of herbalism	custom.generated.ring_of_herbalism_5fc3ca691c
+ring of mending	custom.generated.ring_of_mending_51ca489505
+ring of power	custom.generated.ring_of_power_cc3ff3377c
+ring of satiety	custom.generated.ring_of_satiety_2380f40d14
+ring of shadows	custom.generated.ring_of_shadows_b8cc08f67e
+ring of thorns	custom.generated.ring_of_thorns_7e67fda702
+rise	custom.generated.rise_e5edb94ec7
+ritual!	custom.generated.ritual_35d7c4e20e
+rogues choose between free runner and assassin after reading the tome of mastery dropped by tengu.\n%arg%	custom.generated.rogues_choose_between_free_runner_2cdd118b69	Rogues%20choose%20between%20Free%20Runner%20and%20Assassin%20after%20reading%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.%5Cn%25s
+rogues excel at staying unseen.\n- hero is harder to spot	custom.generated.rogues_excel_at_staying_unseen__n_b0a32ef6fb
+rogues learn to spot and pocket extra valuables.\n- +%arg%%arg% gold found\n- gold cannot be stolen	custom.generated.rogues_learn_to_spot_and_6efe36abb1	Rogues%20learn%20to%20spot%20and%20pocket%20extra%20valuables.%5Cn-%20%2B%25d%25%25%20gold%20found%5Cn-%20Gold%20cannot%20be%20stolen
+rogues start with a dagger	custom.generated.rogues_start_with_a_dagger_751e0816fe
+rogues start with ten shuriken	custom.generated.rogues_start_with_ten_shuriken_7d4f2e11ec
+rogues start with three healing potions	custom.generated.rogues_start_with_three_healing_44169c8482
+rogues start with two rations	custom.generated.rogues_start_with_two_rations_c65e2125ff
+save & exit	custom.generated.save_exit_1f9dd4e8de
+scorpion	custom.generated.scorpion_884950a05f
+scroll of bloody ritual	custom.generated.scroll_of_bloody_ritual_d1ed99ded7
+scroll of frost	custom.generated.scroll_of_frost_88d6066dd0
+scroll of readiness	custom.generated.scroll_of_readiness_ae31ac8a80
+scroll of sacrifice	custom.generated.scroll_of_sacrifice_7da99bdc1d
+scroll of sanctuary	custom.generated.scroll_of_sanctuary_24663dc4d0
+scroll of skill	custom.generated.scroll_of_skill_931b85687d
+scroll of wipe out	custom.generated.scroll_of_wipe_out_185252ddac
+seasoned rogues learn to stay on their feet when plans go wrong.\n- +%arg%%arg% health	custom.generated.seasoned_rogues_learn_to_stay_b1cc9a2ee1	Seasoned%20rogues%20learn%20to%20stay%20on%20their%20feet%20when%20plans%20go%20wrong.%5Cn-%20%2B%25d%25%25%20health
+secrets revealed	custom.generated.secrets_revealed_41c6c3fceb
+see you!	custom.generated.see_you_10930cc5f7
+seed of dreamweed	custom.generated.seed_of_dreamweed_e08dc1f117
+seen	custom.generated.seen_229670d592
+select an item to reforge	custom.generated.select_an_item_to_reforge_19ac7e96c7
+select armor	custom.generated.select_armor_e59f49c96b
+select weapon	custom.generated.select_weapon_b3aade6762
+senior	custom.generated.senior_2c0b43fedb
+shadow clone	custom.generated.shadow_clone_820fa4498b
+shielded brute	custom.generated.shielded_brute_825df1bee3
+shocking enchantment	custom.generated.shocking_enchantment_e17c8c3bd5
+silence	custom.generated.silence_ca456ebf8e
+silent death	custom.generated.silent_death_d9bff255d7
+skill #%arg%	custom.generated.skill_arg_ed5d8f9491	Skill%20%23%25s
+skillful-settings	custom.generated.skillful_settings_0f78fc75c3
+skills	custom.generated.skills_816f2b87d3
+skills other	custom.generated.skills_other_ebd58afa04
+skills used	custom.generated.skills_used_568386dae2
+sleep	custom.generated.sleep_c3ca5f7873
+sleeping non-boss enemies have a %arg%%arg% chance to die instantly from melee attacks.	custom.generated.sleeping_non_boss_enemies_have_a_c463215a88	Sleeping%20non-boss%20enemies%20have%20a%20%25d%25%25%20chance%20to%20die%20instantly%20from%20melee%20attacks.
+slow	custom.generated.slow_57e8a7776d
+slows down enemies making them easier to be dealt with.\n - target loses %arg%%arg% speed	custom.generated.slows_down_enemies_making_them_d38e200281	Slows%20down%20enemies%20making%20them%20easier%20to%20be%20dealt%20with.%5Cn%20-%20Target%20loses%20%25d%25%25%20speed
+smash	custom.generated.smash_31fe827aea
+smashes the target with might dealing %arg%%arg% extra damage.	custom.generated.smashes_the_target_with_might_6473f4bcea	Smashes%20the%20target%20with%20might%20dealing%20%25d%25%25%20extra%20damage.
+smites the target with full aggression dealing %arg%%arg% more damage.	custom.generated.smites_the_target_with_full_b5d504b203	Smites%20the%20target%20with%20full%20aggression%20dealing%20%25d%25%25%20more%20damage.
+sniper skills specialize in crippling, disabling, and explosive arrow attacks. unlock sniper through the tome of mastery dropped by tengu.\n%arg%	custom.generated.sniper_skills_specialize_in_crippling_1f11aaca10	Sniper%20skills%20specialize%20in%20crippling%2C%20disabling%2C%20and%20explosive%20arrow%20attacks.%20Unlock%20Sniper%20through%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.%5Cn%25s
+some	custom.generated.some_eb87581285
+some warriors have survived so many traps they know them inside out.\n- %arg%%arg% chance to disarm traps on contact\n- does not work on hidden traps	custom.generated.some_warriors_have_survived_so_6fb9877676	Some%20warriors%20have%20survived%20so%20many%20traps%20they%20know%20them%20inside%20out.%5Cn-%20%25d%25%25%20chance%20to%20disarm%20traps%20on%20contact%5Cn-%20Does%20NOT%20work%20on%20hidden%20traps
+sometimes a warrior should just let go. entering a frenzy state increases damage by %arg%%arg% but lowers speed by %arg%%arg%	custom.generated.sometimes_a_warrior_should_just_64bf815755	Sometimes%20a%20warrior%20should%20just%20let%20go.%20Entering%20a%20frenzy%20state%20increases%20damage%20by%20%25d%25%25%20but%20lowers%20speed%20by%20%25d%25%25
+special:	custom.generated.special_e47a8bfdb9
+spirit is as important as body. champions who train their spirit can conjure their inner strength with increased stamina.\n- +%arg%%arg% mana	custom.generated.spirit_is_as_important_as_30530948a2	Spirit%20is%20as%20important%20as%20body.%20Champions%20who%20train%20their%20spirit%20can%20conjure%20their%20inner%20strength%20with%20increased%20stamina.%5Cn-%20%2B%25d%25%25%20mana
+spirituality	custom.generated.spirituality_286a8bd75f
+split off a shadowy duplicate that fights beside you.\n- summons one stronger mirror image\n- %arg% mana\n- %arg% second cooldown	custom.generated.split_off_a_shadowy_duplicate_ffedf47f25	Split%20off%20a%20shadowy%20duplicate%20that%20fights%20beside%20you.%5Cn-%20Summons%20one%20stronger%20mirror%20image%5Cn-%20%25d%20mana%5Cn-%20%25d%20second%20cooldown
+standard bow ammunition. keep arrows in your pack; equipped bows consume one arrow per shot.	custom.generated.standard_bow_ammunition_keep_arrows_38c426bc68
+start over	custom.generated.start_over_91a5868691
+starving heroes do not regenerate health or mana. they also take %arg% damage every %arg% seconds until they eat.	custom.generated.starving_heroes_do_not_regenerate_1c07a5a6b7	Starving%20heroes%20do%20not%20regenerate%20health%20or%20mana.%20They%20also%20take%20%25d%20damage%20every%20%25d%20seconds%20until%20they%20eat.
+starving!	custom.generated.starving_5fcd4798f5
+stay unseen	custom.generated.stay_unseen_72dc646abc
+steady aim with the bow makes every shot more reliable.\n+%arg%%arg% accuracy when using the bow	custom.generated.steady_aim_with_the_bow_1a7e84525c	Steady%20aim%20with%20the%20bow%20makes%20every%20shot%20more%20reliable.%5Cn%2B%25d%25%25%20accuracy%20when%20using%20the%20bow
+stench glyph	custom.generated.stench_glyph_81dd8876d9
+stole %arg%	custom.generated.stole_arg_7064f74f85	Stole%20%25s
+stone glyph	custom.generated.stone_glyph_909896232f
+strong	custom.generated.strong_0117691d02
+stronger poison	custom.generated.stronger_poison_a57626807b
+stunning enchantment	custom.generated.stunning_enchantment_bbb990b05c
+suffer!	custom.generated.suffer_44c8609f2a
+summoning expert	custom.generated.summoning_expert_dbdd0591e7
+summoning mastery	custom.generated.summoning_mastery_6af9c10728
+summons a fire elemental to aid the hero on his quest.	custom.generated.summons_a_fire_elemental_to_06b94efbd1
+sungrass is renowned for its sap's healing properties.	custom.generated.sungrass_is_renowned_for_its_533a09d77f
+teleported	custom.generated.teleported_b498ba7f70
+tempered enchantment	custom.generated.tempered_enchantment_c03baecdc0
+terror	custom.generated.terror_10f9bb8fa0
+thank you! the curse is broken and i can finally rest... please take one of these items, maybe they will be useful to you in your journey...	custom.generated.thank_you_the_curse_is_6a3af3f76b
+that class	custom.generated.that_class_f31ca14050
+that item has no matching partner to reforge.	custom.generated.that_item_has_no_matching_256c84136e
+the ability to heal at an accelerated rate is crucial when constantly facing enemies.\n+%arg%%arg% regeneration	custom.generated.the_ability_to_heal_at_c4e3cafb3c	The%20ability%20to%20heal%20at%20an%20accelerated%20rate%20is%20crucial%20when%20constantly%20facing%20enemies.%5Cn%2B%25d%25%25%20regeneration
+the ability to recover spiritual energy at an accelerated rate is critical for heroes that rely on magic.\n- +%arg%%arg% mana regeneration	custom.generated.the_ability_to_recover_spiritual_933f9f8444	The%20ability%20to%20recover%20spiritual%20energy%20at%20an%20accelerated%20rate%20is%20critical%20for%20heroes%20that%20rely%20on%20magic.%5Cn-%20%2B%25d%25%25%20mana%20regeneration
+the armory lies behind a locked door.\nmust find a key...	custom.generated.the_armory_lies_behind_a_15e2ba8a2e
+the blacksmith wanted bat blood, not ore.	custom.generated.the_blacksmith_wanted_bat_blood_34c88bac42
+the crypt is sealed behind a locked door.\nmust find a key...	custom.generated.the_crypt_is_sealed_behind_150d39f37d
+the curse still clings to this place... please... destroy it...	custom.generated.the_curse_still_clings_to_1f13ed31ae
+the cursed armor will not come off.	custom.generated.the_cursed_armor_will_not_a43473f5f6
+the door is locked.	custom.generated.the_door_is_locked_c853bb2b92
+the enormous steel head of this battle axe puts considerable heft behind each stroke.	custom.generated.the_enormous_steel_head_of_d87dcd4c0b
+the heaven protects me	custom.generated.the_heaven_protects_me_43776224c2
+the laboratory lies behind a locked door.\nmust find a key...	custom.generated.the_laboratory_lies_behind_a_df70d32b88
+the legendary prize of the dungeon. claiming it marks a winning run.	custom.generated.the_legendary_prize_of_the_233272189a
+the library is hidden behind a locked door.\nmust find a key... great wisdom lies within	custom.generated.the_library_is_hidden_behind_94af919708
+the mercenary den lies behind a locked door.\nmust find a key...	custom.generated.the_mercenary_den_lies_behind_3935aa4ed3
+the merchant lies behind a locked door.\nmust find a key...	custom.generated.the_merchant_lies_behind_a_a33c2ee26b
+the pickaxe has no obvious use right now.	custom.generated.the_pickaxe_has_no_obvious_eee33e6e55
+the rose has dried long ago, but it has kept all its petals somehow.	custom.generated.the_rose_has_dried_long_fb6f4c3770
+the storage room lies behind a sealed door.	custom.generated.the_storage_room_lies_behind_43274899bd
+the treasure is hidden behind a locked door.\nmust find a key...	custom.generated.the_treasure_is_hidden_behind_234588b7fc
+the treasury lies behind a locked door.\nmust find a key...	custom.generated.the_treasury_lies_behind_a_33e6473212
+the vault lies behind a locked door.\nmust find a key...	custom.generated.the_vault_lies_behind_a_821492734c
+the words on this sign cannot be understood.	custom.generated.the_words_on_this_sign_b2fd5369ea
+the words on this sign cannot be understood.%arg%	custom.generated.the_words_on_this_sign_ac2a9963af	The%20words%20on%20this%20sign%20cannot%20be%20understood.%25s
+there is no dark gold worth mining here.	custom.generated.there_is_no_dark_gold_030d998ef1
+these dungeons are more dangerous at night	custom.generated.these_dungeons_are_more_dangerous_9c9411b309
+thief	custom.generated.thief_c9fdea28cd
+thieves rely on stealth, poison, and sudden bursts of violence in combat.	custom.generated.thieves_rely_on_stealth_poison_920f92f922
+this %arg% is a tier %arg% %arg% ranged weapon.	custom.generated.this_arg_is_a_tier_6df9ba572f	This%20%25s%20is%20a%20tier%20%25d%20%25s%20ranged%20weapon.
+this %arg% is a tier %arg% %arg% ranged weapon.%arg%	custom.generated.this_arg_is_a_tier_d89650dfd3	This%20%25s%20is%20a%20tier%20%25d%20%25s%20ranged%20weapon.%25s
+this %arg% is a tier %arg% %arg% wand.	custom.generated.this_arg_is_a_tier_16e793fbf4	This%20%25s%20is%20a%20tier%20%25d%20%25s%20wand.
+this %arg% is a tier %arg% %arg% wand.%arg%	custom.generated.this_arg_is_a_tier_de00543228	This%20%25s%20is%20a%20tier%20%25d%20%25s%20wand.%25s
+this %arg% is a tier %arg% %arg% weapon.	custom.generated.this_arg_is_a_tier_772b0452c5	This%20%25s%20is%20a%20tier%20%25d%20%25s%20weapon.
+this %arg% is a tier %arg% %arg% weapon.%arg%	custom.generated.this_arg_is_a_tier_40e939c01d	This%20%25s%20is%20a%20tier%20%25d%20%25s%20weapon.%25s
+this %arg% is a tier %arg% armor.	custom.generated.this_arg_is_a_tier_27265f8db0	This%20%25s%20is%20a%20tier%20%25d%20armor.
+this %arg% is a tier %arg% armor.%arg%	custom.generated.this_arg_is_a_tier_efc77eee28	This%20%25s%20is%20a%20tier%20%25d%20armor.%25s
+this %arg% is a tier %arg% ranged weapon.	custom.generated.this_arg_is_a_tier_c6a0646247	This%20%25s%20is%20a%20tier%20%25d%20ranged%20weapon.
+this %arg% is a tier %arg% ranged weapon.%arg%	custom.generated.this_arg_is_a_tier_8005cba207	This%20%25s%20is%20a%20tier%20%25d%20ranged%20weapon.%25s
+this %arg% is a tier %arg% wand.	custom.generated.this_arg_is_a_tier_4d2cfcd9be	This%20%25s%20is%20a%20tier%20%25d%20wand.
+this %arg% is a tier %arg% wand.%arg%	custom.generated.this_arg_is_a_tier_1f1d360075	This%20%25s%20is%20a%20tier%20%25d%20wand.%25s
+this %arg% is a tier %arg% weapon.	custom.generated.this_arg_is_a_tier_425753da1a	This%20%25s%20is%20a%20tier%20%25d%20weapon.
+this %arg% is a tier %arg% weapon.%arg%	custom.generated.this_arg_is_a_tier_61383b575e	This%20%25s%20is%20a%20tier%20%25d%20weapon.%25s
+this is a stack of %arg% arrows.	custom.generated.this_is_a_stack_of_878540b56a	This%20is%20a%20stack%20of%20%25d%20arrows.
+this ranged weapon has %arg% ammo left.	custom.generated.this_ranged_weapon_has_arg_dacdc2a700	This%20ranged%20weapon%20has%20%25d%20ammo%20left.
+this ranged weapon has %arg% ammo left.%arg%	custom.generated.this_ranged_weapon_has_arg_032580948e	This%20ranged%20weapon%20has%20%25d%20ammo%20left.%25s
+this ranged weapon has %arg% ammo left.\n\nthis bow consumes arrows from your pack. it currently has access to %arg% arrows.	custom.generated.this_ranged_weapon_has_arg_407ed29282	This%20ranged%20weapon%20has%20%25s%20ammo%20left.%5Cn%5CnThis%20bow%20consumes%20arrows%20from%20your%20pack.%20It%20currently%20has%20access%20to%20%25s%20arrows.
+this ring amplifies wand energy, making magical attacks and effects stronger while worn.	custom.generated.this_ring_amplifies_wand_energy_200ab405b9
+this ring helps you draw more recovery from simple rations, restoring a little health and mana when you eat.	custom.generated.this_ring_helps_you_draw_d1c9791821
+this ring helps you slip through the dark, causing distant enemies to lose track of you more easily.	custom.generated.this_ring_helps_you_slip_1d28e20488
+this ring lashes back at attackers, reflecting a portion of the damage they inflict.	custom.generated.this_ring_lashes_back_at_56f755b8dd
+this ring marks you as a trusted trader, lowering buy prices and improving sell offers.	custom.generated.this_ring_marks_you_as_cf1c9640cf
+this ring sharpens your senses, revealing hidden traps around you while worn.	custom.generated.this_ring_sharpens_your_senses_bdf9b59ef1
+this ring slows the gnaw of hunger, letting you go longer between meals.	custom.generated.this_ring_slows_the_gnaw_cabf1f8863
+this ring strengthens the body's natural repair, increasing regeneration by %arg%%arg% while worn.	custom.generated.this_ring_strengthens_the_body_s_d5b9e4754f	This%20ring%20strengthens%20the%20body%27s%20natural%20repair%2C%20increasing%20regeneration%20by%20%25d%25%25%20while%20worn.
+this skill is locked out.	custom.generated.this_skill_is_locked_out_a9840fc311
+this subclass is unlocked by the tome of mastery dropped by tengu.	custom.generated.this_subclass_is_unlocked_by_cbbb56b924
+this worn leather tome feels far more potent than its size suggests. reading it lets you choose a subclass path, but only if you can focus long enough to understand it.	custom.generated.this_worn_leather_tome_feels_b71b69c7c5
+thorns glyph	custom.generated.thorns_glyph_df9e33e028
+throw darts	custom.generated.throw_darts_be4ff108d4
+throw this seed to the place where you want to grow %arg%. %arg%\n\nalchemy result: %arg%\n\nthis stack contains %arg% seeds.	custom.generated.throw_this_seed_to_the_73de04342b	Throw%20this%20seed%20to%20the%20place%20where%20you%20want%20to%20grow%20%25s.%20%25s%5Cn%5CnAlchemy%20result%3A%20%25s%5Cn%5CnThis%20stack%20contains%20%25s%20seeds.
+title screen theme & fx	custom.generated.title_screen_theme_fx_412717b278
+tome of mastery	custom.generated.tome_of_mastery_1bc9fbf89c
+too quiet	custom.generated.too_quiet_c144f29f61
+toughness	custom.generated.toughness_ef532ea6ec
+toxic cloud	custom.generated.toxic_cloud_1ce14f7761
+training	custom.generated.training_0a2b9827e5
+trap handling	custom.generated.trap_handling_ed6c4fb5cc
+travel clothes	custom.generated.travel_clothes_261fd88e62
+triggering traps becomes harmless to a practiced rogue.\n- %arg%%arg% chance to disarm traps on contact\n- works on hidden traps too	custom.generated.triggering_traps_becomes_harmless_to_1b33f336ba	Triggering%20traps%20becomes%20harmless%20to%20a%20practiced%20rogue.%5Cn-%20%25d%25%25%20chance%20to%20disarm%20traps%20on%20contact%5Cn-%20Works%20on%20hidden%20traps%20too
+unknown	custom.generated.unknown_50d8b4a941
+unknown hero	custom.generated.unknown_hero_e2484c4d75
+unstable enchantment	custom.generated.unstable_enchantment_4ad6fbb228
+upgraded	custom.generated.upgraded_01dcd2f750
+upon touching a dreamweed it secretes a glittering cloud of confusing gas.	custom.generated.upon_touching_a_dreamweed_it_925e6a43c5
+upon touching an icecap excretes a pollen, which freezes everything in its vicinity.	custom.generated.upon_touching_an_icecap_excretes_01baf58c62
+useless	custom.generated.useless_9384dbba8f
+vampiric enchantment	custom.generated.vampiric_enchantment_6b754626ff
+venom	custom.generated.venom_280ecd1468
+venomous enchantment	custom.generated.venomous_enchantment_a7aef49a5c
+viscosity glyph	custom.generated.viscosity_glyph_0f6fe74aba
+vulnerability	custom.generated.vulnerability_13c6cb1c4d
+wand mastery	custom.generated.wand_mastery_0fcc28e408
+wand of amok	custom.generated.wand_of_amok_5dbfc5f6bb
+wand of avalanche	custom.generated.wand_of_avalanche_910689bf83
+wand of blink	custom.generated.wand_of_blink_63bd89aee0
+wand of flock	custom.generated.wand_of_flock_1ef6d62e4d
+wand of poison	custom.generated.wand_of_poison_d2215ad9d0
+wand of reach	custom.generated.wand_of_reach_a280677aa7
+wand of slowness	custom.generated.wand_of_slowness_ff1061ceb6
+wand of teleportation	custom.generated.wand_of_teleportation_affddfd337
+warlock skills rely on curses and turning enemies against each other. unlock warlock through the tome of mastery dropped by tengu.\n%arg%	custom.generated.warlock_skills_rely_on_curses_284bc21057	Warlock%20skills%20rely%20on%20curses%20and%20turning%20enemies%20against%20each%20other.%20Unlock%20Warlock%20through%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.%5Cn%25s
+warlocks rely on dark arts manipulating enemies into attacking each other.\n- +%arg% max mana\n- +%arg%%arg% mana regeneration\n- killing an enemy heals wounds and satisfies hunger\n- locks out battle mage	custom.generated.warlocks_rely_on_dark_arts_f131d7cd7c	Warlocks%20rely%20on%20dark%20arts%20manipulating%20enemies%20into%20attacking%20each%20other.%5Cn-%20%2B%25d%20max%20mana%5Cn-%20%2B%25d%25%25%20mana%20regeneration%5Cn-%20Killing%20an%20enemy%20heals%20wounds%20and%20satisfies%20hunger%5Cn-%20Locks%20out%20Battle%20Mage
+warriors choose between gladiator and berserker after reading the tome of mastery dropped by tengu.\n%arg%	custom.generated.warriors_choose_between_gladiator_and_260a556279	Warriors%20choose%20between%20Gladiator%20and%20Berserker%20after%20reading%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.%5Cn%25s
+warriors start with a short sword	custom.generated.warriors_start_with_a_short_a61b1dc584
+warriors start with five healing potions	custom.generated.warriors_start_with_five_healing_99faeb259d
+warriors start with leather armor	custom.generated.warriors_start_with_leather_armor_4b304f275d
+warriors start with two rations	custom.generated.warriors_start_with_two_rations_0a4c5a608c
+warriors who embrace the gladiator's discipline become tougher and faster in battle.\n- +%arg% health\n- +%arg%%arg% attack speed\n- successful melee hits build a combo\n- from the %arg%rd chained hit onward, each hit deals bonus damage	custom.generated.warriors_who_embrace_the_gladiator_s_fd96885cb6	Warriors%20who%20embrace%20the%20gladiator%27s%20discipline%20become%20tougher%20and%20faster%20in%20battle.%5Cn-%20%2B%25d%20health%5Cn-%20%2B%25d%25%25%20attack%20speed%5Cn-%20Successful%20melee%20hits%20build%20a%20combo%5Cn-%20From%20the%20%25drd%20chained%20hit%20onward%2C%20each%20hit%20deals%20bonus%20damage
+way of the %arg%!	custom.generated.way_of_the_arg_21648b5ae9	Way%20of%20the%20%25s%21
+way of the %arg%!%arg%	custom.generated.way_of_the_arg_arg_e609d169a5	Way%20of%20the%20%25s%21%25s
+weaken	custom.generated.weaken_fcb9e7c68c
+weakens enemies reducing their damage by %arg%%arg%.\n- target does %arg%%arg% less damage	custom.generated.weakens_enemies_reducing_their_damage_27d2621210	Weakens%20enemies%20reducing%20their%20damage%20by%20%25d%25%25.%5Cn-%20Target%20does%20%25d%25%25%20less%20damage
+weapon	custom.generated.weapon_395d3b4c7b
+welcome to my shop. show me what you want to sell.. maybe it's worth my time..	custom.generated.welcome_to_my_shop_show_e9f83add01
+when a creature touches an earthroot, its roots create a kind of natural armor around it.	custom.generated.when_a_creature_touches_an_252b039b23
+when severely wounded, the berserker enters a state of wild fury significantly increasing his damage output.\n- +%arg% health\n- +%arg%%arg% damage\n- below %arg%%arg% health, gain up to +%arg%%arg% extra damage	custom.generated.when_severely_wounded_the_berserker_31e6e5553c	When%20severely%20wounded%2C%20the%20berserker%20enters%20a%20state%20of%20wild%20fury%20significantly%20increasing%20his%20damage%20output.%5Cn-%20%2B%25d%20health%5Cn-%20%2B%25d%25%25%20damage%5Cn-%20Below%20%25d%25%25%20health%2C%20gain%20up%20to%20%2B%25d%25%25%20extra%20damage
+wipe out	custom.generated.wipe_out_95a534faf5
+wizards choose between battle mage and warlock after reading the tome of mastery dropped by tengu.\n%arg%	custom.generated.wizards_choose_between_battle_mage_a0bd4d0470	Wizards%20choose%20between%20Battle%20Mage%20and%20Warlock%20after%20reading%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.%5Cn%25s
+wizards choose the path of magic. they are physically weak, so they rely on ranged spells.	custom.generated.wizards_choose_the_path_of_25865ed1dc
+wizards start with a firebolt wand	custom.generated.wizards_start_with_a_firebolt_030a8909eb
+wizards start with five healing potions	custom.generated.wizards_start_with_five_healing_6ed63d3777
+wizards start with five mana potions	custom.generated.wizards_start_with_five_mana_d210007aaa
+wizards start with two rations	custom.generated.wizards_start_with_two_rations_5fab0c77bf
+words of hard-earned wisdom that grant the reader an extra skill point.	custom.generated.words_of_hard_earned_wisdom_that_2af93ee0f2
+yes! the ugly creature is slain and i can finally rest... please take one of these items, maybe they will be useful to you in your journey...	custom.generated.yes_the_ugly_creature_is_534a89f384
+yes! yes!!! this is it! please give it to me! and you can take one of these items, maybe they will be useful to you in your journey...	custom.generated.yes_yes_this_is_it_ac842d0968
+you are short by %arg%, reducing its damage and attack speed.	custom.generated.you_are_short_by_arg_fc4b4841b4	You%20are%20short%20by%20%25d%2C%20reducing%20its%20damage%20and%20attack%20speed.
+you are short by %arg%, reducing its damage and attack speed.%arg%	custom.generated.you_are_short_by_arg_b44cf06a5a	You%20are%20short%20by%20%25d%2C%20reducing%20its%20damage%20and%20attack%20speed.%25s
+you are short by %arg%, reducing movement speed and armor effectiveness.	custom.generated.you_are_short_by_arg_99dad8328c	You%20are%20short%20by%20%25d%2C%20reducing%20movement%20speed%20and%20armor%20effectiveness.
+you are short by %arg%, reducing movement speed and armor effectiveness.%arg%	custom.generated.you_are_short_by_arg_b308f2fc73	You%20are%20short%20by%20%25d%2C%20reducing%20movement%20speed%20and%20armor%20effectiveness.%25s
+you can barely see this tiny translucent fish in the air. in the water it becomes effectively invisible.	custom.generated.you_can_barely_see_this_4ec6a2858c
+you can equip up to %arg% rings at the same time.	custom.generated.you_can_equip_up_to_9648533797	You%20can%20equip%20up%20to%20%25d%20rings%20at%20the%20same%20time.
+you can hold up to %arg% items in your backpack.	custom.generated.you_can_hold_up_to_c45816dbc8	You%20can%20hold%20up%20to%20%25d%20items%20in%20your%20backpack.
+you can only equip two rings at a time.	custom.generated.you_can_only_equip_two_46f7db3fa3
+you can't read while blinded	custom.generated.you_can_t_read_while_blinded_d7ea30a7af
+you have %arg% skill points left.	custom.generated.you_have_arg_skill_points_b2c3e75456	You%20have%20%25s%20skill%20points%20left.
+you have already chosen a subclass.	custom.generated.you_have_already_chosen_a_21d142e235
+you have chosen the way of the %arg%!	custom.generated.you_have_chosen_the_way_15f85b45be	You%20have%20chosen%20the%20way%20of%20the%20%25s%21
+you have chosen the way of the %arg%!%arg%	custom.generated.you_have_chosen_the_way_d42a514e2b	You%20have%20chosen%20the%20way%20of%20the%20%25s%21%25s
+you have unlocked this skill!	custom.generated.you_have_unlocked_this_skill_4167a364b7
+you need %arg% mana to use the wand.	custom.generated.you_need_arg_mana_to_a7e03f9162	You%20need%20%25d%20mana%20to%20use%20the%20wand.
+you need %arg% mana to use the wand.%arg%	custom.generated.you_need_arg_mana_to_5fbf4d46a8	You%20need%20%25d%20mana%20to%20use%20the%20wand.%25s
+you need %arg% strength to use the %arg%.	custom.generated.you_need_arg_strength_to_d29e64b632	You%20need%20%25d%20Strength%20to%20use%20the%20%25s.
+you need %arg% strength to use the %arg%.%arg%	custom.generated.you_need_arg_strength_to_55a40d275b	You%20need%20%25d%20Strength%20to%20use%20the%20%25s.%25s
+you need two identified matching items to reforge.	custom.generated.you_need_two_identified_matching_4333732ed3
+your %arg% certainly looks better now.%arg%	custom.generated.your_arg_certainly_looks_better_7dea3ddc8d	Your%20%25s%20certainly%20looks%20better%20now.%25s
+your excess strength adds %arg% bonus damage.	custom.generated.your_excess_strength_adds_arg_8a10d1642c	Your%20excess%20strength%20adds%20%25d%20bonus%20damage.
+your excess strength adds %arg% bonus damage.%arg%	custom.generated.your_excess_strength_adds_arg_4c8330e30d	Your%20excess%20strength%20adds%20%25d%20bonus%20damage.%25s

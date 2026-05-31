@@ -1,0 +1,606 @@
+import org.gradle.internal.os.OperatingSystem
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+configurations {
+    proguard
+}
+
+dependencies {
+    proguard "com.guardsquare:proguard-base:7.6.1"
+}
+
+def steamAppId = rootProject.ext.steamAppId
+def steamJarBaseName = 'skillful-pixel-dungeon-platformer-steam'
+def steamIconPng = rootProject.file('assets/icon.png')
+def steamIconIco = layout.buildDirectory.file('steam/icon/skillful-pixel-dungeon-platformer.ico')
+def steamIconIcns = layout.buildDirectory.file('steam/icon/skillful-pixel-dungeon-platformer.icns')
+def steamAppJarDir = layout.buildDirectory.dir('steam/app-jar')
+def steamRuntimeLibsDir = layout.buildDirectory.dir('steam/runtime-libs')
+def steamLocalInputDir = layout.buildDirectory.dir('steam/local/input')
+def steamFreeInputDir = layout.buildDirectory.dir('steam/free/input')
+def steamPublishInputDir = layout.buildDirectory.dir('steam/publish/input')
+def hostOperatingSystem = OperatingSystem.current()
+def steamMacBundleIdentifier = 'com.bilboldev.skillfulpixeldungeonplatformer'
+def steamMacMenuName = 'SkillfulPD'
+def freeDesktopBuildProperty = 'spd.desktopFreeBuild'
+def normalizedHostArchitecture = {
+    String architecture = (System.getProperty('os.arch') ?: '').toLowerCase()
+    if (architecture in ['x86_64', 'amd64']) {
+        return 'x64'
+    }
+    if (architecture in ['aarch64', 'arm64']) {
+        return 'arm64'
+    }
+    return architecture
+}
+def steamHostPlatformId = {
+    if (hostOperatingSystem.isWindows()) {
+        return 'windows-' + normalizedHostArchitecture()
+    }
+    if (hostOperatingSystem.isLinux()) {
+        return 'linux-' + normalizedHostArchitecture()
+    }
+    if (hostOperatingSystem.isMacOsX()) {
+        return 'macos-' + normalizedHostArchitecture()
+    }
+    return 'unsupported-' + normalizedHostArchitecture()
+}
+def steamPackagePlatformId = steamHostPlatformId()
+def steamLocalPackageDir = layout.buildDirectory.dir("steam/local/package/${steamPackagePlatformId}")
+def steamFreePackageDir = layout.buildDirectory.dir("steam/free/package/${steamPackagePlatformId}/Free")
+def steamPublishPackageDir = layout.buildDirectory.dir("steam/publish/package/${steamPackagePlatformId}")
+def steamAppVersion = String.valueOf(rootProject.version ?: '1.0')
+def legacySteamPackageInputDir = layout.buildDirectory.dir('steam-package-input')
+def steamObfuscatedJar = layout.buildDirectory.file("steam/publish/obfuscation/${steamJarBaseName}.jar")
+def steamObfuscationConfig = layout.buildDirectory.file('steam/publish/obfuscation/proguard-config.pro')
+def steamObfuscationMapping = layout.buildDirectory.file('steam/publish/obfuscation/mapping.txt')
+def desktopJarTask = tasks.named('jar', Jar)
+def coreJarTask = project(':core').tasks.named('jar', Jar)
+def steamAppImageName = hostOperatingSystem.isMacOsX() ? "${rootProject.ext.appName}.app" : rootProject.ext.appName
+
+def executableName = { String baseName ->
+    System.getProperty('os.name').toLowerCase().contains('windows') ? "${baseName}.exe" : baseName
+}
+
+def toPortablePath = { File file ->
+    file.absolutePath.replace('\\', '/')
+}
+
+def quoteForProguard = { File file ->
+    "\"${toPortablePath(file)}\""
+}
+
+def libraryEntryForProguard = { File file ->
+    String path = quoteForProguard(file)
+    file.name.toLowerCase().endsWith('.jmod') ? path + '(!**.jar;!module-info.class)' : path
+}
+
+def writeSteamAppIdFile = { File file ->
+    file.parentFile.mkdirs()
+    file.text = steamAppId + System.lineSeparator()
+}
+
+def writeSteamAppIdFiles = { File installRoot ->
+    LinkedHashSet<File> targets = new LinkedHashSet<>()
+    targets.add(new File(installRoot, 'steam_appid.txt'))
+
+    if (hostOperatingSystem.isWindows()) {
+        targets.add(new File(installRoot, 'app/steam_appid.txt'))
+    } else if (hostOperatingSystem.isLinux()) {
+        targets.add(new File(installRoot, 'bin/steam_appid.txt'))
+        targets.add(new File(installRoot, 'lib/app/steam_appid.txt'))
+    } else if (hostOperatingSystem.isMacOsX()) {
+        targets.add(new File(installRoot, 'Contents/MacOS/steam_appid.txt'))
+        targets.add(new File(installRoot, 'Contents/app/steam_appid.txt'))
+    }
+
+    targets.each { File target ->
+        writeSteamAppIdFile(target)
+    }
+}
+
+def writeWordLE = { OutputStream stream, int value ->
+    stream.write(value & 0xFF)
+    stream.write((value >> 8) & 0xFF)
+}
+
+def writeDwordLE = { OutputStream stream, int value ->
+    stream.write(value & 0xFF)
+    stream.write((value >> 8) & 0xFF)
+    stream.write((value >> 16) & 0xFF)
+    stream.write((value >> 24) & 0xFF)
+}
+
+def steamRuntimeLibraries = {
+    String desktopJarName = desktopJarTask.get().archiveFileName.get()
+    configurations.runtimeClasspath.resolve().findAll { File file ->
+        return file.name.endsWith('.jar') && file.name != desktopJarName && !file.name.startsWith('core-')
+    }.sort { File left, File right -> left.name <=> right.name }
+}
+
+def addSteamJavaHomesFrom = { LinkedHashSet<File> homes, File root ->
+    if (root == null || !root.isDirectory()) {
+        return
+    }
+
+    root.listFiles()?.findAll { File candidate -> candidate.isDirectory() }?.sort { File left, File right -> right.name <=> left.name }?.each { File candidate ->
+        homes.add(candidate)
+    }
+}
+
+def steamJavaHomes = {
+    LinkedHashSet<File> homes = new LinkedHashSet<>()
+    [System.getenv('SKILLFUL_DESKTOP_DEBUG_JAVA_HOME'), System.getenv('JAVA_HOME'), System.getProperty('java.home')]
+            .findAll { String value -> value != null && !value.trim().isEmpty() }
+            .each { String javaHome ->
+                File homeDir = new File(javaHome)
+                homes.add(homeDir)
+                if (homeDir.parentFile != null) {
+                    homes.add(homeDir.parentFile)
+                }
+            }
+
+    homes
+}
+
+def isAndroidStudioJbr = { File homeDir ->
+    if (homeDir == null) {
+        return false
+    }
+
+    String normalized = toPortablePath(homeDir).toLowerCase()
+    return normalized.contains('/android studio/jbr')
+}
+
+def steamJavaHome = {
+    steamJavaHomes().find { File homeDir ->
+        return new File(homeDir, 'bin/' + executableName('java')).isFile() && (new File(homeDir, 'jmods').isDirectory() || new File(homeDir, 'lib/rt.jar').isFile())
+    }
+}
+
+def desktopRuntimeJavaHome = {
+    File preferredHome = steamJavaHomes().find { File homeDir ->
+    File javaExecutable = new File(homeDir, 'bin/' + executableName('java'))
+    File jmodsDir = new File(homeDir, 'jmods')
+    File rtJar = new File(homeDir, 'lib/rt.jar')
+    !isAndroidStudioJbr(homeDir) && javaExecutable.isFile() && (jmodsDir.isDirectory() || rtJar.isFile())
+    }
+
+    return preferredHome != null ? preferredHome : steamJavaHome()
+}
+
+def steamJavaRuntimeLibraries = {
+    File preferredJavaHome = steamJavaHome()
+    List<File> homesToScan = preferredJavaHome != null ? [preferredJavaHome] : new ArrayList<File>(steamJavaHomes())
+    LinkedHashSet<File> candidates = new LinkedHashSet<>()
+
+    homesToScan.each { File homeDir ->
+        candidates.add(new File(homeDir, 'jmods'))
+        candidates.add(new File(homeDir, 'lib/rt.jar'))
+    }
+
+    ArrayList<File> libraries = new ArrayList<>()
+    candidates.each { File candidate ->
+        if (candidate.isDirectory()) {
+            libraries.addAll(fileTree(candidate).matching { include '*.jmod' }.files.sort { File left, File right -> left.name <=> right.name })
+        } else if (candidate.isFile()) {
+            libraries.add(candidate)
+        }
+    }
+
+    libraries
+}
+
+def steamJpackageExecutable = {
+    LinkedHashSet<File> candidates = new LinkedHashSet<>()
+    def envOverride = System.getenv('JPACKAGE')
+    if (envOverride != null && !envOverride.trim().isEmpty()) {
+        candidates.add(new File(envOverride.trim()))
+    }
+
+    steamJavaHomes().each { File homeDir ->
+        candidates.add(new File(homeDir, 'bin/' + executableName('jpackage')))
+    }
+
+    candidates.find { File candidate -> candidate.isFile() }
+}
+
+def ensureSupportedSteamPackagingHost = {
+    String architecture = normalizedHostArchitecture()
+
+    if (hostOperatingSystem.isWindows() && architecture == 'x64') {
+        return
+    }
+
+    if (hostOperatingSystem.isLinux() && architecture == 'x64') {
+        return
+    }
+
+    if (hostOperatingSystem.isMacOsX() && architecture == 'arm64') {
+        return
+    }
+
+    throw new GradleException("Steam packaging on this host is not configured for repo-supported depots. Current host is ${hostOperatingSystem.getName()} ${architecture}; supported targets are Windows x64, Linux x64, and macOS arm64.")
+}
+
+def resolveSteamIconFile = {
+    if (hostOperatingSystem.isWindows()) {
+        return steamIconIco.get().asFile
+    }
+    if (hostOperatingSystem.isMacOsX()) {
+        return steamIconIcns.get().asFile
+    }
+    return steamIconPng
+}
+
+def steamPackageImageDir = { Provider<Directory> packageDir ->
+    new File(packageDir.get().asFile, steamAppImageName)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = [file('src')]
+        }
+        resources {
+            srcDirs = [file('src/main/resources'), rootProject.file('assets')]
+            exclude 'saves/**'
+            exclude 'rankings/**'
+            exclude 'hs_err_pid*.log'
+        }
+    }
+}
+
+tasks.named('processResources').configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+application {
+    mainClass = 'com.bilboldev.skillfulpixeldungeonplatformer.desktop.DesktopLauncher'
+}
+
+tasks.register('steamAppJar', Jar) {
+    dependsOn desktopJarTask
+    dependsOn coreJarTask
+
+    archiveBaseName.set(steamJarBaseName)
+    archiveVersion.set('')
+    destinationDirectory.set(steamAppJarDir)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes('Main-Class': application.mainClass.get())
+    }
+
+    from({
+        zipTree(desktopJarTask.get().archiveFile.get().asFile)
+    }) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+    from({
+        zipTree(coreJarTask.get().archiveFile.get().asFile)
+    }) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/INDEX.LIST'
+}
+
+tasks.register('syncSteamRuntimeLibs', Sync) {
+    into(steamRuntimeLibsDir)
+    from({
+        steamRuntimeLibraries()
+    })
+}
+
+tasks.register('writeSteamObfuscationConfig') {
+    dependsOn(tasks.named('steamAppJar'))
+    dependsOn(tasks.named('syncSteamRuntimeLibs'))
+
+    inputs.file(tasks.named('steamAppJar').flatMap { it.archiveFile })
+    inputs.files(configurations.runtimeClasspath)
+    inputs.file(file('proguard-steam.pro'))
+    outputs.file(steamObfuscationConfig)
+    outputs.file(steamObfuscationMapping)
+
+    doLast {
+        List<File> libraryFiles = new ArrayList<>(steamRuntimeLibraries())
+        libraryFiles.addAll(steamJavaRuntimeLibraries())
+        if (libraryFiles.isEmpty()) {
+            throw new GradleException('Steam obfuscation requires a full JDK with jmods or lib/rt.jar. Set JAVA_HOME or SKILLFUL_DESKTOP_DEBUG_JAVA_HOME to a full JDK installation.')
+        }
+
+        File configFile = steamObfuscationConfig.get().asFile
+        configFile.parentFile.mkdirs()
+        steamObfuscatedJar.get().asFile.parentFile.mkdirs()
+        steamObfuscationMapping.get().asFile.parentFile.mkdirs()
+
+        List<String> lines = []
+        lines << "-injars ${quoteForProguard(tasks.named('steamAppJar').get().archiveFile.get().asFile)}"
+        lines << "-outjars ${quoteForProguard(steamObfuscatedJar.get().asFile)}"
+        lines << "-printmapping ${quoteForProguard(steamObfuscationMapping.get().asFile)}"
+
+        libraryFiles.each { File dependency ->
+            lines << "-libraryjars ${libraryEntryForProguard(dependency)}"
+        }
+
+        configFile.text = lines.join(System.lineSeparator()) + System.lineSeparator()
+    }
+}
+
+tasks.register('obfuscateSteamAppJar', JavaExec) {
+    dependsOn(tasks.named('writeSteamObfuscationConfig'))
+
+    group = 'distribution'
+    description = 'Obfuscates the desktop Steam application jar.'
+    classpath = configurations.proguard
+    mainClass = 'proguard.ProGuard'
+    workingDir = project.projectDir
+
+    args("@${project.relativePath(steamObfuscationConfig.get().asFile)}")
+    args("@${project.relativePath(file('proguard-steam.pro'))}")
+}
+
+tasks.register('syncSteamLocalInput', Sync) {
+    dependsOn(tasks.named('obfuscateSteamAppJar'))
+    dependsOn(tasks.named('syncSteamRuntimeLibs'))
+
+    into(steamLocalInputDir)
+    from(steamObfuscatedJar)
+    from(steamRuntimeLibsDir)
+}
+
+tasks.register('syncSteamFreeInput', Sync) {
+    dependsOn(tasks.named('obfuscateSteamAppJar'))
+    dependsOn(tasks.named('syncSteamRuntimeLibs'))
+
+    into(steamFreeInputDir)
+    from(steamObfuscatedJar)
+    from(steamRuntimeLibsDir)
+}
+
+tasks.register('syncSteamPublishInput', Sync) {
+    dependsOn(tasks.named('obfuscateSteamAppJar'))
+    dependsOn(tasks.named('syncSteamRuntimeLibs'))
+
+    into(steamPublishInputDir)
+    from(steamObfuscatedJar)
+    from(steamRuntimeLibsDir)
+}
+
+tasks.register('prepareObfuscatedSteamPackageInput', Sync) {
+    dependsOn(tasks.named('syncSteamPublishInput'))
+
+    group = 'distribution'
+    description = 'Stages the obfuscated Steam packaging jars and runtime libraries.'
+    into(legacySteamPackageInputDir)
+    from(steamPublishInputDir)
+}
+
+tasks.register('generateSteamIcon') {
+    inputs.file(steamIconPng)
+    outputs.file(steamIconIco)
+
+    doLast {
+        def image = javax.imageio.ImageIO.read(steamIconPng)
+        if (image == null) {
+            throw new GradleException("Unable to read launcher icon: ${steamIconPng}")
+        }
+
+        int iconWidth = image.width
+        int iconHeight = image.height
+        byte[] pngBytes
+
+        if (image.width > 256 || image.height > 256) {
+            def scaledImage = new java.awt.image.BufferedImage(256, 256, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+            def graphics = scaledImage.createGraphics()
+            try {
+                graphics.setComposite(java.awt.AlphaComposite.Src)
+                graphics.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC)
+                graphics.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING, java.awt.RenderingHints.VALUE_RENDER_QUALITY)
+                graphics.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+                graphics.drawImage(image, 0, 0, 256, 256, null)
+            } finally {
+                graphics.dispose()
+            }
+
+            def output = new java.io.ByteArrayOutputStream()
+            javax.imageio.ImageIO.write(scaledImage, 'png', output)
+            pngBytes = output.toByteArray()
+            iconWidth = 256
+            iconHeight = 256
+        } else {
+            pngBytes = steamIconPng.bytes
+        }
+
+        File outputFile = steamIconIco.get().asFile
+        outputFile.parentFile.mkdirs()
+
+        outputFile.withOutputStream { stream ->
+            writeWordLE(stream, 0)
+            writeWordLE(stream, 1)
+            writeWordLE(stream, 1)
+
+            stream.write(iconWidth >= 256 ? 0 : iconWidth)
+            stream.write(iconHeight >= 256 ? 0 : iconHeight)
+            stream.write(0)
+            stream.write(0)
+            writeWordLE(stream, 1)
+            writeWordLE(stream, 32)
+            writeDwordLE(stream, pngBytes.length)
+            writeDwordLE(stream, 22)
+            stream.write(pngBytes)
+        }
+    }
+}
+
+tasks.register('generateSteamMacIcon') {
+    inputs.file(steamIconPng)
+    outputs.file(steamIconIcns)
+
+    onlyIf {
+        hostOperatingSystem.isMacOsX()
+    }
+
+    doLast {
+        File iconSetDir = new File(steamIconIcns.get().asFile.parentFile, 'skillful-pixel-dungeon-platformer.iconset')
+        delete(iconSetDir)
+        iconSetDir.mkdirs()
+
+        List<List<Object>> iconSizes = [
+                [16, 'icon_16x16.png'],
+                [32, 'icon_16x16@2x.png'],
+                [32, 'icon_32x32.png'],
+                [64, 'icon_32x32@2x.png'],
+                [128, 'icon_128x128.png'],
+                [256, 'icon_128x128@2x.png'],
+                [256, 'icon_256x256.png'],
+                [512, 'icon_256x256@2x.png'],
+                [512, 'icon_512x512.png'],
+                [1024, 'icon_512x512@2x.png']
+        ]
+
+        iconSizes.each { List<Object> iconSpec ->
+            int size = iconSpec[0] as int
+            String name = iconSpec[1] as String
+            exec {
+                commandLine('sips', '-z', String.valueOf(size), String.valueOf(size), steamIconPng.absolutePath, '--out', new File(iconSetDir, name).absolutePath)
+            }
+        }
+
+        exec {
+            commandLine('iconutil', '-c', 'icns', iconSetDir.absolutePath, '-o', steamIconIcns.get().asFile.absolutePath)
+        }
+    }
+}
+
+def configureSteamPackagingTask = { TaskProvider<Exec> taskProvider, Provider<Directory> inputDir, Provider<Directory> outputDir,
+        List<String> extraArguments ->
+    taskProvider.configure {
+        if (hostOperatingSystem.isWindows()) {
+            dependsOn(tasks.named('generateSteamIcon'))
+            inputs.file(steamIconIco)
+        } else if (hostOperatingSystem.isMacOsX()) {
+            dependsOn(tasks.named('generateSteamMacIcon'))
+            inputs.file(steamIconIcns)
+        } else {
+            inputs.file(steamIconPng)
+        }
+
+        inputs.dir(inputDir)
+        outputs.dir(outputDir)
+
+        doFirst {
+            ensureSupportedSteamPackagingHost()
+
+            File jpackageExecutable = steamJpackageExecutable()
+            if (jpackageExecutable == null) {
+                throw new GradleException('Could not find jpackage. Set JPACKAGE or JAVA_HOME to a JDK with jpackage installed.')
+            }
+
+            File outputDirFile = outputDir.get().asFile
+            delete(outputDirFile)
+            outputDirFile.mkdirs()
+
+            List<String> arguments = [
+                    jpackageExecutable.absolutePath,
+                    '--type', 'app-image',
+                    '--input', inputDir.get().asFile.absolutePath,
+                    '--dest', outputDirFile.absolutePath,
+                    '--name', rootProject.ext.appName,
+                    '--app-version', steamAppVersion,
+                    '--main-jar', "${steamJarBaseName}.jar",
+                    '--main-class', application.mainClass.get(),
+                    '--icon', resolveSteamIconFile().absolutePath
+            ]
+
+            if (hostOperatingSystem.isMacOsX()) {
+                arguments.addAll([
+                        '--mac-package-identifier', steamMacBundleIdentifier,
+                        '--mac-package-name', steamMacMenuName
+                ])
+            }
+
+            arguments.addAll(extraArguments)
+
+            commandLine(arguments)
+        }
+    }
+}
+
+def packageSteamLocalTask = tasks.register('packageSteamLocal', Exec) {
+    dependsOn(tasks.named('syncSteamLocalInput'))
+
+    doLast {
+        writeSteamAppIdFiles(steamPackageImageDir(steamLocalPackageDir))
+    }
+}
+configureSteamPackagingTask(packageSteamLocalTask, steamLocalInputDir, steamLocalPackageDir, [])
+
+def packageSteamFreeTask = tasks.register('packageSteamFree', Exec) {
+    dependsOn(tasks.named('syncSteamFreeInput'))
+}
+configureSteamPackagingTask(packageSteamFreeTask, steamFreeInputDir, steamFreePackageDir,
+        ['--java-options', "-D${freeDesktopBuildProperty}=true"])
+
+def packageSteamPublishTask = tasks.register('packageSteamPublish', Exec) {
+    dependsOn(tasks.named('syncSteamPublishInput'))
+}
+configureSteamPackagingTask(packageSteamPublishTask, steamPublishInputDir, steamPublishPackageDir, [])
+
+tasks.register('packageSteamLocalExe') {
+    dependsOn(packageSteamLocalTask)
+}
+
+tasks.register('packageSteamFreeExe') {
+    dependsOn(packageSteamFreeTask)
+}
+
+tasks.register('packageSteamPublishExe') {
+    dependsOn(packageSteamPublishTask)
+}
+
+tasks.register('packageSteamLocalBundle') {
+    dependsOn(packageSteamLocalTask)
+    dependsOn(packageSteamFreeTask)
+}
+
+tasks.register('packageSteamPublishBundle') {
+    dependsOn(packageSteamFreeTask)
+    dependsOn(packageSteamPublishTask)
+}
+
+tasks.register('packageSteamDistributions') {
+    dependsOn(packageSteamLocalTask)
+    dependsOn(packageSteamFreeTask)
+    dependsOn(packageSteamPublishTask)
+}
+
+tasks.named('run', JavaExec).configure {
+    workingDir = rootProject.file('assets')
+    File preferredJavaHome = desktopRuntimeJavaHome()
+    if (preferredJavaHome != null) {
+        executable = new File(preferredJavaHome, 'bin/' + executableName('java')).absolutePath
+        environment 'JAVA_HOME', preferredJavaHome.absolutePath
+    }
+    doFirst {
+        new File(workingDir, 'steam_appid.txt').text = steamAppId + System.lineSeparator()
+    }
+    doLast {
+        delete(new File(workingDir, 'steam_appid.txt'))
+    }
+    debugOptions {
+        port = 51234
+    }
+}

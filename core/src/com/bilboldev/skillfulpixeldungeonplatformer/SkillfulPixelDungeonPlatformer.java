@@ -15,7 +15,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.platform.AchievementService;
 import com.bilboldev.skillfulpixeldungeonplatformer.platform.PlatformProfile;
-import com.bilboldev.skillfulpixeldungeonplatformer.platform.StoreService;
 import com.bilboldev.skillfulpixeldungeonplatformer.platform.WindowModeService;
 import com.bilboldev.skillfulpixeldungeonplatformer.screens.BaseScreen;
 import com.bilboldev.skillfulpixeldungeonplatformer.screens.TitleScreen;
@@ -25,24 +24,25 @@ public class SkillfulPixelDungeonPlatformer extends Game {
 	private static SkillfulPixelDungeonPlatformer instance;
 	private static PlatformProfile platformProfile = PlatformProfile.android();
 	private final AchievementService achievementService;
-	private final StoreService storeService;
+	private final com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudStorage cloudStorage;
 
 	public SkillfulPixelDungeonPlatformer() {
-		this(PlatformProfile.android(), null, null);
+		this(PlatformProfile.android(), null);
 	}
 
 	public SkillfulPixelDungeonPlatformer(PlatformProfile platformProfile) {
-		this(platformProfile, null, null);
+		this(platformProfile, null);
 	}
 
 	public SkillfulPixelDungeonPlatformer(PlatformProfile platformProfile, AchievementService achievementService) {
 		this(platformProfile, achievementService, null);
 	}
 
-	public SkillfulPixelDungeonPlatformer(PlatformProfile platformProfile, AchievementService achievementService, StoreService storeService) {
+	public SkillfulPixelDungeonPlatformer(PlatformProfile platformProfile, AchievementService achievementService,
+			com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudStorage cloudStorage) {
 		SkillfulPixelDungeonPlatformer.platformProfile = platformProfile;
 		this.achievementService = achievementService;
-		this.storeService = storeService;
+		this.cloudStorage = cloudStorage;
 	}
 
 	@Override
@@ -57,10 +57,8 @@ public class SkillfulPixelDungeonPlatformer extends Game {
 		MapHelper.getInstance().reloadVisualAssets();
 		UIHelper.getInstance().reloadVisualAssets();
 		Messages.setup(GameSettingsHelper.getInstance().getLanguage());
+		com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.initialize(cloudStorage);
 		PhysicsHelper.getInstance();
-		if (storeService != null) {
-			storeService.syncRatKingDonationOwnership();
-		}
 		setScreen(new TitleScreen());
 		if (shouldAutoShowFreeVersionAbout()) {
 			WindowHelper.getInstance().addWindow(new FreeVersionAboutWindow().build());
@@ -74,17 +72,17 @@ public class SkillfulPixelDungeonPlatformer extends Game {
 	}
 
 	private boolean shouldAutoShowFreeVersionAbout() {
-		return platformProfile.isFreeDesktopBuild();
+		return platformProfile.isFreeVersion();
 	}
-	
+
 	@Override
 	public void render () {
 		if (achievementService != null) {
 			achievementService.update();
 		}
-		if (storeService != null) {
-			storeService.update();
-		}
+		com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.update();
+		com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.ControllerInput.getInstance()
+				.update(com.badlogic.gdx.Gdx.graphics.getDeltaTime());
 		super.render();
 	}
 
@@ -100,11 +98,9 @@ public class SkillfulPixelDungeonPlatformer extends Game {
 
 	@Override
 	public void dispose () {
+		com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.shutdown();
 		if (achievementService != null) {
 			achievementService.onDispose();
-		}
-		if (storeService != null) {
-			storeService.onDispose();
 		}
 		super.dispose();
 		AmbientMusicHelper.reset();
@@ -137,10 +133,6 @@ public class SkillfulPixelDungeonPlatformer extends Game {
 
 	public static boolean isFreeDesktopBuild() {
 		return platformProfile != null && platformProfile.isFreeDesktopBuild();
-	}
-
-	public static StoreService getStoreService() {
-		return instance == null ? null : instance.storeService;
 	}
 
 	public static AchievementService getAchievementService() {

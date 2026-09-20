@@ -21,7 +21,8 @@ public class ScrollOfMirrorImage extends Scroll {
     @Override
     public void consume() {
         for (Unit unit : new ArrayList<Unit>(UnitHelper.getInstance().getUnits())) {
-            if (unit instanceof MirrorImage && unit.isFriendly == getHero().isFriendly && unit.isSummoned && !unit.showOnly()) {
+
+            if (unit instanceof MirrorImage && unit.isFriendly == getHero().isFriendly && unit.isSummoned && !unit.showOnly && !unit.isDead()) {
                 unit.unSummon();
             }
         }

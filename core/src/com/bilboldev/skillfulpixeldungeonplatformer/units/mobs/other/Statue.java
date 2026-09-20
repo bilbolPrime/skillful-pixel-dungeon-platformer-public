@@ -14,6 +14,7 @@ public class Statue extends Mob {
 
     {
         hp = mhp = 10 + 5 * MapHelper.getInstance().getDepth();
+        attackSkill = 4 + MapHelper.getInstance().getDepth() / 2;
         experience = MapHelper.getInstance().getDepth();
         gf = new GameFilm("images/units/statue/statue.png",256, 16, 1f);
         gf.clipSizeX = 12;

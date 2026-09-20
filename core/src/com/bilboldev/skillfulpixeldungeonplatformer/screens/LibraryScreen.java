@@ -18,6 +18,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.ActionButton;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.DesktopMenuStyle;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.MobInfoWindow;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.Window;
@@ -36,10 +37,10 @@ public class LibraryScreen extends MenuScreenBase {
     private static final float CARD_WIDTH_RATIO = 0.2f;
     private static final float CARD_BASE_HEIGHT = 120f;
     private static final float CARD_HEIGHT_MULTIPLIER = 1.5f;
-    private static final float CARD_VERTICAL_GAP = 70f;
+    private static final float CARD_VERTICAL_GAP = 32f;
     private static final float CARD_VERTICAL_PADDING = 42f;
-    private static final float CARD_OVERLAY_BORDER = 40f;
-    private static final float CARD_INNER_PADDING = 10f;
+    private static final float CARD_OVERLAY_BORDER = 20f;
+    private static final float CARD_INNER_PADDING = 24f;
     private static final float CARD_TEXT_GAP = 10f;
     private static final int MAX_COLUMNS = 4;
     private static final float GRID_PREVIEW_FRAME_RATE = 7f;
@@ -53,7 +54,7 @@ public class LibraryScreen extends MenuScreenBase {
 
     @Override
     protected void createMenuContent() {
-        RatKingSupportHelper.getInstance().applyConfiguredTitleTheme();
+        if (!hostedContent) RatKingSupportHelper.getInstance().applyConfiguredTitleTheme();
         rebuildThemePage();
     }
 
@@ -67,10 +68,15 @@ public class LibraryScreen extends MenuScreenBase {
     private void rebuildThemePage() {
         buttons.clear();
         cardButtons.clear();
-        WindowHelper.getInstance().hideAll();
+        if (!hostedContent) WindowHelper.getInstance().hideAll();
         addTitleBackButton();
 
-        ArrayList<LibraryEntry> entries = new ArrayList<LibraryEntry>(MobLibraryHelper.getInstance().getBestiary(themeIndex));
+
+
+        ArrayList<LibraryEntry> entries = new ArrayList<LibraryEntry>(hostedContent
+                ? com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper.getInstance().withPreviewRandom(
+                        () -> MobLibraryHelper.getInstance().getBestiary(themeIndex))
+                : MobLibraryHelper.getInstance().getBestiary(themeIndex));
         libraryTitle = MobLibraryHelper.getInstance().getThemeName(themeIndex);
         GlyphLayout glyphLayout = new GlyphLayout();
         float tallestContent = 0f;
@@ -93,15 +99,15 @@ public class LibraryScreen extends MenuScreenBase {
 
         String localizedHeader = Messages.maybeTranslate(libraryTitle);
         float headerWidthLimit = ConstantsHelper.SCREEN_WIDTH - ARROW_WIDTH * 2f - 160f;
-        headerFontSize = FontHelper.getSingleton().fitSize(localizedHeader, 4f, headerWidthLimit, Float.POSITIVE_INFINITY);
+        headerFontSize = FontHelper.getSingleton().fitSize(localizedHeader, 3.2f, headerWidthLimit, Float.POSITIVE_INFINITY);
         BitmapFont titleFont = FontHelper.getSingleton().getFont(Color.WHITE, headerFontSize, localizedHeader);
         glyphLayout.setText(titleFont, localizedHeader);
         headerX = (ConstantsHelper.SCREEN_WIDTH - glyphLayout.width) / 2f;
         headerY = startY + cardHeight + titleFont.getCapHeight() + 90f;
         float arrowY = headerY + glyphLayout.height / 2f - ARROW_HEIGHT / 2f - ARROW_HEIGHT * ARROW_VERTICAL_DROP_FACTOR;
 
-        buttons.add(new ThemeArrowButton("<", 0f, arrowY, -1));
-        buttons.add(new ThemeArrowButton(">", ConstantsHelper.SCREEN_WIDTH - ARROW_WIDTH, arrowY, 1));
+        buttons.add(new ThemeArrowButton("<", 40f, arrowY, -1));
+        buttons.add(new ThemeArrowButton(">", ConstantsHelper.SCREEN_WIDTH - ARROW_WIDTH - 40f, arrowY, 1));
 
         for (int index = 0; index < entries.size(); index++) {
             LibraryEntry entry = entries.get(index);
@@ -119,7 +125,7 @@ public class LibraryScreen extends MenuScreenBase {
 
     @Override
     protected void drawMenu(Batch batch) {
-        FontHelper.getSingleton().writeWhiteRaw(batch, headerFontSize, headerX, headerY, Messages.maybeTranslate(libraryTitle));
+        drawMenuHeading(batch, libraryTitle, headerY);
         drawButtons(batch);
     }
 
@@ -161,7 +167,7 @@ public class LibraryScreen extends MenuScreenBase {
             this.cardWidth = width;
             this.cardHeight = height;
             this.backgroundSprites = Window.createOverlayBackgroundSprites(x, y, width, height, CARD_OVERLAY_BORDER, CARD_OVERLAY_BORDER);
-            this.localizedTitle = safeLocalizedEntryName(entry);
+            String entryName = safeLocalizedEntryName(entry);
             enableUiPressFeedback();
 
             preview = safePreview(entry);
@@ -181,7 +187,14 @@ public class LibraryScreen extends MenuScreenBase {
             float previewRight = preview == null ? innerLeft : innerLeft + getPreviewDrawWidth(preview);
             textLeft = preview == null ? innerLeft : previewRight + CARD_TEXT_GAP;
             textWidth = Math.max(60f, innerRight - textLeft);
-            titleFontSize = FontHelper.getSingleton().fitSize(localizedTitle, 3f, textWidth, cardHeight - CARD_INNER_PADDING * 2f);
+            if (hostedContent) {
+                FontHelper.FittedTextBlock title = FontHelper.getSingleton().fitLabelToBounds(
+                        entryName, 3f, textWidth, cardHeight - CARD_INNER_PADDING * 2f);
+                localizedTitle = title.text; titleFontSize = title.size;
+            } else {
+                localizedTitle = entryName;
+                titleFontSize = FontHelper.getSingleton().fitSize(localizedTitle, 3f, textWidth, cardHeight - CARD_INNER_PADDING * 2f);
+            }
         }
 
         private void act(float delta) {
@@ -199,7 +212,11 @@ public class LibraryScreen extends MenuScreenBase {
             if (isShowingPressFeedback()) {
                 batch.setColor(previousColor.r * 1.2f, previousColor.g * 1.2f, previousColor.b * 1.2f, previousColor.a);
             }
-            for (GameSprite backgroundSprite : backgroundSprites) {
+            if (hostedContent) {
+                DesktopMenuStyle.card(batch, x, y, cardWidth, cardHeight, DesktopMenuStyle.EDGE,
+                        selectedMenuButton() == this || isShowingPressFeedback());
+                DesktopMenuStyle.hover(batch, this, DesktopMenuStyle.GOLD);
+            } else for (GameSprite backgroundSprite : backgroundSprites) {
                 backgroundSprite.draw(batch);
             }
             batch.setColor(previousColor);
@@ -309,6 +326,8 @@ public class LibraryScreen extends MenuScreenBase {
         @Override
         public void draw(Batch batch) {
             super.draw(batch);
+
+            if (hostedContent) DesktopMenuStyle.hover(batch, this, DesktopMenuStyle.GOLD);
 
             Color previousColor = new Color(batch.getColor());
             if (!canClick()) {

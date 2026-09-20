@@ -25,14 +25,19 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.wands.Wa
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.RangedWeapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.ContactShadow;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Buff;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.NecromancerCurse;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.EarthrootArmor;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.ManaArmor;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.UnitState;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.ThrownProjectile;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.MercenaryFear;
+import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Gun;
 
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -43,7 +48,13 @@ public class Unit extends Actor {
     private static final float CAST_ATTACK_DURATION_SECONDS = 0.5f;
 
     protected float regenerationRate = 1f;
+    protected float manaRegenerationRate = 1f;
     private float attackAnimationSpeedOverride = -1f;
+    private transient float attackCycleRemaining;
+    private transient int presentationPlacementVersion;
+    private boolean committedDeathNotified;
+    private boolean repayingDeferredDamage;
+    private int repaidDeferredDamage;
     protected float incomingDamageModifier = 1f, outgoingDamageModifier = 1f, speedModifier = 1f, attackSpeedModifier = 1f;
     protected float accuracyMultiplier = 1f, evasionMultiplier = 1f;
 
@@ -75,6 +86,7 @@ public class Unit extends Actor {
     protected Armor armor;
 
     protected boolean rangedAttack;
+    private boolean spellCastAnimation;
 
     protected int hp = 1, mhp = 1, mp = 1, mmp = 1;
     protected int attackSkill = 1, defenseSkill = 0, damageReduction = 0;
@@ -112,6 +124,7 @@ public class Unit extends Actor {
         }
 
         boolean drawWeapon = false;
+        float attackDrawFrame = frameAt;
 
         if(unitState == UnitState.SPAWNING && spawnFrames != null && spawnFrames.length > 0){
             frameAt = (frameAt) % spawnFrames.length;
@@ -130,9 +143,16 @@ public class Unit extends Actor {
 
         if(unitState == UnitState.ATTACKING && attackFrames != null && attackFrames.length > 0){
             frameAt = (frameAt) % attackFrames.length;
-            gf.tileX = attackFrames[(int)frameAt];
+            attackDrawFrame = Math.min(attackFrames.length - 0.001f,
+                    getAttackDrawPhase(frameAt / attackFrames.length) * attackFrames.length);
+            gf.tileX = attackFrames[(int)attackDrawFrame];
             drawWeapon = (!rangedAttack && weapon != null && weapon.showsAttackAnimation())
                     || (rangedAttack && rangedWeapon != null && rangedWeapon.showsAttackAnimation());
+        }
+
+        if (unitState != UnitState.ATTACKING && hasMeleeRecoveryPose() && attackFrames != null && attackFrames.length > 0) {
+            attackDrawFrame = Math.min(attackFrames.length - 0.001f, getAttackDrawPhase(0f) * attackFrames.length);
+            drawWeapon = weapon != null && weapon.showsAttackAnimation();
         }
 
         if(unitState == UnitState.JUMPING && jumpFrames != null && jumpFrames.length > 0){
@@ -141,8 +161,7 @@ public class Unit extends Actor {
         }
 
         if(unitState == UnitState.DEAD && dieFrames != null && dieFrames.length > 0){
-            frameAt = (frameAt) % dieFrames.length;
-            gf.tileX = dieFrames[(int)frameAt];
+            gf.tileX = dieFrames[Math.min((int)frameAt, dieFrames.length - 1)];
         }
 
         float drawAlpha = Math.min(frameAlpha, frameSpawning);
@@ -151,17 +170,20 @@ public class Unit extends Actor {
         }
 
         gf.setAlpha(drawAlpha);
-        gf.setPosition(x, y);
+        gf.setPosition(getRenderX(), getRenderY());
         gf.faceRight(facingRight);
-        gf.draw(batch);
+        ContactShadow.draw(batch, getRenderX() + ConstantsHelper.UNIT_DIMENSIONS / 2f, getRenderY(),
+                ConstantsHelper.UNIT_DIMENSIONS * gf.clipSizeX / gf.clipSizeY * 0.85f,
+                drawAlpha * alpha, canFly || levitating);
+        drawBodyFilm(batch);
 
-        if(drawWeapon){
+        if(drawWeapon && !spellCastAnimation){
             if(!rangedAttack && weapon != null){
-                weapon.draw(batch, frameAt, attackFrames.length);
+                weapon.draw(batch, attackDrawFrame, attackFrames.length);
             }
 
             if(rangedAttack && rangedWeapon != null){
-                rangedWeapon.draw(batch, frameAt, attackFrames.length);
+                rangedWeapon.draw(batch, attackDrawFrame, attackFrames.length);
             }
         }
 
@@ -173,22 +195,46 @@ public class Unit extends Actor {
         }
     }
 
+    protected void drawBodyFilm(Batch batch) {
+        gf.draw(batch);
+    }
+
+    protected float getAttackDrawPhase(float normalPhase) {
+        return normalPhase;
+    }
+
+    protected boolean hasMeleeRecoveryPose() { return false; }
+
+    protected boolean canLeaveAttackForMovement() { return false; }
+
+
+    public float getVisualAttackX(float phase) {
+        float left = gf == null ? getRenderX() : gf.getVisualLeft();
+        float width = gf == null ? ConstantsHelper.UNIT_DIMENSIONS : gf.getVisualWidth();
+        return left + width * (facingRight ? phase : 1f / 3f - phase);
+    }
+
+    public float getVisualAttackY() {
+        return gf == null ? getRenderY() + ConstantsHelper.UNIT_DIMENSIONS / 4f
+                : gf.getVisualBottom() + gf.getVisualHeight() / 4f;
+    }
+
     public void drawHP(Batch batch){
         if(unitState != UnitState.DEAD && hp < mhp){
-            greenGS.setPosition(x, y + ConstantsHelper.UNIT_DIMENSIONS);
+            greenGS.setPosition(getRenderX(), getRenderY() + ConstantsHelper.UNIT_DIMENSIONS);
             greenGS.draw(batch);
             int width = (int) (ConstantsHelper.UNIT_DIMENSIONS * (mhp - hp) / mhp);
             redGS.setWidth(width);
-            redGS.setPosition(x + ConstantsHelper.UNIT_DIMENSIONS - width, y + ConstantsHelper.UNIT_DIMENSIONS);
+            redGS.setPosition(getRenderX() + ConstantsHelper.UNIT_DIMENSIONS - width, getRenderY() + ConstantsHelper.UNIT_DIMENSIONS);
             redGS.draw(batch);
         }
     }
 
     public void drawBuffs(Batch batch){
         if(unitState != UnitState.DEAD && buffs.size() > 0){
-            int at = (int)x +  (int) ConstantsHelper.UNIT_DIMENSIONS / 2 - (buffs.size() % 2 == 0 ? 20 * buffs.size() / 2 : 10 + (20 * (buffs.size() - 1) / 2));
+            int at = (int)getRenderX() +  (int) ConstantsHelper.UNIT_DIMENSIONS / 2 - (buffs.size() % 2 == 0 ? 20 * buffs.size() / 2 : 10 + (20 * (buffs.size() - 1) / 2));
             for(Buff buff : buffs){
-                buff.getGameSprite().setPosition(at, y + ConstantsHelper.UNIT_DIMENSIONS + 5);
+                buff.getGameSprite().setPosition(at, getRenderY() + ConstantsHelper.UNIT_DIMENSIONS + 5);
                 buff.getGameSprite().draw(batch);
 
                 at += 20;
@@ -267,6 +313,8 @@ public class Unit extends Actor {
             return;
         }
 
+        attackCycleRemaining = Math.max(0f, attackCycleRemaining - PhysicsHelper.boundGameDelta(delta));
+        if (gf != null) gf.updateImpactFlash(delta);
         boolean physicsControlled = PhysicsHelper.getInstance().hasBody(this) && !showOnly();
         if (physicsControlled) {
             PhysicsHelper.getInstance().syncUnitFromPhysics(this);
@@ -277,7 +325,7 @@ public class Unit extends Actor {
             floorY = MapHelper.getInstance().calculateFloorY(this);
         }
 
-        // Check for momentum
+
         if(momentX != 0){
             momentX -= 0.8f * momentX * delta;
             if(Math.abs(momentX) < 50){
@@ -285,6 +333,10 @@ public class Unit extends Actor {
             }
         }
 
+        if (unitState == UnitState.ATTACKING && canLeaveAttackForMovement()) {
+
+            changeState(UnitState.IDLE, true);
+        }
         boolean attackMovementLocked = unitState == UnitState.ATTACKING;
         boolean standingOnGround = false;
 
@@ -313,7 +365,7 @@ public class Unit extends Actor {
                 changeState(UnitState.RUNNING);
             }
 
-            PhysicsHelper.getInstance().applyMovement(this, grounded, !attackMovementLocked);
+            PhysicsHelper.getInstance().applyMovement(this, grounded, !attackMovementLocked, delta);
 
             if(grounded){
                 speedY = 0f;
@@ -331,7 +383,7 @@ public class Unit extends Actor {
             }
         }
         else {
-            // Jumping or falling
+
             if(speedY != 0 || y != floorY){
                 y += speedY * delta;
 
@@ -344,7 +396,7 @@ public class Unit extends Actor {
                 }
             }
 
-            // Hit ground
+
             if(y < floorY && (!canFly || showOnly)){
                 y = floorY;
                 speedY = 0;
@@ -354,7 +406,7 @@ public class Unit extends Actor {
                 }
             }
 
-            // Edges check
+
             if(x < 1){
                 movingLeft = false;
                 x = 2;
@@ -370,7 +422,7 @@ public class Unit extends Actor {
                 speedY = 0;
             }
 
-            // Movement => Cannot move when attacking unless in air
+
             if(movingLeft || movingRight || momentX != 0){
                 if(!attackMovementLocked){
                     changeState(UnitState.RUNNING);
@@ -429,9 +481,8 @@ public class Unit extends Actor {
         }
 
         if(unitState == UnitState.DEAD && dieFrames != null && dieFrames.length > 0){
-            frameAt = (frameAt + delta * 7f);
+            frameAt = Math.min(dieFrames.length, frameAt + delta * 7f);
             if(frameAt >= dieFrames.length){
-                frameAt = dieFrames.length - 1;
                 frameAlpha = Math.max(0, frameAlpha - 1f * delta);
                 if(frameAlpha == 0f){
                     removeUnit();
@@ -565,40 +616,44 @@ public class Unit extends Actor {
             stepSound = 0f;
         }
 
-        // Still spawning => no pass unless done spawning, the ONE exception to forced
+
         if(this.unitState == UnitState.SPAWNING && !forced){
             if(frameSpawning < 1f){
                 return;
             }
         }
 
-        // Forced => Pass
+
         if(forced){
             this.unitState = unitState;
             frameAt = 0;
+            if (unitState == UnitState.DEAD || unitState == UnitState.SPAWNING) {
+                attackCycleRemaining = 0f;
+                PhysicsHelper.getInstance().resetRenderTransform(this);
+            }
             return;
         }
 
-        // Dead => no pass
+
         if(this.unitState == UnitState.DEAD){
             return;
         }
 
-        // Switching to idle state from a non-attack => Pass
+
         if(unitState == UnitState.IDLE && this.unitState != UnitState.ATTACKING && this.unitState != UnitState.IDLE){
             frameAt = 0;
             this.unitState = unitState;
             return;
         }
 
-        // Switching from running to jumping => Pass
+
         if(unitState == UnitState.JUMPING && this.unitState == UnitState.RUNNING){
             frameAt = 0;
             this.unitState = unitState;
             return;
         }
 
-        // Only change when we are at idle
+
         if(this.unitState == UnitState.IDLE && unitState != UnitState.IDLE){
             frameAt = 0;
             this.unitState = unitState;
@@ -607,10 +662,15 @@ public class Unit extends Actor {
     }
 
     public void jump(){
+        tryJump();
+    }
+
+    protected boolean tryJump() {
         boolean physicsControlled = PhysicsHelper.getInstance().hasBody(this) && !showOnly();
         boolean grounded = physicsControlled ? PhysicsHelper.getInstance().isGrounded(this) : y == floorY;
-        boolean canUseAirJump = !grounded && availableAirJumps > 0;
-        boolean jumpAllowed = (unitState.canJump() && grounded) || canUseAirJump;
+        boolean groundJump = canUseGroundJump(grounded);
+        boolean canUseAirJump = !grounded && !groundJump && availableAirJumps > 0;
+        boolean jumpAllowed = groundJump || canUseAirJump;
         if(jumpAllowed){
             if (canUseAirJump) {
                 availableAirJumps--;
@@ -631,14 +691,23 @@ public class Unit extends Actor {
                 speedY = jumpSpeed;
             }
             playSound(Sounds.MISS, 0.2f);
+            onJumpStarted(groundJump);
+            return true;
         }
+        return false;
     }
+
+    protected boolean canUseGroundJump(boolean grounded) {
+        return unitState.canJump() && grounded;
+    }
+
+    protected void onJumpStarted(boolean groundJump) { }
 
     public boolean canJumpNow() {
         boolean physicsControlled = PhysicsHelper.getInstance().hasBody(this) && !showOnly();
         boolean grounded = physicsControlled ? PhysicsHelper.getInstance().isGrounded(this) : y == floorY;
         boolean canUseAirJump = !grounded && availableAirJumps > 0;
-        return (unitState.canJump() && grounded) || canUseAirJump;
+        return canUseGroundJump(grounded) || canUseAirJump;
     }
 
     public void fly(boolean up, boolean stop){
@@ -666,22 +735,33 @@ public class Unit extends Actor {
 
     public void attack(boolean forced){
         if(canAttack() || forced){
+
+            float duration = forced && attackAnimationSpeedOverride > 0f
+                    ? getAttackFrameCount() / attackAnimationSpeedOverride
+                    : getAttackAnimationDurationSeconds(false);
             rangedAttack = false;
+            spellCastAnimation = false;
             frameAt = 0f;
             changeState(UnitState.ATTACKING, true);
-            boolean hitTarget = UnitHelper.getInstance().attack(this, weapon);
-
-            if(hitTarget){
-                playSound(Sounds.HIT,0.4f);
+            if (isHero) {
+                attackAnimationSpeedOverride = getAttackFrameCount() / Math.max(0.01f, duration);
+                reserveAttackCycle(duration);
             }
-            else {
-                playSound(Sounds.MISS,0.4f);
-            }
+            beginMeleeContact(forced, duration);
 
             if(isCanFly()){
                 fly(false, true);
             }
         }
+    }
+
+    protected void beginMeleeContact(boolean forced, float durationSeconds) {
+        applyMeleeContact(weapon);
+    }
+
+    protected void applyMeleeContact(Weapon attackingWeapon) {
+        boolean hitTarget = UnitHelper.getInstance().attack(this, attackingWeapon);
+        playSound(hitTarget ? Sounds.HIT : Sounds.MISS, 0.4f);
     }
 
     public void attack(){
@@ -706,9 +786,15 @@ public class Unit extends Actor {
 
     public void rangedAttack(){
         if(canAttack() && rangedWeapon != null){
+            float duration = getAttackAnimationDurationSeconds(true);
             rangedAttack = true;
+            spellCastAnimation = false;
             frameAt = 0f;
             changeState(UnitState.ATTACKING, true);
+            if (isHero) {
+                attackAnimationSpeedOverride = getAttackFrameCount() / Math.max(0.01f, duration);
+                reserveAttackCycle(duration);
+            }
             rangedWeapon.createProjectile();
             if(isCanFly()){
                 fly(false, true);
@@ -772,6 +858,22 @@ public class Unit extends Actor {
     }
 
 
+
+    public int repayDeferredDamage(int amount) {
+        if (amount < 1 || isDead() || hp < 1) return 0;
+        boolean previousRepayment = repayingDeferredDamage;
+        int previousPaid = repaidDeferredDamage;
+        repayingDeferredDamage = true;
+        repaidDeferredDamage = 0;
+        try {
+            takeDamage(this, null, amount);
+            return repaidDeferredDamage;
+        } finally {
+            repayingDeferredDamage = previousRepayment;
+            repaidDeferredDamage = previousPaid;
+        }
+    }
+
     public void takeDamage(Unit source, Weapon damagingItem, float damage){
         if (isDead() || hp < 1) {
             return;
@@ -779,23 +881,27 @@ public class Unit extends Actor {
 
         lastDamageSource = source;
         lastDamagingItem = damagingItem;
-        damage *= getIncomingDamageModifier();
-        damage = Math.max(0f, damage - rollDamageReduction(source, damagingItem));
+        damage *= repayingDeferredDamage ? 1f : getIncomingDamageModifier();
+        damage = Math.max(0f, damage - (repayingDeferredDamage ? 0 : rollDamageReduction(source, damagingItem)));
 
-        ManaArmor manaArmor = (ManaArmor)getBuff(ManaArmor.class);
+        ManaArmor manaArmor = repayingDeferredDamage ? null : (ManaArmor)getBuff(ManaArmor.class);
         if(manaArmor != null){
             damage = manaArmor.absorbDamage(damage);
             EffectsHelper.getInstance().manaShielded(this, source.x > x);
         }
 
-        EarthrootArmor earthrootArmor = (EarthrootArmor)getBuff(EarthrootArmor.class);
+        EarthrootArmor earthrootArmor = repayingDeferredDamage ? null : (EarthrootArmor)getBuff(EarthrootArmor.class);
         if(earthrootArmor != null){
             damage = earthrootArmor.absorbDamage(damage);
         }
 
         int appliedDamage = Math.max(0, Math.round(damage));
+        if (source instanceof Hero && damagingItem instanceof Gun) {
+            appliedDamage = ((Hero)source).adjustExecuteDamage(this, appliedDamage);
+        }
 
         hp -= appliedDamage;
+        if (repayingDeferredDamage) repaidDeferredDamage += appliedDamage;
         if(damagingItem != null && appliedDamage > 0){
             momentX += source.x < x ? damagingItem.getKnockBack() : -damagingItem.getKnockBack();
         }
@@ -803,7 +909,7 @@ public class Unit extends Actor {
         if(appliedDamage > 0){
             EffectsHelper.getInstance().blood(source, this, appliedDamage);
         }
-        EffectsHelper.getInstance().message(this, appliedDamage + "", appliedDamage > 0 ? Color.RED : Color.LIGHT_GRAY, source.x > x ? -200f : 200f);
+        EffectsHelper.getInstance().hitResult(source, this, appliedDamage);
 
         if (appliedDamage > 0 && this instanceof Hero && source != null && source != this && !source.isDead()) {
             int reflectedDamage = RingOfThorns.getReflectedDamage(appliedDamage);
@@ -812,7 +918,7 @@ public class Unit extends Actor {
             }
         }
 
-        if (appliedDamage > 0 && armor != null) {
+        if (!repayingDeferredDamage && appliedDamage > 0 && armor != null) {
             Prefix armorPrefix = armor.getPrefix();
             if (armorPrefix != null) {
                 armorPrefix.onDefend(this, source, damagingItem, appliedDamage);
@@ -840,6 +946,7 @@ public class Unit extends Actor {
 
         changeState(UnitState.DEAD, true);
 
+        notifyDeathCommitted();
         die();
     }
 
@@ -859,6 +966,9 @@ public class Unit extends Actor {
     public boolean showOnly(){
         return unitState.showOnly() || showOnly;
     }
+
+
+    public boolean isDroppingThroughPlatform() { return false; }
 
     public boolean isDead() {
         return unitState == UnitState.DEAD;
@@ -885,7 +995,23 @@ public class Unit extends Actor {
     public void appear(float x, float y){
         this.x = x;
         this.y = y;
+        if (gf != null) gf.clearImpactFlash();
         PhysicsHelper.getInstance().syncBodyToUnit(this);
+        presentationPlacementVersion++;
+    }
+
+
+    public float getRenderX() { return PhysicsHelper.getInstance().getRenderX(this); }
+    public float getRenderY() { return PhysicsHelper.getInstance().getRenderY(this); }
+
+
+    public int getPresentationPlacementVersion() {
+        return presentationPlacementVersion;
+    }
+
+
+    public int getRunFootstepPhase() {
+        return unitState == UnitState.RUNNING ? (int) (frameAt / (runFrames.length / 2f)) : -1;
     }
 
     public int getHP(){
@@ -933,10 +1059,22 @@ public class Unit extends Actor {
 
     protected void playSound(Sounds sounds, float modifier){
         calculateSoundLevel();
-        SoundHelper.GetSingleton().play(sounds, 0f, Math.min(1, soundLevel * modifier));
+        float volume = Math.min(1, soundLevel * modifier);
+        if (sounds == Sounds.STEP) {
+
+
+            SoundHelper.GetSingleton().playLegacyFootstep(volume,
+                    !isHero || showOnly() || !PhysicsHelper.getInstance().hasBody(this));
+        } else {
+            SoundHelper.GetSingleton().play(sounds, 0f, volume);
+        }
     }
 
     public void setRoom(String room){
+        if (this.room == null || !this.room.equals(room)) {
+            NecromancerCurse.clear(this);
+            PhysicsHelper.getInstance().resetRenderTransform(this);
+        }
         this.room = room;
     }
 
@@ -960,6 +1098,18 @@ public class Unit extends Actor {
         return false;
     }
 
+
+    protected final void notifyDeathCommitted() {
+        if (committedDeathNotified || !isDead() || hp > 0) return;
+        committedDeathNotified = true;
+        NecromancerCurse.clear(this);
+        MercenaryFear.clear(this);
+        onDeathCommitted();
+    }
+
+    protected void onDeathCommitted() {
+    }
+
     public boolean isCanFly(){
         return canFly;
     }
@@ -981,10 +1131,12 @@ public class Unit extends Actor {
         if (!levitating) {
             availableAirJumps = 0;
         }
-        else {
+        else if (canGrantAirJump()) {
             availableAirJumps = Math.max(availableAirJumps, getMaxAirJumps());
         }
     }
+
+    protected boolean canGrantAirJump() { return true; }
 
     protected float getGravityMultiplier() {
         return levitating && !canFly ? 0.5f : 1f;
@@ -994,7 +1146,7 @@ public class Unit extends Actor {
         return levitating && !canFly ? 1 : 0;
     }
 
-    private void refreshAirJumps(boolean grounded) {
+    protected void refreshAirJumps(boolean grounded) {
         if (grounded || canFly) {
             availableAirJumps = getMaxAirJumps();
             return;
@@ -1083,11 +1235,28 @@ public class Unit extends Actor {
         beginAttackAnimation(durationSeconds, true);
     }
 
+
+    public void startSpellCastAnimation(float durationSeconds) {
+        startAttackAnimation(durationSeconds);
+        spellCastAnimation = true;
+    }
+
     private void beginAttackAnimation(float durationSeconds, boolean useRangedAttack) {
+        spellCastAnimation = false;
         rangedAttack = useRangedAttack;
         frameAt = 0f;
         attackAnimationSpeedOverride = getAttackFrameCount() / Math.max(0.01f, durationSeconds);
         changeState(UnitState.ATTACKING, true);
+        if (isHero) reserveAttackCycle(durationSeconds);
+    }
+
+
+    private void reserveAttackCycle(float durationSeconds) {
+        attackCycleRemaining = Math.max(attackCycleRemaining, Math.max(0.01f, durationSeconds));
+    }
+
+    public float getAttackCycleRemainingSeconds() {
+        return attackCycleRemaining;
     }
 
     private Weapon resolveAttackWeapon(boolean useRangedAttack) {
@@ -1217,7 +1386,7 @@ public class Unit extends Actor {
     }
 
     public boolean canAttack(){
-        if (!unitState.canAttack()) {
+        if (!unitState.canAttack() || attackCycleRemaining > 0f) {
             return false;
         }
 
@@ -1271,14 +1440,15 @@ public class Unit extends Actor {
 
 
     public void modifyManaRegenerationRate(float modification){
-        this.regenerationMana += modification;
+        this.manaRegenerationRate += modification;
     }
 
 
 
     protected void regenerate(float delta){
-        regeneration += mhp * delta * regenerationRate;
-        regenerationMana += mmp * delta;
+
+        regeneration += mhp * delta * regenerationRate * (this instanceof Mob && !isFriendly ? 0.5f : 1f);
+        regenerationMana += mmp * delta * manaRegenerationRate;
 
         if(regeneration > 100f && hp < mhp){
             hp += 1;

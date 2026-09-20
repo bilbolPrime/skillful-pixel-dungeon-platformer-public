@@ -11,6 +11,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.AI;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.doors.Door;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.traps.PoisonCloud;
 
 import java.util.ArrayList;
 
@@ -82,7 +83,13 @@ public class YogDzewa extends Mob {
 
         super.takeDamage(source, damagingItem, damage);
 
-        if (!isDead()) {
+
+
+        Unit cloudOwner = source instanceof PoisonCloud ? ((PoisonCloud) source).getOwner() : null;
+        boolean guardianGas = cloudOwner instanceof RottingFist
+                && room != null && room.equals(cloudOwner.getRoom())
+                && cloudOwner.isFriendly == isFriendly;
+        if (!isDead() && !guardianGas) {
             spawnLarvaNear(source);
         }
     }

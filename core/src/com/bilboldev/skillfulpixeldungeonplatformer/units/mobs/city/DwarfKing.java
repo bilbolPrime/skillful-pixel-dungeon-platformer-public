@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.city;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Rectangle;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
@@ -22,7 +23,8 @@ public class DwarfKing extends Mob {
     private static final int MAX_ARMY_SIZE = 5;
     private static final float PEDESTAL_Y = 6f;
     private static final int[] PEDESTAL_X_TILES = new int[]{8, 21};
-    private static final float SUMMON_INTERVAL = 2.25f;
+
+    private static final float SUMMON_INTERVAL = 4f;
     private static final float WAVE_TWO_HEALTH_THRESHOLD = 2f / 3f;
     private static final float WAVE_THREE_HEALTH_THRESHOLD = 1f / 3f;
     private static final String WAVE_1_MESSAGE = "Enough! Arise my slaves!";
@@ -36,6 +38,8 @@ public class DwarfKing extends Mob {
     {
         boss = true;
         hp = mhp = 300;
+
+        regenerationRate = 0.25f;
         experience = 40;
         attackSkill = 32;
         defenseSkill = 25;
@@ -65,18 +69,23 @@ public class DwarfKing extends Mob {
         }
 
         if (room != null && room.equals(MapHelper.getInstance().getActiveRoomIdentifier())
-                && summonAt <= 0f && countArmy() < getArmyCap()) {
-            if (moveToPedestal()) {
-                if (summonUndead()) {
-                    fakeAttack();
-                    pedestalIndex = 1 - pedestalIndex;
+                && canAttack() && ai != null && !ai.isBlind() && ai.canTarget(ai.getOther())) {
+            if (countArmy() >= getArmyCap()) {
+
+
+                summonAt = SUMMON_INTERVAL;
+            } else if (summonAt <= 0f) {
+                if (moveToPedestal()) {
+                    if (summonUndead()) {
+                        fakeAttack();
+                        pedestalIndex = 1 - pedestalIndex;
+                    }
+                    summonAt = SUMMON_INTERVAL;
+                    movingLeft = false;
+                    movingRight = false;
+                    return;
                 }
             }
-
-            summonAt = SUMMON_INTERVAL;
-            movingLeft = false;
-            movingRight = false;
-            return;
         }
 
         super.act(delta);
@@ -99,19 +108,35 @@ public class DwarfKing extends Mob {
     }
 
     private boolean moveToPedestal() {
-        float targetX = PEDESTAL_X_TILES[pedestalIndex] * ConstantsHelper.TILE;
         float targetY = PEDESTAL_Y * ConstantsHelper.TILE;
-        if (!UnitHelper.getInstance().freeSpace(this, Math.round(targetX), Math.round(targetY), room)) {
-            return false;
-        }
+        for (int attempt = 0; attempt < PEDESTAL_X_TILES.length; attempt++) {
+            int candidateIndex = (pedestalIndex + attempt) % PEDESTAL_X_TILES.length;
+            float targetX = PEDESTAL_X_TILES[candidateIndex] * ConstantsHelper.TILE;
+            if (Math.abs(MapHelper.getInstance().calculateFloorY(targetX, targetY) - targetY) > 1f
+                    || !UnitHelper.getInstance().freeSpace(this, Math.round(targetX), Math.round(targetY), room)
+                    || !hasPlacementSpace(this, targetX, targetY)) {
+                continue;
+            }
 
-        x = targetX;
-        y = targetY;
-        floorY = y;
-        speedY = 0f;
-        momentX = 0f;
-        PhysicsHelper.getInstance().syncBodyToUnit(this);
-        return true;
+
+            pedestalIndex = candidateIndex;
+            x = targetX;
+            y = targetY;
+            floorY = y;
+            speedY = 0f;
+            momentX = 0f;
+            if (ai != null && ai.getOther() != null) facingRight = x < ai.getOther().x;
+            PhysicsHelper.getInstance().syncBodyToUnit(this);
+            if (ai != null) {
+
+
+                Unit target = ai.getOther();
+                ai.clearTarget();
+                if (ai.canTarget(target)) ai.setOther(target);
+            }
+            return true;
+        }
+        return false;
     }
 
     private boolean summonUndead() {
@@ -119,13 +144,15 @@ public class DwarfKing extends Mob {
         int spawnTileX = PEDESTAL_X_TILES[summonIndex];
         float spawnY = PEDESTAL_Y * ConstantsHelper.TILE;
         int[] offsets = new int[]{0, -1, 1, -2, 2};
+        DwarvenUndead undead = new DwarvenUndead();
         for (int offset : offsets) {
             float spawnX = (spawnTileX + offset) * ConstantsHelper.TILE;
-            if (!UnitHelper.getInstance().freeSpace((int) spawnX, (int) spawnY, room)) {
+            if (Math.abs(MapHelper.getInstance().calculateFloorY(spawnX, spawnY) - spawnY) > 1f
+                    || !UnitHelper.getInstance().freeSpace((int) spawnX, (int) spawnY, room)
+                    || !hasPlacementSpace(undead, spawnX, spawnY)) {
                 continue;
             }
 
-            DwarvenUndead undead = new DwarvenUndead();
             undead.x = spawnX;
             undead.y = spawnY;
             undead.floorY = spawnY;
@@ -137,6 +164,20 @@ public class DwarfKing extends Mob {
         }
 
         return false;
+    }
+
+    private boolean hasPlacementSpace(Unit actor, float targetX, float targetY) {
+        Rectangle placement = actor.getHitBoxAt(targetX, targetY);
+        for (Unit unit : UnitHelper.getInstance().getUnits()) {
+            if (unit == actor || unit.isDead() || unit.showOnly() || !room.equals(unit.getRoom())
+                    || !(unit.isHero || unit instanceof Mob)) {
+                continue;
+            }
+            if (placement.overlaps(unit.getHitBox())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void announceWaveIfNeeded() {
@@ -172,6 +213,29 @@ public class DwarfKing extends Mob {
             default:
                 return WAVE_1_MESSAGE;
         }
+    }
+
+    public int getNextPedestalIndex() {
+        return pedestalIndex;
+    }
+
+    public int getAnnouncedWave() {
+        return announcedWave;
+    }
+
+    public float getSummonDelay() {
+        return Math.max(0f, summonAt);
+    }
+
+    public void restoreSummonState(Integer nextPedestal, Integer wave, Float delay) {
+        pedestalIndex = nextPedestal != null && nextPedestal >= 0
+                && nextPedestal < PEDESTAL_X_TILES.length ? nextPedestal : 0;
+
+
+        announcedWave = wave == null ? (hp < mhp ? getCurrentWave() : 0)
+                : Math.max(0, Math.min(3, wave));
+        summonAt = delay != null && Float.isFinite(delay)
+                ? Math.max(0f, Math.min(SUMMON_INTERVAL, delay)) : 0.75f;
     }
 
     @Override

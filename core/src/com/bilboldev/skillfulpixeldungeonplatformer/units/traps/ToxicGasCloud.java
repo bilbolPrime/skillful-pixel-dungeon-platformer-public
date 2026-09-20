@@ -3,6 +3,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.units.traps;
 import com.badlogic.gdx.math.Rectangle;
 import com.bilboldev.skillfulpixeldungeonplatformer.achievements.AchievementManager;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
@@ -72,7 +73,7 @@ public class ToxicGasCloud extends Unit {
             }
 
             if (area.overlaps(unit.getHitBox())) {
-                unit.takeDamage(owner != null ? owner : this, null, 1f);
+                unit.takeDamage(owner != null ? owner : this, null, DifficultyHelper.getInstance().scaleEnemyDamage(owner, 1f));
                 if (unit instanceof Hero && unit.isDead()) {
                     AchievementManager.getInstance().onDeathFromGas();
                 }
@@ -98,7 +99,8 @@ public class ToxicGasCloud extends Unit {
         }
     }
 
-    private Rectangle getCloudArea() {
+
+    public Rectangle getCloudArea() {
         float radiusX = Math.min(MAX_HORIZONTAL_RADIUS_TILES * ConstantsHelper.TILE, elapsed * ConstantsHelper.TILE * 1.5f);
         float radiusY = Math.min(MAX_VERTICAL_RADIUS_TILES * ConstantsHelper.TILE, elapsed * ConstantsHelper.TILE * 1.25f);
         float centerX = x + ConstantsHelper.UNIT_DIMENSIONS / 2f;

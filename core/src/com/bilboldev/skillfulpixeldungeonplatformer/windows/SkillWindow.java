@@ -39,7 +39,8 @@ public class SkillWindow extends DescriptionWindow {
         super(skill.getGameSprite().spriteString, buildDescription(skill), 1500, 400);
         this.skill = skill;
         actionButtons = new ArrayList<>();
-        height = Math.max(400, 200 + (UtilsHelper.multiLine(getHeroClass().getSkillBigDescription(skill.getId()), 3, getDescriptionWrapWidth(width)).split("\n").length + 1) * 75);
+        String layoutDescription = getHeroClass().getSkillBigDescription(skill.getId());
+        height = Math.max(400, 200 + (UtilsHelper.multiLine(layoutDescription, 3, getDescriptionWrapWidth(width)).split("\n").length + 1) * 75);
         y = ConstantsHelper.SCREEN_HEIGHT / 2 - height / 2;
         x = ConstantsHelper.SCREEN_WIDTH / 2 - width / 2;
     }
@@ -81,8 +82,7 @@ public class SkillWindow extends DescriptionWindow {
             actionButtons.add(createActionButton(buttonX, buttonY, Messages.get("custom.ui.skill.learn"), new Runnable() {
                 @Override
                 public void run() {
-                    SkillsHelper.getInstance().learnSkill(skill);
-                    setQuickSkillIfApplicable();
+                    if (SkillsHelper.getInstance().learnSkill(skill)) setQuickSkillIfApplicable();
                     hide();
                     WindowHelper.getInstance().refresh();
                 }
@@ -135,6 +135,9 @@ public class SkillWindow extends DescriptionWindow {
     }
 
     @Override
+    protected ArrayList<ActionButton> getKeyboardChoices() { return actionButtons; }
+
+    @Override
     public void draw(Batch batch){
         super.draw(batch);
 
@@ -165,7 +168,8 @@ public class SkillWindow extends DescriptionWindow {
     }
 
     private void setQuickSkillIfApplicable() {
-        if(!(skill instanceof ActiveSkill)){
+        if(!(skill instanceof ActiveSkill) || UnitHelper.getInstance().getHero() == null
+                || !UnitHelper.getInstance().getHero().hasSkill(skill.getId())){
             return;
         }
 
@@ -193,7 +197,8 @@ public class SkillWindow extends DescriptionWindow {
     }
 
     private void setQuickSkill(int slotIndex) {
-        if (!(skill instanceof ActiveSkill)) {
+        if (!(skill instanceof ActiveSkill) || UnitHelper.getInstance().getHero() == null
+                || !UnitHelper.getInstance().getHero().hasSkill(skill.getId())) {
             return;
         }
 

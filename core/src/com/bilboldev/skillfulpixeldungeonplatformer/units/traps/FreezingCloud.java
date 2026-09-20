@@ -90,7 +90,8 @@ public class FreezingCloud extends Unit {
         }
     }
 
-    private Rectangle getCloudArea() {
+
+    public Rectangle getCloudArea() {
         float radiusX = Math.min(MAX_HORIZONTAL_RADIUS_TILES * ConstantsHelper.TILE, elapsed * ConstantsHelper.TILE * 1.5f);
         float radiusY = Math.min(MAX_VERTICAL_RADIUS_TILES * ConstantsHelper.TILE, elapsed * ConstantsHelper.TILE * 1.25f);
         float centerX = x + ConstantsHelper.UNIT_DIMENSIONS / 2f;

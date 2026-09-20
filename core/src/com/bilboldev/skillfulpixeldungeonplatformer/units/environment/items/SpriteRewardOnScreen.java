@@ -29,8 +29,10 @@ public class SpriteRewardOnScreen extends ItemOnScreen {
             return;
         }
 
+        drawContactShadow(batch, alpha, 0f);
         displaySprite.setPosition(x, y);
         displaySprite.setAlpha(alpha);
         displaySprite.draw(batch);
+        rememberDisplayedItem(displaySprite);
     }
 }

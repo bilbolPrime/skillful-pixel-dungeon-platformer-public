@@ -1,9 +1,12 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.windows;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameSettingsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.DesktopMenuStyle;
 
 import java.util.ArrayList;
 
@@ -18,6 +21,10 @@ public class Window {
         this.height = height;
 
         gameSprites = new ArrayList<>();
+    }
+
+    public boolean contains(float pointX, float pointY) {
+        return pointX >= x && pointX <= x + width && pointY >= y && pointY <= y + height;
     }
 
     public static ArrayList<GameSprite> createOverlayBackgroundSprites(float x, float y, float width, float height, float borderWidth, float borderHeight) {
@@ -112,6 +119,10 @@ public class Window {
     }
 
     public void draw(Batch batch){
+        if (DesktopMenuStyle.active()) {
+            DesktopMenuStyle.window(batch, x, y, width, height);
+            return;
+        }
         if(gameSprites == null || gameSprites.size() == 0){
             return;
         }
@@ -122,11 +133,7 @@ public class Window {
     }
 
     public boolean click(float x, float y){
-        if(x < this.x || x > this.x + this.width){
-            hide();
-        }
-
-        if(y < this.y || y > this.y + this.height){
+        if(x < this.x || x > this.x + this.width || y < this.y || y > this.y + this.height){
             hide();
         }
 
@@ -150,8 +157,16 @@ public class Window {
     }
 
     public boolean keyDown(int keycode) {
+        if (keycode == Input.Keys.ESCAPE || keycode == Input.Keys.BACK ||
+                GameSettingsHelper.getInstance().getInteractBinding().matchesKey(keycode)) {
+            hide();
+            return true;
+        }
         return false;
     }
+
+
+    public void cancelPointerInput() { }
 
     public Window setOnHide(Runnable onHide) {
         this.onHide = onHide;

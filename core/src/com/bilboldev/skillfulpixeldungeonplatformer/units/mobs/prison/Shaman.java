@@ -41,13 +41,14 @@ public class Shaman extends Mob {
                 }
 
                 float horizontalDistance = Math.abs(target.x - getOwner().x);
-                float verticalDistance = Math.abs(target.y - getOwner().y);
-                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 2.5f && verticalDistance < ConstantsHelper.TILE * 1.25f) {
+                getOwner().facingRight = getOwner().x < target.x;
+                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 2.5f
+                        && hasHorizontalProjectileLane(target, 625f * 65f / 75f)) {
                     getOwner().movingLeft = false;
                     getOwner().movingRight = false;
                     getOwner().facingRight = getOwner().x < target.x;
 
-                    if (castAt <= 0f) {
+                    if (castAt <= 0f && getOwner().canAttack()) {
                         ((Shaman) getOwner()).castBolt();
                         getOwner().fakeAttack();
                         castAt = 1.8f;

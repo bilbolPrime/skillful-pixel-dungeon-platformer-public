@@ -12,6 +12,16 @@ public class Poisoned extends Buff {
     private static final float SCORPION_POISON_DAMAGE_MULTIPLIER = 1.5f;
     private float tickAt = 1f;
 
+
+    private float damageMultiplier = 1f;
+
+    public Poisoned setDamageMultiplier(float multiplier) {
+        damageMultiplier = multiplier;
+        return this;
+    }
+
+    public float getDamageMultiplier() { return damageMultiplier; }
+
     public Poisoned() {
         super("Poisoned", "Taking damage over time", "images/buffs/poison.png");
     }
@@ -39,7 +49,7 @@ public class Poisoned extends Buff {
             poisonDamage *= SCORPION_POISON_DAMAGE_MULTIPLIER;
         }
 
-        owner.takeDamage(owner, null, poisonDamage);
+        owner.takeDamage(owner, null, poisonDamage * damageMultiplier);
         if (owner instanceof Hero && owner.isDead()) {
             AchievementManager.getInstance().onDeathFromPoison();
         }

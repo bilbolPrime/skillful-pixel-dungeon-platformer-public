@@ -1,12 +1,16 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.themes.caves;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.CavesLevel;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.Level;
+import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.themes.Theme;
 
 public class Caves extends Theme {
+    private CavesRock rock;
     {
         int tile = (int) ConstantsHelper.TILE;
         template = "caves";
@@ -35,11 +39,32 @@ public class Caves extends Theme {
         doorMercenarySign = new GameSprite("images/tiles/" + template + "/door-sign-mercenary-warrior.png", tile / 2, tile / 2);
         wall = new GameSprite("images/tiles/" + template + "/wall.png", tile, tile);
         wallFading = new GameSprite("images/tiles/" + template + "/wall-fading.png", tile, tile);
+        wallFading.setColor(new Color(0.57f, 0.63f, 0.65f, 1f));
         floor = new GameSprite("images/tiles/" + template + "/floor.png", tile, tile);
         platform = new GameSprite("images/tiles/" + template + "/platform.png", tile, tile);
         sign = new GameSprite("images/tiles/" + template + "/sign.png", tile, tile);
         fader = new GameSprite("images/tiles/" + template + "/fader.png", tile, tile, 0.65f);
         library = new GameSprite("images/tiles/" + template + "/library.png", tile, tile);
+    }
+
+    private CavesRock rock() {
+        if (rock == null) rock = new CavesRock();
+        return rock;
+    }
+
+    @Override
+    public void drawWall(Batch batch, Room room, int depth, int tileX, int tileY) {
+        rock().drawWall(batch, room, depth, tileX, tileY);
+    }
+
+    @Override
+    public void drawPlatform(Batch batch, Room room, int tileX, int tileY) {
+        rock().drawPlatform(batch, room, tileX, tileY);
+    }
+
+    @Override
+    public void drawArchitecture(Batch batch, Room room, int depth) {
+        rock().drawArchitecture(batch, room, depth);
     }
 
     @Override

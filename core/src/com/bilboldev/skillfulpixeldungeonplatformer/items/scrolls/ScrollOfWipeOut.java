@@ -2,6 +2,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.items.scrolls;
 
 import com.badlogic.gdx.graphics.Color;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
@@ -21,7 +22,9 @@ public class ScrollOfWipeOut extends Scroll {
     public void consume() {
         int slain = 0;
         for (Unit unit : new ArrayList<Unit>(UnitHelper.getInstance().getUnits())) {
-            if (!(unit instanceof Mob) || unit.isFriendly || unit.showOnly()) {
+
+            if (!(unit instanceof Mob) || unit.isFriendly || unit.showOnly || unit.isDead() || unit.getHP() < 1
+                    || MapHelper.getInstance().getRoom(unit.getRoom()) == null) {
                 continue;
             }
 

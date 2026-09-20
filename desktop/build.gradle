@@ -25,7 +25,7 @@ def steamFreeInputDir = layout.buildDirectory.dir('steam/free/input')
 def steamPublishInputDir = layout.buildDirectory.dir('steam/publish/input')
 def hostOperatingSystem = OperatingSystem.current()
 def steamMacBundleIdentifier = 'com.bilboldev.skillfulpixeldungeonplatformer'
-def steamMacMenuName = 'SkillfulPD'
+def steamMacMenuName = 'PD Platformer'
 def freeDesktopBuildProperty = 'spd.desktopFreeBuild'
 def normalizedHostArchitecture = {
     String architecture = (System.getProperty('os.arch') ?: '').toLowerCase()
@@ -122,16 +122,6 @@ def steamRuntimeLibraries = {
     }.sort { File left, File right -> left.name <=> right.name }
 }
 
-def addSteamJavaHomesFrom = { LinkedHashSet<File> homes, File root ->
-    if (root == null || !root.isDirectory()) {
-        return
-    }
-
-    root.listFiles()?.findAll { File candidate -> candidate.isDirectory() }?.sort { File left, File right -> right.name <=> left.name }?.each { File candidate ->
-        homes.add(candidate)
-    }
-}
-
 def steamJavaHomes = {
     LinkedHashSet<File> homes = new LinkedHashSet<>()
     [System.getenv('SKILLFUL_DESKTOP_DEBUG_JAVA_HOME'), System.getenv('JAVA_HOME'), System.getProperty('java.home')]
@@ -164,10 +154,9 @@ def steamJavaHome = {
 
 def desktopRuntimeJavaHome = {
     File preferredHome = steamJavaHomes().find { File homeDir ->
-    File javaExecutable = new File(homeDir, 'bin/' + executableName('java'))
-    File jmodsDir = new File(homeDir, 'jmods')
-    File rtJar = new File(homeDir, 'lib/rt.jar')
-    !isAndroidStudioJbr(homeDir) && javaExecutable.isFile() && (jmodsDir.isDirectory() || rtJar.isFile())
+        return !isAndroidStudioJbr(homeDir)
+                && new File(homeDir, 'bin/' + executableName('java')).isFile()
+                && (new File(homeDir, 'jmods').isDirectory() || new File(homeDir, 'lib/rt.jar').isFile())
     }
 
     return preferredHome != null ? preferredHome : steamJavaHome()

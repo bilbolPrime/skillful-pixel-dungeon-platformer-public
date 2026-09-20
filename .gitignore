@@ -9,6 +9,7 @@ replay_pid*
 # Gradle and machine-local configuration
 .gradle/
 /local.properties
+/desktop/src/main/resources/steam-achievements.properties
 gradle-app.setting
 
 # Build output for the modules in this repo

@@ -11,6 +11,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.ContactShadow;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.ItemOnScreen;
@@ -69,6 +70,7 @@ public abstract class Plant extends Unit {
             return;
         }
 
+        ContactShadow.draw(batch, x + ConstantsHelper.TILE / 2f, y, ConstantsHelper.UNIT_DIMENSIONS * 0.6f, alpha, false);
         plantFilm.setAlpha(alpha);
         plantFilm.setPosition(x + (ConstantsHelper.TILE - ConstantsHelper.UNIT_DIMENSIONS) / 2f, y);
         plantFilm.draw(batch);

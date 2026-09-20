@@ -41,6 +41,9 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.weapons.range
 import com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.weapons.ranged.Poor;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.weapons.ranged.Some;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.ItemOnScreen;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skills;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.TextWindow;
 
 import java.util.ArrayList;
@@ -53,6 +56,21 @@ public class InventoryHelper {
     private static final int GOLD_DROP_WEIGHT = 7;
     private static final int GOLD_DROP_RATE_REDUCTION_PERCENT = 20;
     private static final int WEAPON_DROP_RATE_REDUCTION_PERCENT = 20;
+
+    private static final int[][] MELEE_DEPTH_WEIGHTS = {
+            {4, 1, 0, 0}, {2, 4, 0, 0}, {1, 4, 2, 0},
+            {0, 2, 4, 1}, {0, 1, 4, 4}, {0, 1, 2, 4}
+    };
+    private static final int[][] ARMOR_DEPTH_WEIGHTS = {
+            {4, 1, 0, 0, 0}, {2, 4, 1, 0, 0}, {0, 2, 4, 1, 0},
+            {0, 0, 4, 4, 1}, {0, 0, 1, 4, 4}, {0, 0, 1, 2, 4}
+    };
+    private static final int[] HALLS_GUN_CHOICES = {0, 1, 2, 3, 3, 3, 4, 4, 4};
+
+    private static final int[][] DROPPED_UPGRADE_WEIGHTS = {
+            {80, 18, 2, 0}, {65, 27, 8, 0}, {50, 32, 15, 3},
+            {40, 35, 20, 5}, {30, 35, 25, 10}
+    };
 
     private final int INVENTORY_SIZE = 16;
     private int gold;
@@ -69,6 +87,13 @@ public class InventoryHelper {
 
     private void init(){
         items = new ArrayList<>();
+
+
+        if (NewClassSkillTree.isNewClass(UnitHelper.getInstance().getHero().getHeroClass())
+                && MapHelper.getInstance().isRestoringGeneratedLevels()) {
+            gold = 0;
+            return;
+        }
 
         boolean startingMeleeWeaponFound = false;
 
@@ -111,6 +136,18 @@ public class InventoryHelper {
     }
 
     public boolean addItem(Item item){
+        if (isClassRestricted(item)) {
+            showClassRestriction();
+            return false;
+        }
+        return addRestoredItem(item);
+    }
+
+
+    public boolean addRestoredItem(Item item) {
+        if (item instanceof BulletItem) {
+            return addBullets((BulletItem) item);
+        }
         if(item instanceof Treasure && !(item instanceof AmuletOfYendor)){
             return true;
         }
@@ -132,6 +169,7 @@ public class InventoryHelper {
 
         if(this.items.size() < INVENTORY_SIZE){
             this.items.add(item);
+            if (item instanceof Gun) ((Gun) item).suppressNaturalCompanion();
             AchievementManager.getInstance().onItemObtained(item);
             refreshInventoryUi();
         }
@@ -144,6 +182,10 @@ public class InventoryHelper {
     }
 
     public boolean canAddItem(Item item) {
+        if (isClassRestricted(item)) return false;
+        if (item instanceof BulletItem) {
+            return canAddBullets((BulletItem) item);
+        }
         if(item instanceof Treasure && !(item instanceof AmuletOfYendor)){
             return true;
         }
@@ -161,6 +203,53 @@ public class InventoryHelper {
         }
 
         return this.items.size() < INVENTORY_SIZE;
+    }
+
+    public static boolean isClassRestricted(Item item) {
+        return (item instanceof Gun || item instanceof BulletItem)
+                && !Gun.supports(UnitHelper.getInstance().getHero());
+    }
+
+    public static void showClassRestriction() {
+        WindowHelper.getInstance().addWindow(1000f, 120f,
+                com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages.get("custom.guns.class_only"));
+    }
+
+    private boolean canAddBullets(BulletItem incoming) {
+        if (incoming.getQuantity() <= 0) return false;
+        if (items.contains(incoming)) return true;
+        long remaining = incoming.getQuantity();
+        for (Item existing : items) {
+            if (!(existing instanceof BulletItem)) continue;
+            remaining -= Integer.MAX_VALUE - existing.getQuantity();
+            if (remaining <= 0) return true;
+        }
+        return items.size() < INVENTORY_SIZE;
+    }
+
+
+    private boolean addBullets(BulletItem incoming) {
+        if (incoming.getQuantity() <= 0) return false;
+        if (items.contains(incoming)) return true;
+        if (!canAddBullets(incoming)) {
+            WindowHelper.getInstance().addWindow(new TextWindow(1000, 100, "Backpack is full.").build());
+            return false;
+        }
+        int remaining = incoming.getQuantity();
+        for (Item existing : items) {
+            if (!(existing instanceof BulletItem)) continue;
+            int added = Math.min(remaining, Integer.MAX_VALUE - existing.getQuantity());
+            existing.setQuantity(existing.getQuantity() + added);
+            remaining -= added;
+            if (remaining == 0) break;
+        }
+        if (remaining > 0) {
+            incoming.setQuantity(remaining);
+            items.add(incoming);
+        }
+        AchievementManager.getInstance().onItemObtained(incoming);
+        refreshInventoryUi();
+        return true;
     }
 
     private boolean mergeStackableRangedWeapon(Item item) {
@@ -304,6 +393,33 @@ public class InventoryHelper {
         return getItemQuantity(ArrowItem.class);
     }
 
+
+    public int getBulletCount() {
+        long total = 0;
+        for (Item item : items) {
+            if (item instanceof BulletItem) total += item.getQuantity();
+        }
+        return (int) Math.min(Integer.MAX_VALUE, total);
+    }
+
+
+    public boolean consumeBullets(int amount) {
+        if (amount < 0 || getBulletCount() < amount) return false;
+        if (amount == 0) return true;
+        int remaining = amount;
+        for (int i = 0; i < items.size() && remaining > 0;) {
+            Item item = items.get(i);
+            if (!(item instanceof BulletItem)) { i++; continue; }
+            int consumed = Math.min(remaining, item.getQuantity());
+            item.setQuantity(item.getQuantity() - consumed);
+            remaining -= consumed;
+            if (item.getQuantity() == 0) items.remove(i);
+            else i++;
+        }
+        refreshInventoryUi();
+        return true;
+    }
+
     public int getKeyCount() {
         return getItemQuantity(Key.class);
     }
@@ -359,7 +475,7 @@ public class InventoryHelper {
     }
 
     public int getSellPrice(Item item) {
-        if (item == null) {
+        if (item == null || item instanceof BulletItem) {
             return 0;
         }
 
@@ -409,7 +525,19 @@ public class InventoryHelper {
             return new ArrowItem().setQuantity(10);
         }
 
+        if (item instanceof Gun && ((Gun) item).claimNaturalCompanion()) {
+            return createBulletBundle(10);
+        }
+
         return null;
+    }
+
+
+    public BulletItem createBulletBundle(int quantity) {
+        Hero hero = UnitHelper.getInstance().getHero();
+        if (!Gun.supports(hero)) return null;
+        if (hero.hasSkill(Skills.PACKRAT)) quantity += quantity / 2;
+        return new BulletItem().setQuantity(quantity);
     }
 
     public Item getRandomDrop(int depth){
@@ -421,6 +549,9 @@ public class InventoryHelper {
            Class<? extends Item> selectedItemClass = getRandomDropClass(depth, random, includeGold, true);
            selectedItemClass = applyDropRateReductions(selectedItemClass, depth, random, includeGold);
            Item item = selectedItemClass.newInstance();
+           if (item instanceof ArrowItem) item.setQuantity(24);
+           if (item instanceof BulletItem) item = createBulletBundle(12 + nextInt(random, 9));
+           item = chooseMercenaryGun(item, depth, random);
            applyDropStylePrefix(item, depth, random);
            return item;
        }
@@ -463,7 +594,7 @@ public class InventoryHelper {
             addWeightedCandidate(candidateItems, Gold.class, GOLD_DROP_WEIGHT);
         }
 
-        // consumables
+
         addWeightedCandidate(candidateItems, HealthPotion.class, 6);
         addWeightedCandidate(candidateItems, ManaPotion.class, 4);
         if (depth >= 2) {
@@ -517,16 +648,21 @@ public class InventoryHelper {
             candidateItems.add(ScrollOfWipeOut.class);
         }
 
-        // armor
+
         candidateItems.add(Cloth.class);
         candidateItems.add(LeatherArmor.class);
         candidateItems.add(MailArmor.class);
         candidateItems.add(PlateArmor.class);
         candidateItems.add(ScaleArmor.class);
 
+
+        Hero hero = UnitHelper.getInstance().getHero();
+        addWeightedCandidate(candidateItems, ArrowItem.class,
+                hero != null && hero.getHeroClass() == HeroClass.ARCHER ? 8 : 1);
+        if (Gun.supports(UnitHelper.getInstance().getHero())) candidateItems.add(BulletItem.class);
+
         if (includeWeapons) {
-            // ranged
-            candidateItems.add(ArrowItem.class);
+
             candidateItems.add(ThrowDart.class);
             candidateItems.add(Shuriken.class);
             if (depth >= 3) {
@@ -544,7 +680,7 @@ public class InventoryHelper {
                 candidateItems.add(FlameBow.class);
             }
 
-            // melee
+
             candidateItems.add(Axe.class);
             candidateItems.add(Dagger.class);
             candidateItems.add(Glaive.class);
@@ -557,7 +693,7 @@ public class InventoryHelper {
             candidateItems.add(Spear.class);
             candidateItems.add(Sword.class);
 
-            // wands
+
             addWeightedCandidate(candidateItems, FireBoltWand.class, 8);
             if (depth >= 3) {
                 addWeightedCandidate(candidateItems, WandOfAmok.class, 3);
@@ -610,6 +746,7 @@ public class InventoryHelper {
             candidateItems.add(Gemstone.class);
         }
 
+        applyDepthEquipmentWeights(candidateItems, depth);
         return candidateItems;
     }
 
@@ -646,13 +783,13 @@ public class InventoryHelper {
         try {
             ArrayList<Class<? extends Item>> candidateItems = new ArrayList<>();
 
-            // armor
+
             candidateItems.add(LeatherArmor.class);
             candidateItems.add(MailArmor.class);
             candidateItems.add(PlateArmor.class);
             candidateItems.add(ScaleArmor.class);
 
-            // melee
+
             candidateItems.add(Axe.class);
             candidateItems.add(Glaive.class);
             candidateItems.add(Hammer.class);
@@ -662,6 +799,7 @@ public class InventoryHelper {
             candidateItems.add(Spear.class);
             candidateItems.add(Sword.class);
             candidateItems.add(ArrowItem.class);
+            if (Gun.supports(UnitHelper.getInstance().getHero())) candidateItems.add(BulletItem.class);
             candidateItems.add(Bow.class);
             candidateItems.add(Javelin.class);
             candidateItems.add(Tomahawk.class);
@@ -684,7 +822,11 @@ public class InventoryHelper {
             candidateItems.add(RingOfShadows.class);
 
 
+            applyDepthEquipmentWeights(candidateItems, depth);
             Item item = candidateItems.get(RandomHelper.getInstance().randomInt(candidateItems.size())).newInstance();
+            if (item instanceof ArrowItem) item.setQuantity(24);
+            if (item instanceof BulletItem) item = createBulletBundle(12 + nextInt(null, 9));
+            item = chooseMercenaryGun(item, depth, null);
             applyDropStylePrefix(item, depth, null);
             return item;
         }
@@ -693,9 +835,63 @@ public class InventoryHelper {
         }
     }
 
+    private int lootDepthBand(int depth) {
+        return depth <= 2 ? 0 : depth <= 5 ? 1 : depth <= 10 ? 2 : depth <= 15 ? 3 : depth <= 20 ? 4 : 5;
+    }
+
+
+    public <T extends Item> void applyDepthEquipmentWeights(ArrayList<Class<? extends T>> candidates, int depth) {
+        ArrayList<Class<? extends T>> weighted = new ArrayList<Class<? extends T>>();
+        for (Class<? extends T> itemClass : candidates) {
+            int weight = equipmentDepthWeight(itemClass, depth);
+            for (int copy = 0; copy < weight; copy++) weighted.add(itemClass);
+        }
+        candidates.clear();
+        candidates.addAll(weighted);
+    }
+
+    private int equipmentDepthWeight(Class<? extends Item> itemClass, int depth) {
+        int band = lootDepthBand(depth);
+        int meleeTier = itemClass == Dagger.class || itemClass == Knuckles.class || itemClass == Rod.class || itemClass == ShortSword.class ? 1
+                : itemClass == Mace.class || itemClass == Spear.class || itemClass == Sword.class ? 2
+                : itemClass == Glaive.class || itemClass == LongSword.class ? 3
+                : itemClass == Axe.class || itemClass == Hammer.class ? 4 : 0;
+        if (meleeTier > 0) return MELEE_DEPTH_WEIGHTS[band][meleeTier - 1];
+        int armorTier = itemClass == Cloth.class ? 1 : itemClass == LeatherArmor.class ? 2
+                : itemClass == MailArmor.class ? 3 : itemClass == ScaleArmor.class ? 4 : itemClass == PlateArmor.class ? 5 : 0;
+        if (armorTier > 0) return ARMOR_DEPTH_WEIGHTS[band][armorTier - 1];
+
+        int firstDepth = 1;
+        if (itemClass == MagicMissileWand.class || itemClass == WandOfAmok.class || itemClass == WandOfBlink.class || itemClass == WandOfReach.class) firstDepth = 3;
+        else if (itemClass == WandOfPoison.class || itemClass == WandOfRegrowth.class || itemClass == Javelin.class) firstDepth = 4;
+        else if (itemClass == FireBallWand.class || itemClass == WandOfFlock.class || itemClass == WandOfSlowness.class || itemClass == WandOfTeleportation.class || itemClass == Tomahawk.class) firstDepth = 5;
+        else if (itemClass == WandOfLightning.class) firstDepth = 9;
+        else if (itemClass == WandOfAvalanche.class || itemClass == WandOfDisintegration.class || itemClass == IncinerationWand.class || itemClass == FrostBow.class || itemClass == FlameBow.class) firstDepth = 11;
+        return depth >= firstDepth ? 1 : 0;
+    }
+
     private void addWeightedCandidate(ArrayList<Class<? extends Item>> candidateItems, Class<? extends Item> itemClass, int weight) {
         for (int i = 0; i < weight; i++) {
             candidateItems.add(itemClass);
+        }
+    }
+
+
+    public Item chooseMercenaryGun(Item candidate, int depth, RandomXS128 random) {
+
+        if (!Gun.supports(UnitHelper.getInstance().getHero()) || depth < 1
+                || !(candidate instanceof Weapon) || candidate instanceof Potion || candidate instanceof Gun) {
+            return candidate;
+        }
+        int eligibleTiers = Math.min(5, lootDepthBand(depth) + 1);
+        if (!randomChance(random, 20)) return candidate;
+        int gunChoice = depth >= 21 ? HALLS_GUN_CHOICES[nextInt(random, HALLS_GUN_CHOICES.length)] : nextInt(random, eligibleTiers);
+        switch (gunChoice) {
+            case 0: return new Handgun();
+            case 1: return new Pistol();
+            case 2: return new Blunderbuss();
+            case 3: return new Rifle();
+            default: return new Mortar();
         }
     }
 
@@ -710,11 +906,11 @@ public class InventoryHelper {
         }
 
         if (item instanceof Ring) {
-            applyRingPrefix((Ring) item, random);
+            applyRingPrefix((Ring) item, depth, random);
             return;
         }
 
-        applyDroppedItemUpgrade(item, random);
+        applyDroppedItemUpgrade(item, depth, random);
 
         if (item instanceof RangedWeapon && !(item instanceof Potion)) {
             applyRangedPrefix((RangedWeapon) item, depth, random);
@@ -737,43 +933,39 @@ public class InventoryHelper {
             return;
         }
 
-        applyDroppedItemUpgrade(armor, random);
+        applyDroppedItemUpgrade(armor, depth, random);
         armor.setPrefix((Prefix) null);
     }
 
-    private void applyRingPrefix(Ring ring, RandomXS128 random) {
+    private void applyRingPrefix(Ring ring, int depth, RandomXS128 random) {
         if (randomChance(random, 20)) {
             ring.setPrefix(new com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.rings.Cursed());
             return;
         }
 
-        applyDroppedItemUpgrade(ring, random);
+        applyDroppedItemUpgrade(ring, depth, random);
         ring.setPrefix((Prefix) null);
     }
 
-    private void applyDroppedItemUpgrade(Item item, RandomXS128 random) {
+    private void applyDroppedItemUpgrade(Item item, int depth, RandomXS128 random) {
         if (item == null || !item.canUpgrade()) {
             return;
         }
 
-        int upgradeLevels = rollDroppedItemUpgradeLevels(random);
-        if (upgradeLevels > 0) {
-            item.modifyLevel(upgradeLevels);
+        int upgradeLevels = rollDroppedItemUpgradeLevels(depth, random);
+
+        for (int upgrade = 0; upgrade < upgradeLevels && item.canUpgrade(); upgrade++) {
+            item.modifyLevel(1);
         }
     }
 
-    private int rollDroppedItemUpgradeLevels(RandomXS128 random) {
+    private int rollDroppedItemUpgradeLevels(int depth, RandomXS128 random) {
         int roll = nextInt(random, 100);
-        if (roll < 5) {
-            return 3;
-        }
-
-        if (roll < 15) {
-            return 2;
-        }
-
-        if (roll < 40) {
-            return 1;
+        int section = depth <= 5 ? 0 : depth <= 10 ? 1 : depth <= 15 ? 2 : depth <= 20 ? 3 : 4;
+        int threshold = 0;
+        for (int upgrade = 3; upgrade > 0; upgrade--) {
+            threshold += DROPPED_UPGRADE_WEIGHTS[section][upgrade];
+            if (roll < threshold) return upgrade;
         }
 
         return 0;
@@ -867,12 +1059,16 @@ public class InventoryHelper {
 
         while (items.size() < MERCHANT_STOCK_SIZE && !candidateItems.isEmpty()) {
             int selectedIndex = RandomHelper.getInstance().randomInt(candidateItems.size());
-            items.add(createMerchantItem(candidateItems.remove(selectedIndex)));
+            items.add(chooseMercenaryGun(createMerchantItem(candidateItems.remove(selectedIndex)), depth, null));
         }
 
         while (items.size() < MERCHANT_STOCK_SIZE) {
             items.add(new ScrollOfRefuge());
         }
+
+
+        if (Gun.supports(UnitHelper.getInstance().getHero())) items.add(createBulletBundle(20));
+        else items.add(new ArrowItem().setQuantity(80));
 
         return items;
     }
@@ -944,10 +1140,11 @@ public class InventoryHelper {
             candidateItems.add(LeatherArmor.class);
             candidateItems.add(FireBoltWand.class);
             candidateItems.add(RingOfDetection.class);
+            applyDepthEquipmentWeights(candidateItems, depth);
             return;
         }
 
-        if (depth <= 4) {
+        if (depth <= 5) {
             candidateItems.add(Shuriken.class);
             candidateItems.add(CurareDart.class);
             addWeightedCandidate(candidateItems, ArrowItem.class, 2);
@@ -961,15 +1158,17 @@ public class InventoryHelper {
             candidateItems.add(MailArmor.class);
             candidateItems.add(FireBoltWand.class);
             candidateItems.add(MagicMissileWand.class);
+            candidateItems.add(FireBallWand.class);
             candidateItems.add(WandOfBlink.class);
             candidateItems.add(RingOfDetection.class);
             candidateItems.add(RingOfHaste.class);
             candidateItems.add(RingOfPower.class);
             candidateItems.add(RingOfSatiety.class);
+            applyDepthEquipmentWeights(candidateItems, depth);
             return;
         }
 
-        if (depth <= 6) {
+        if (depth <= 10) {
             candidateItems.add(CurareDart.class);
             candidateItems.add(Javelin.class);
             candidateItems.add(Tomahawk.class);
@@ -984,6 +1183,9 @@ public class InventoryHelper {
             candidateItems.add(MailArmor.class);
             candidateItems.add(ScaleArmor.class);
             candidateItems.add(MagicMissileWand.class);
+            candidateItems.add(FireBallWand.class);
+            candidateItems.add(FireBoltWand.class);
+            candidateItems.add(WandOfLightning.class);
             candidateItems.add(WandOfPoison.class);
             candidateItems.add(WandOfSlowness.class);
             candidateItems.add(WandOfReach.class);
@@ -993,10 +1195,11 @@ public class InventoryHelper {
             candidateItems.add(RingOfAccuracy.class);
             candidateItems.add(RingOfEvasion.class);
             candidateItems.add(RingOfElements.class);
+            applyDepthEquipmentWeights(candidateItems, depth);
             return;
         }
 
-        if (depth <= 8) {
+        if (depth <= 15) {
             candidateItems.add(Javelin.class);
             candidateItems.add(Tomahawk.class);
             addWeightedCandidate(candidateItems, ArrowItem.class, 2);
@@ -1006,6 +1209,12 @@ public class InventoryHelper {
             candidateItems.add(LongSword.class);
             candidateItems.add(Glaive.class);
             candidateItems.add(Hammer.class);
+            candidateItems.add(Axe.class);
+            candidateItems.add(FireBoltWand.class);
+            candidateItems.add(MagicMissileWand.class);
+            candidateItems.add(FireBallWand.class);
+            candidateItems.add(WandOfDisintegration.class);
+            candidateItems.add(IncinerationWand.class);
             candidateItems.add(ScaleArmor.class);
             candidateItems.add(PlateArmor.class);
             candidateItems.add(WandOfLightning.class);
@@ -1017,6 +1226,7 @@ public class InventoryHelper {
             candidateItems.add(RingOfShadows.class);
             candidateItems.add(RingOfThorns.class);
             candidateItems.add(Gemstone.class);
+            applyDepthEquipmentWeights(candidateItems, depth);
             return;
         }
 
@@ -1038,11 +1248,21 @@ public class InventoryHelper {
         candidateItems.add(RingOfShadows.class);
         candidateItems.add(RingOfThorns.class);
         candidateItems.add(Gemstone.class);
+        candidateItems.add(Axe.class);
+        candidateItems.add(Spear.class);
+        candidateItems.add(FireBoltWand.class);
+        candidateItems.add(MagicMissileWand.class);
+        candidateItems.add(FireBallWand.class);
+        candidateItems.add(WandOfDisintegration.class);
+        candidateItems.add(IncinerationWand.class);
+        applyDepthEquipmentWeights(candidateItems, depth);
     }
 
     private Item createMerchantItem(Class<? extends Item> itemClass) {
         try {
-            return itemClass.newInstance();
+            Item item = itemClass.newInstance();
+            if (item instanceof ArrowItem) item.setQuantity(20);
+            return item;
         }
         catch (Exception ignored) {
             return new ScrollOfRefuge();

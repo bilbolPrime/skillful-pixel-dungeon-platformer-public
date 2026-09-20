@@ -13,6 +13,11 @@ import com.bilboldev.skillfulpixeldungeonplatformer.screens.TitleScreen;
 import java.util.ArrayList;
 
 public class PauseMenuWindow extends Window {
+    public static void openGameplay() {
+        boolean desktop = SkillfulPixelDungeonPlatformer.getPlatformProfile().keyboardControlsEnabled()
+                && !SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled();
+        WindowHelper.getInstance().addWindow((desktop ? new DesktopPauseMenuWindow() : new PauseMenuWindow()).build());
+    }
 
     private static final float MENU_WIDTH = 1000f;
     private static final float BUTTON_WIDTH = 900f;
@@ -26,6 +31,7 @@ public class PauseMenuWindow extends Window {
     private final ArrayList<ActionButton> buttons;
     private final boolean showSaveExit;
     private ActionButton pressedButton;
+    private final WindowChoiceFocus keyboardFocus = new WindowChoiceFocus();
 
     public PauseMenuWindow() {
         this(true);
@@ -61,7 +67,7 @@ public class PauseMenuWindow extends Window {
         buttons.add(new PauseMenuRowButton(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT) {
             @Override
             public void clicked() {
-                WindowHelper.getInstance().replaceWindow(new PauseSettingsWindow(showSaveExit).build());
+                WindowHelper.getInstance().addWindow(new PauseSettingsWindow(showSaveExit).build());
             }
         }.setCenteredText("SETTINGS"));
 
@@ -80,7 +86,7 @@ public class PauseMenuWindow extends Window {
             buttons.add(new PauseMenuRowButton(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT) {
                 @Override
                 public void clicked() {
-                    WindowHelper.getInstance().replaceWindow(new PauseControlsWindow(showSaveExit).build());
+                    WindowHelper.getInstance().addWindow(new PauseControlsWindow(showSaveExit).build());
                 }
             }.setCenteredText(Messages.get("windows.wndsettings$inputtab.key_bindings")));
         }
@@ -110,10 +116,12 @@ public class PauseMenuWindow extends Window {
         for (ActionButton button : buttons) {
             button.draw(batch);
         }
+        keyboardFocus.draw(this, batch, buttons);
     }
 
     @Override
     public boolean pointerDown(float x, float y, int button) {
+        keyboardFocus.pointerDown(x, y, buttons);
         clearPressedButton();
         for (ActionButton actionButton : buttons) {
             if (actionButton.isHitProjected(x, y)) {
@@ -142,7 +150,7 @@ public class PauseMenuWindow extends Window {
         }
 
         if (x < this.x || x > this.x + this.width || y < this.y || y > this.y + this.height) {
-            WindowHelper.getInstance().closeWindow(this);
+            hide();
         }
 
         return true;
@@ -150,9 +158,12 @@ public class PauseMenuWindow extends Window {
 
     @Override
     public boolean keyDown(int keycode) {
-        WindowHelper.getInstance().closeWindow(this);
-        return true;
+        clearPressedButton();
+        return keyboardFocus.keyDown(this, keycode, buttons);
     }
+
+    @Override
+    public void cancelPointerInput() { clearPressedButton(); }
 
     private void clearPressedButton() {
         if (pressedButton != null) {

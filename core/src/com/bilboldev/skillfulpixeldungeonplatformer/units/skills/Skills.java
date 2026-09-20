@@ -60,4 +60,25 @@ public class Skills {
     public static final int EVASION = 53;
     public static final int SILENT_DEATH = 54;
     public static final int SHADOW_CLONE = 55;
+
+    public static final int MIND_SHOT = 56;
+    public static final int RAISE_SKELETON = 57;
+    public static final int DRAIN_LIFE = 58;
+    public static final int CURSE = 59;
+    public static final int SPIRIT_BINDER = 60;
+    public static final int SUMMON_GHOST = 61;
+    public static final int MASTER_OF_DEATH = 62;
+    public static final int LICH = 63;
+    public static final int RAISE_SKELETON_ARCHER = 64;
+    public static final int CORPSE_EXPLOSION = 65;
+    public static final int WANTED = 66;
+    public static final int STEADY_AIM = 67;
+    public static final int QUICK_DRAW = 68;
+    public static final int PACKRAT = 69;
+    public static final int HEAD_SHOT = 70;
+    public static final int MARSHAL = 71;
+    public static final int I_AM_THE_LAW = 72;
+    public static final int NO_WITNESSES = 73;
+    public static final int EXECUTIONER = 74;
+    public static final int EXECUTE = 75;
 }

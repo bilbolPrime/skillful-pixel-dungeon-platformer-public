@@ -10,15 +10,24 @@ public class ArmoryRoom extends SingleDoorSpecialRoom {
 
     @Override
     public Room build() {
-        buildSplitPlatforms();
+        resetLayout();
+        width = 18 + 2 * layoutVariant(2);
+        getLayout().describe("armory-racks", width / 2, 4);
+        addPlatformSpan(6, 9, 3);
+        addPlatformSpan(width - 6, width - 3, 3);
+        addPlatformSpan(width / 2 - 1, width / 2 + 2, 5);
+        return finishLayout();
+    }
 
-        placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), 4, 5);
-        placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), 7, 7);
-        placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), 12, 5);
+    @Override
+    protected void placeContents() {
+
+        placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), 7, 4);
+        placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), width / 2, 6);
+        placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), width - 5, 4);
         if (RandomHelper.getInstance().randomChance(35)) {
-            placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), 10, 7);
+            placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), width / 2 + 1, 6);
         }
 
-        return this;
     }
 }

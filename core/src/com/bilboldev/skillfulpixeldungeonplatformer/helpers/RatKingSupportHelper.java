@@ -15,7 +15,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.themes.sewers.Sewers;
 
 public class RatKingSupportHelper {
     private static final String PREFS_NAME = "rat-king-support";
-    private static final String KEY_MOBILE_DONATION_UNLOCKED = "mobile_donation_unlocked";
     private static final String KEY_COMPANION_ENABLED = "companion_enabled";
     private static final String KEY_TITLE_THEME = "title_theme";
     private static final String KEY_HIGHEST_DEPTH_REACHED = "highest_depth_reached";
@@ -87,26 +86,8 @@ public class RatKingSupportHelper {
     }
 
     public boolean isRatKingAvailable() {
-        if (SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled()) {
-            return isMobileDonationUnlocked();
-        }
-
         return SkillfulPixelDungeonPlatformer.getPlatformProfile().keyboardControlsEnabled()
-                && !SkillfulPixelDungeonPlatformer.isFreeDesktopBuild();
-    }
-
-    public boolean shouldRequireMobileDonation() {
-        return SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled() && !isMobileDonationUnlocked();
-    }
-
-    public boolean isMobileDonationUnlocked() {
-        return prefs().getBoolean(KEY_MOBILE_DONATION_UNLOCKED, false);
-    }
-
-    public void setMobileDonationUnlocked(boolean unlocked) {
-        Preferences prefs = prefs();
-        prefs.putBoolean(KEY_MOBILE_DONATION_UNLOCKED, unlocked);
-        prefs.flush();
+                && !SkillfulPixelDungeonPlatformer.getPlatformProfile().isFreeVersion();
     }
 
     public boolean isCompanionEnabled() {

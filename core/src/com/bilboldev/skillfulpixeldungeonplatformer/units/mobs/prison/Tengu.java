@@ -13,7 +13,9 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.project
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.AI;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.AgressiveAI;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Buff;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.doors.Door;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.ThrownProjectile;
@@ -25,7 +27,9 @@ import java.util.Collections;
 
 public class Tengu extends Mob {
     private static final float TELEPORT_COOLDOWN_SECONDS = 10f;
-    private static final float SHURIKEN_ATTACK_INTERVAL_SECONDS = 1.35f;
+    private static final float BLOCKED_LANE_REPOSITION_SECONDS = 4f;
+    private static final float SHURIKEN_ATTACK_INTERVAL_SECONDS = 2f;
+    private static final float SHURIKEN_BURST_WINDUP_SECONDS = 0.2f;
     private static final float SHURIKEN_BURST_SHOT_INTERVAL_SECONDS = 0.18f;
     private static final float TELEPORT_ANIMATION_FRAME_RATE = 10f;
     private static final float SHURIKEN_SPEED_X = 1640f;
@@ -42,6 +46,11 @@ public class Tengu extends Mob {
     private int queuedShurikenShots;
     private int nextShurikenBurstIndex;
     private float nextShurikenShotAt;
+    private AI committedAI;
+    private Unit committedTarget;
+    private boolean committedFriendly;
+    private String teleportPerch;
+    private boolean teleportLanded;
 
     {
         boss = true;
@@ -66,9 +75,14 @@ public class Tengu extends Mob {
         ai = new AgressiveAI(this) {
             private float throwAt = 1f;
             private float jumpAt = TELEPORT_COOLDOWN_SECONDS;
+            private boolean teleportPending;
 
             @Override
             public void act(float delta) {
+                if (teleportPending && !isTeleportAnimating()) {
+                    jumpAt = teleportLanded ? TELEPORT_COOLDOWN_SECONDS : 0f;
+                    teleportPending = false;
+                }
                 throwAt -= delta;
                 jumpAt -= delta;
                 super.act(delta);
@@ -95,15 +109,27 @@ public class Tengu extends Mob {
                 tengu.movingRight = false;
                 tengu.facingRight = tengu.x < target.x;
 
-                if (jumpAt <= 0f) {
-                    tengu.jump(target);
-                    jumpAt = TELEPORT_COOLDOWN_SECONDS;
+                if (!tengu.canAttack()) {
                     return;
                 }
 
-                if (throwAt <= 0f) {
+                boolean firingLane = tengu.hasFiringLane(tengu.x, tengu.y, target);
+                if (!firingLane) {
+
+
+                    jumpAt = Math.min(jumpAt, BLOCKED_LANE_REPOSITION_SECONDS);
+                }
+
+                if (jumpAt <= 0f) {
+                    if (tengu.beginTeleport(target)) {
+                        teleportPending = true;
+                        return;
+                    }
+                }
+
+                if (throwAt <= 0f && firingLane) {
                     tengu.beginShurikenBurst();
-                    tengu.fakeAttack();
+                    tengu.startAttackAnimation(0.8f);
                     throwAt = SHURIKEN_ATTACK_INTERVAL_SECONDS;
                 }
             }
@@ -119,13 +145,41 @@ public class Tengu extends Mob {
     public void act(float delta) {
         movingLeft = false;
         movingRight = false;
+        if ((isTeleportAnimating() || isFiringShurikenBurst()) && !canContinueSpecial()) cancelSpecial();
+
+        super.act(delta);
+        if ((isTeleportAnimating() || isFiringShurikenBurst()) && !canContinueSpecial()) cancelSpecial();
         if (isTeleportAnimating()) {
             updateTeleportAnimation(delta);
             return;
         }
-
-        super.act(delta);
         updateShurikenBurst(delta);
+    }
+
+    private void rememberSpecial(Unit target) {
+        committedAI = ai;
+        committedTarget = target;
+        committedFriendly = isFriendly;
+    }
+
+    private boolean canContinueSpecial() {
+        if (isDead() || getHP() < 1 || room == null || !room.equals(MapHelper.getInstance().getActiveRoomIdentifier())
+                || ai == null || ai != committedAI || isFriendly != committedFriendly
+                || ai.isBlind() || !ai.canTarget(committedTarget)) return false;
+
+        for (Buff buff : buffs) if (buff.preventsAttacks()) return false;
+        return true;
+    }
+
+    private void cancelSpecial() {
+        queuedShurikenShots = 0;
+        nextShurikenBurstIndex = 0;
+        nextShurikenShotAt = 0f;
+        teleportAnimationPhase = TeleportAnimationPhase.NONE;
+        teleportAnimationFrame = 0f;
+        teleportAvoidTarget = committedTarget = null;
+        teleportPerch = null;
+        committedAI = null;
     }
 
     @Override
@@ -164,20 +218,32 @@ public class Tengu extends Mob {
     }
 
     public void teleportToPerch(Unit avoidTarget) {
+        String platform = choosePerch(avoidTarget);
+        if (platform != null) landOnPerch(platform, avoidTarget);
+    }
+
+    private String choosePerch(Unit avoidTarget) {
         Room currentRoom = MapHelper.getInstance().getRoom(room);
-        if (currentRoom == null) {
-            return;
-        }
+        if (currentRoom == null || !room.equals(MapHelper.getInstance().getActiveRoomIdentifier())) return null;
 
         ArrayList<String> candidates = new ArrayList<String>();
+        ArrayList<String> fallback = new ArrayList<String>();
+        float nearestHeight = Float.MAX_VALUE;
         for (String platform : currentRoom.getPlatforms()) {
+            if (!canLandOnPerch(currentRoom, platform)) continue;
             int tileX = Integer.parseInt(platform.split("_")[0]);
             int tileY = Integer.parseInt(platform.split("_")[1]);
-            if (tileY < 5) {
-                continue;
+            float px = tileX * ConstantsHelper.TILE, py = (tileY + 1) * ConstantsHelper.TILE;
+            if (avoidTarget != null && Math.abs(avoidTarget.x - px) < ConstantsHelper.TILE) continue;
+            float heightGap = avoidTarget == null ? 0f : Math.abs(avoidTarget.y - py);
+            if (heightGap < nearestHeight) {
+                fallback.clear();
+                nearestHeight = heightGap;
             }
+            if (heightGap == nearestHeight) fallback.add(platform);
 
-            if (avoidTarget != null && Math.abs(avoidTarget.x - tileX * ConstantsHelper.TILE) < ConstantsHelper.TILE * 2f) {
+            if (avoidTarget == null || Math.abs(avoidTarget.x - px) < ConstantsHelper.TILE * 2f
+                    || !hasFiringLane(px, py, avoidTarget)) {
                 continue;
             }
 
@@ -185,11 +251,36 @@ public class Tengu extends Mob {
         }
 
         if (candidates.isEmpty()) {
-            candidates.addAll(currentRoom.getPlatforms());
+            candidates.addAll(fallback);
         }
-
+        if (candidates.isEmpty()) return null;
         Collections.sort(candidates);
-        String platform = candidates.get(RandomHelper.getInstance().randomInt(candidates.size()));
+        return candidates.get(RandomHelper.getInstance().randomInt(candidates.size()));
+    }
+
+    private boolean hasFiringLane(float fromX, float fromY, Unit target) {
+        if (target == null || Math.abs(target.y - fromY) > ConstantsHelper.UNIT_DIMENSIONS
+                || Math.abs(target.x - fromX) > ConstantsHelper.TILE * 4f) return false;
+        Room currentRoom = MapHelper.getInstance().getRoom(room);
+        return currentRoom != null && MapHelper.getInstance().hasPlatformLineOfSight(currentRoom,
+                fromX + ConstantsHelper.UNIT_DIMENSIONS / 2f, fromY + ConstantsHelper.UNIT_DIMENSIONS / 3f,
+                target.x + ConstantsHelper.UNIT_DIMENSIONS / 2f, target.y + ConstantsHelper.UNIT_DIMENSIONS / 2f);
+    }
+
+    private boolean canLandOnPerch(Room currentRoom, String platform) {
+        if (currentRoom == null || platform == null || !currentRoom.getPlatforms().contains(platform)) return false;
+        int tileX = Integer.parseInt(platform.split("_")[0]);
+        int tileY = Integer.parseInt(platform.split("_")[1]);
+        float px = tileX * ConstantsHelper.TILE, py = (tileY + 1) * ConstantsHelper.TILE;
+        return px >= 1f && px + ConstantsHelper.UNIT_DIMENSIONS < currentRoom.getWidth() * ConstantsHelper.TILE
+                && py + ConstantsHelper.UNIT_DIMENSIONS < currentRoom.getHeight() * ConstantsHelper.TILE
+                && !(Math.abs(px - x) < 1f && Math.abs(py - y) < 8f)
+                && !currentRoom.getPlatforms().contains(tileX + "_" + (tileY + 1))
+                && Math.abs(MapHelper.getInstance().calculateFloorY(px, py) - py) <= 1f
+                && UnitHelper.getInstance().freeSpace(this, (int) px, (int) py, room);
+    }
+
+    private void landOnPerch(String platform, Unit avoidTarget) {
         int tileX = Integer.parseInt(platform.split("_")[0]);
         int tileY = Integer.parseInt(platform.split("_")[1]);
 
@@ -224,9 +315,10 @@ public class Tengu extends Mob {
     }
 
     private void beginShurikenBurst() {
+        rememberSpecial(ai.getOther());
         queuedShurikenShots = SHURIKEN_BURST_OFFSETS.length;
         nextShurikenBurstIndex = 0;
-        nextShurikenShotAt = 0f;
+        nextShurikenShotAt = SHURIKEN_BURST_WINDUP_SECONDS;
     }
 
     private void updateShurikenBurst(float delta) {
@@ -266,22 +358,26 @@ public class Tengu extends Mob {
         return teleportAnimationPhase != TeleportAnimationPhase.NONE;
     }
 
-    private void beginTeleport(Unit avoidTarget) {
-        if (isTeleportAnimating()) {
-            return;
-        }
+    private boolean beginTeleport(Unit avoidTarget) {
+        if (isTeleportAnimating()) return false;
+        teleportPerch = choosePerch(avoidTarget);
+        if (teleportPerch == null) return false;
+        rememberSpecial(avoidTarget);
+        teleportLanded = false;
 
         if (teleportInFrames == null || teleportInFrames.length == 0) {
             armDormantTraps(4);
             EffectsHelper.getInstance().blackSpark(this);
-            teleportToPerch(avoidTarget);
+            landOnPerch(teleportPerch, avoidTarget);
+            teleportLanded = true;
             EffectsHelper.getInstance().blackSpark(this);
-            return;
+            return true;
         }
 
         teleportAvoidTarget = avoidTarget;
         teleportAnimationFrame = 0f;
         teleportAnimationPhase = TeleportAnimationPhase.OUT;
+        return true;
     }
 
     private void updateTeleportAnimation(float delta) {
@@ -298,9 +394,16 @@ public class Tengu extends Mob {
         }
 
         if (teleportAnimationPhase == TeleportAnimationPhase.OUT) {
+            Room currentRoom = MapHelper.getInstance().getRoom(room);
+            if (!canLandOnPerch(currentRoom, teleportPerch)) teleportPerch = choosePerch(teleportAvoidTarget);
+            if (teleportPerch == null) {
+                cancelSpecial();
+                return;
+            }
             armDormantTraps(4);
             EffectsHelper.getInstance().blackSpark(this);
-            teleportToPerch(teleportAvoidTarget);
+            landOnPerch(teleportPerch, teleportAvoidTarget);
+            teleportLanded = true;
             EffectsHelper.getInstance().blackSpark(this);
             teleportAnimationPhase = TeleportAnimationPhase.IN;
             teleportAnimationFrame = 0f;
@@ -314,6 +417,7 @@ public class Tengu extends Mob {
 
     @Override
     public void die() {
+        cancelSpecial();
         new TomeOfMastery().drop(x, y, room);
         super.die();
         Room currentRoom = MapHelper.getInstance().getRoom(room);

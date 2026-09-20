@@ -1,6 +1,8 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.InventoryHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Gold;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.armor.LeatherArmor;
@@ -59,13 +61,16 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Shurike
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.ThrowDart;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Tomahawk;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public final class SpecialRoomRewards {
 
     private SpecialRoomRewards() {
     }
 
     public static Item randomWeaponOrArmorReward() {
-        return instantiate(
+        Item item = instantiate(
                 LeatherArmor.class,
                 MailArmor.class,
                 ScaleArmor.class,
@@ -80,6 +85,7 @@ public final class SpecialRoomRewards {
                 Bow.class,
                 Javelin.class,
                 Tomahawk.class);
+        return InventoryHelper.getInstance().chooseMercenaryGun(item, MapHelper.getInstance().getDepth(), null);
     }
 
     public static Item randomArmorReward() {
@@ -140,7 +146,7 @@ public final class SpecialRoomRewards {
     }
 
     public static Item randomSupplyReward() {
-        return instantiate(
+        Item item = instantiate(
                 Rations.class,
                 HealthPotion.class,
                 ManaPotion.class,
@@ -154,6 +160,7 @@ public final class SpecialRoomRewards {
                 ScrollOfEnchantment.class,
                 ThrowDart.class,
                 Shuriken.class);
+        return InventoryHelper.getInstance().chooseMercenaryGun(item, MapHelper.getInstance().getDepth(), null);
     }
 
     public static Item randomGardenReward() {
@@ -176,7 +183,10 @@ public final class SpecialRoomRewards {
         }
 
         try {
-            return candidates[RandomHelper.getInstance().randomInt(candidates.length)].newInstance();
+            ArrayList<Class<? extends Item>> weighted = new ArrayList<Class<? extends Item>>(Arrays.asList(candidates));
+            InventoryHelper.getInstance().applyDepthEquipmentWeights(weighted, MapHelper.getInstance().getDepth());
+            if (weighted.isEmpty()) return new Gold();
+            return weighted.get(RandomHelper.getInstance().randomInt(weighted.size())).newInstance();
         }
         catch (Exception ignored) {
             return new Gold();

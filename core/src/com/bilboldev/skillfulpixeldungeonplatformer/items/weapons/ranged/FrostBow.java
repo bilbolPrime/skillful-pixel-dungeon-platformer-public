@@ -12,7 +12,7 @@ public class FrostBow extends Bow {
         gs = new GameSprite("images/misc/extracted items/ForstBow.png", 45, 45);
         name = "Frost Bow";
         description = "A magically chilled bow whose arrows sap speed from anything they strike.";
-        damage = 5f;
+        damage = 6f;
         goldCost = 55;
     }
 
@@ -29,7 +29,7 @@ public class FrostBow extends Bow {
                     return;
                 }
 
-                if (owner != null && UnitHelper.getInstance().attackTarget(owner, target, attackingItem, damage, false)) {
+                if (owner != null && UnitHelper.getInstance().attackTarget(owner, target, attackingItem, damage, false, accuracyMultiplier)) {
                     new Slow().setPermanent(false).setDuration(2.5f).setOwner(target);
                     playSound(Sounds.HIT, 0.4f);
                     recordHitTarget(target);

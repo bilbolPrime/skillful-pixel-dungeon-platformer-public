@@ -10,12 +10,21 @@ public class CryptRoom extends SingleDoorSpecialRoom {
 
     @Override
     public Room build() {
-        buildSplitPlatforms();
+        resetLayout();
+        width = 18 + 2 * layoutVariant(2);
+        getLayout().describe("crypt-alcove", width / 2, 4);
+        addPlatformSpan(width / 2 - 3, width / 2 + 3, 3);
+        addPlatformSpan(6, 7, 5);
+        addPlatformSpan(width - 5, width - 4, 5);
+        return finishLayout();
+    }
+
+    @Override
+    protected void placeContents() {
 
         DisturbableTomb tomb = new DisturbableTomb();
         tomb.setRewardItem(SpecialRoomRewards.randomArmorReward());
-        placeInteractable(tomb, 9, 7);
+        placeInteractable(tomb, width / 2, 4);
 
-        return this;
     }
 }

@@ -1,12 +1,10 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.ai;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
-import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.PhysicsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
-import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 
 public class DefensiveAI extends AI{
@@ -14,13 +12,21 @@ public class DefensiveAI extends AI{
     private static final float DROP_EDGE_SCAN_STEP = 8f;
     private static final float DROP_GROUND_TOLERANCE = 2f;
 
+    private static final float DROP_FLOOR_TOLERANCE = 8f;
+
     private int committedDropDirection;
     private float committedDropEdgeX = Float.NaN;
-    private float committedDropHeroY = Float.NaN;
+    private Unit committedDropTarget;
     private float committedDropStartY = Float.NaN;
 
     public DefensiveAI(Unit unit){
         super(unit);
+    }
+
+    @Override
+    public void clearTarget() {
+        clearDropEdgeCommit();
+        super.clearTarget();
     }
 
 
@@ -54,8 +60,9 @@ public class DefensiveAI extends AI{
             return;
         }
 
-        boolean continueCommittedDrop = shouldContinueCommittedHeroDrop(other);
-        boolean startCommittedDrop = shouldStartCommittedHeroDrop(other);
+        owner.facingRight = owner.x < other.x;
+        boolean continueCommittedDrop = shouldContinueCommittedDrop(other);
+        boolean startCommittedDrop = shouldStartCommittedDrop(other);
         if (continueCommittedDrop || startCommittedDrop) {
             if (moveTowardDropEdge(other)) {
                 owner.facingRight = committedDropDirection > 0;
@@ -94,7 +101,7 @@ public class DefensiveAI extends AI{
             owner.movingLeft = false;
             owner.movingRight = false;
 
-            // Jump
+
             if(owner.y + 15 < other.y){
                 if(!owner.isCanFly()){
                     owner.jump();
@@ -102,10 +109,10 @@ public class DefensiveAI extends AI{
                 else {
                     owner.fly(true, false);
                 }
-            } // Smack them in the face
+            }
             else if(Math.abs(owner.y - other.y) < 15){
                 attack();
-            } // Drop if you can
+            }
             else if(!owner.isCanFly() && owner.y > other.y + 15 && isStandingOnFloor()){
                 float candidateY = MapHelper.getInstance().calculateFloorY(owner.x, owner.y - 1);
                 if(candidateY < owner.y){
@@ -119,11 +126,9 @@ public class DefensiveAI extends AI{
             }
         }
 
-        owner.facingRight = owner.x < other.x;
-
         if(Math.abs(other.x - owner.x) > 5 * ConstantsHelper.UNIT_DIMENSIONS){
             Unit candidateTarget = findTarget();
-            if(candidateTarget != null && Math.abs(other.x - owner.x) > Math.abs(candidateTarget.x - owner.x)) {
+            if(isBetterTarget(candidateTarget)) {
                 other = candidateTarget;
             }
         }
@@ -135,10 +140,10 @@ public class DefensiveAI extends AI{
         }
 
         float candidateY = MapHelper.getInstance().calculateFloorY(owner.x, owner.y - 1f);
-        if (candidateY < owner.y) {
+        if (candidateY < owner.y - DROP_FLOOR_TOLERANCE) {
             if (!PhysicsHelper.getInstance().hasBody(owner) || owner.showOnly()) {
                 if (isStandingOnFloor()) {
-                dropFromEdge(candidateY);
+                    dropFromEdge(candidateY);
                 }
             }
 
@@ -150,25 +155,24 @@ public class DefensiveAI extends AI{
         return true;
     }
 
-    private boolean shouldStartCommittedHeroDrop(Unit target) {
-        return target instanceof Hero
-                && !owner.isCanFly()
+    private boolean shouldStartCommittedDrop(Unit target) {
+        return !owner.isCanFly()
                 && owner.y > target.y + 15f
                 && isStandingOnFloor();
     }
 
-    private boolean shouldContinueCommittedHeroDrop(Unit target) {
+    private boolean shouldContinueCommittedDrop(Unit target) {
         if (committedDropDirection == 0) {
             return false;
         }
 
-        if (!(target instanceof Hero)) {
+        if (target != committedDropTarget || owner.isCanFly()) {
             clearDropEdgeCommit();
             return false;
         }
 
-        Hero hero = (Hero) target;
-        if (Math.abs(hero.y - committedDropHeroY) > DROP_GROUND_TOLERANCE) {
+
+        if (target.y >= committedDropStartY - 15f) {
             clearDropEdgeCommit();
             return false;
         }
@@ -178,7 +182,7 @@ public class DefensiveAI extends AI{
             return false;
         }
 
-        if (Float.isNaN(committedDropEdgeX) || !isEdgeOnScreen(committedDropEdgeX)) {
+        if (Float.isNaN(committedDropEdgeX)) {
             clearDropEdgeCommit();
             return false;
         }
@@ -192,10 +196,6 @@ public class DefensiveAI extends AI{
     }
 
     private boolean commitDropEdge(Unit target) {
-        if (!(target instanceof Hero)) {
-            return false;
-        }
-
         float targetEdgeX = findClosestDropEdgeX(target);
         if (Float.isNaN(targetEdgeX)) {
             return false;
@@ -206,7 +206,7 @@ public class DefensiveAI extends AI{
             committedDropDirection = target.x >= owner.x ? 1 : -1;
         }
         committedDropEdgeX = targetEdgeX;
-        committedDropHeroY = target.y;
+        committedDropTarget = target;
         committedDropStartY = owner.y;
         return true;
     }
@@ -214,13 +214,14 @@ public class DefensiveAI extends AI{
     private void clearDropEdgeCommit() {
         committedDropDirection = 0;
         committedDropEdgeX = Float.NaN;
-        committedDropHeroY = Float.NaN;
+        committedDropTarget = null;
         committedDropStartY = Float.NaN;
     }
 
     private boolean hasDroppedPastCommittedStartY() {
         return !Float.isNaN(committedDropStartY)
-                && owner.y <= committedDropStartY - ConstantsHelper.TILE;
+
+                && owner.y <= committedDropStartY - ConstantsHelper.TILE + DROP_GROUND_TOLERANCE;
     }
 
     private boolean isStandingOnFloor() {
@@ -260,7 +261,7 @@ public class DefensiveAI extends AI{
         while (probeX > 1f && probeX < maxX) {
             probeX += direction * DROP_EDGE_SCAN_STEP;
             float candidateY = MapHelper.getInstance().calculateFloorY(probeX, owner.y - 1f);
-            if (candidateY < owner.y && isEdgeOnScreen(probeX)) {
+            if (probeX > 1f && probeX < maxX && candidateY < owner.y - DROP_FLOOR_TOLERANCE) {
                 return probeX;
             }
         }
@@ -268,20 +269,37 @@ public class DefensiveAI extends AI{
         return Float.NaN;
     }
 
-    private boolean isEdgeOnScreen(float edgeX) {
-        float viewportWidth = GameHelper.GetSingleton().getCamera().viewportWidth > 0f
-            ? GameHelper.GetSingleton().getCamera().viewportWidth * Math.max(1f, GameHelper.GetSingleton().getCamera().zoom)
-                : ConstantsHelper.SCREEN_WIDTH;
-        float halfViewportWidth = viewportWidth / 2f;
-        float cameraCenterX = GameHelper.GetSingleton().getCamera().position.x;
-        float edgeRightX = edgeX + ConstantsHelper.UNIT_DIMENSIONS;
-
-        return edgeX >= cameraCenterX - halfViewportWidth
-            && edgeRightX <= cameraCenterX + halfViewportWidth;
-    }
-
     protected void attack(){
         owner.attack();
+    }
+
+
+    protected boolean hasHorizontalProjectileLane(Unit target, float travelRange) {
+        float size = ConstantsHelper.UNIT_DIMENSIONS / 4f;
+        float targetSize = target.getCollisionWidth();
+        float targetLeft = target.x + (ConstantsHelper.UNIT_DIMENSIONS - targetSize) / 2f;
+        float gap = owner.facingRight ? targetLeft - owner.x - size : owner.x - targetLeft - targetSize;
+        float shotBottom = owner.y + ConstantsHelper.UNIT_DIMENSIONS / 2f;
+        return gap <= travelRange && shotBottom < target.y + targetSize && shotBottom + size > target.y;
+    }
+
+
+    protected void alignFlyingShot(Unit target) {
+        boolean leavePlatform = owner.y > target.y
+                && MapHelper.getInstance().calculateFloorY(owner.x, owner.y) > target.y + DROP_FLOOR_TOLERANCE;
+        owner.movingLeft = leavePlatform && target.x < owner.x;
+        owner.movingRight = leavePlatform && target.x > owner.x;
+        owner.fly(target.y > owner.y, false);
+    }
+
+
+    protected boolean canStepOnCurrentFloor(float offset) {
+        if (!isStandingOnFloor()) return false;
+        float nextX = owner.x + offset;
+        float limit = MapHelper.getInstance().getWidth() * ConstantsHelper.TILE - ConstantsHelper.UNIT_DIMENSIONS;
+        return nextX > 1f && nextX < limit - 1f
+                && MapHelper.getInstance().calculateFloorY(nextX, owner.y - 1f) >= owner.y - DROP_FLOOR_TOLERANCE
+                && UnitHelper.getInstance().freeSpace(owner, (int) nextX, (int) owner.y, owner.getRoom());
     }
 
     protected Unit findTarget(){

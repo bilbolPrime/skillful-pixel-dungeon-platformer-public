@@ -20,14 +20,14 @@ public class Blind extends Buff {
         if(this.owner instanceof Mob){
             ((Mob)this.owner).blinded();
         }
-        //this.owner.modifySpeedModifier(-bonus);
+
 
         return this;
     }
 
     @Override
     public void debuff(){
-
+        if (owner instanceof Mob) ((Mob) owner).clearBlindness();
     }
 }
 

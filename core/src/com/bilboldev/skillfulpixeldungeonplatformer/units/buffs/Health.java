@@ -23,7 +23,14 @@ public class Health extends Buff {
             healthMultiplier = 0.15f;
         }
 
-        healthBonus = Math.round(healthMultiplier * this.owner.getMaxHP());
+        int healthBase = this.owner.getMaxHP();
+        if (this.owner instanceof Hero && (((Hero) this.owner).getHeroClass() == HeroClass.WARRIOR
+                || ((Hero) this.owner).getHeroClass() == HeroClass.ROGUE)) {
+            Hero hero = (Hero) this.owner;
+
+            healthBase = hero.getHeroClass().getHealth(hero.getLevel());
+        }
+        healthBonus = Math.round(healthMultiplier * healthBase);
         this.owner.setMaxHP(this.owner.getMaxHP() +  healthBonus);
         this.owner.heal(healthBonus);
         return this;

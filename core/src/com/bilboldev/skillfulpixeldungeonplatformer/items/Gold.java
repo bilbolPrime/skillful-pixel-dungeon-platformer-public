@@ -21,6 +21,12 @@ public class Gold extends Item{
         return this;
     }
 
+
+    public Gold restoreQuantity(int quantity) {
+        super.setQuantity(Math.max(0, quantity));
+        return this;
+    }
+
     private int scaleQuantity(int quantity) {
         if (quantity <= 0) {
             return 0;

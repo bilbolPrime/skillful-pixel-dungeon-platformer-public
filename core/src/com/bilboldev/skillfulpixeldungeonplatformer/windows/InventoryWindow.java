@@ -1,13 +1,18 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.windows;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.math.Vector3;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EnhancementVisualHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.FontHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.InventoryHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassSkillTree;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SaveHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SkillsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.TextureHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
@@ -23,6 +28,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.seeds.Seed;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.Weapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.ActionButton;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.Button;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skill;
@@ -34,8 +40,10 @@ import java.util.ArrayList;
 public class InventoryWindow extends InteractiveTabbedWindow {
 
     private static final float LOCKED_SKILL_ALPHA = 0.25f;
-    private static final float TITLE_DESCRIPTION_X = 340f;
-    private static final float TITLE_DESCRIPTION_RIGHT_PADDING = 120f;
+    private static final float TITLE_DESCRIPTION_X = 280f;
+    private static final float TITLE_DESCRIPTION_RIGHT_PADDING = 210f;
+    private final Vector3 pointer = new Vector3();
+    private SelectSkillButton hoveredRow;
 
     private static final String HERO_LEVEL_ICON = "images/achievements/LEVEL_REACHED_1.png";
     private static final String HERO_STRENGTH_ICON = "images/achievements/STRENGTH_ATTAINED_1.png";
@@ -109,7 +117,9 @@ public class InventoryWindow extends InteractiveTabbedWindow {
 
         rebuildPreviewItems();
         heroSprite = heroClass.getClassPortrait();
-        heroSprite.setPosition(x + 100, y + height - 300);
+        heroSprite.setWidth(128);
+        heroSprite.setHeight(128);
+        heroSprite.setPosition(x + 100, y + height - 244);
 
         buildSkillButtons();
         buildHeroButtons();
@@ -162,6 +172,7 @@ public class InventoryWindow extends InteractiveTabbedWindow {
     private void buildSkillButtons() {
         for (Integer skillId : heroClass.getSkillIds()) {
             Skill skill = SkillsHelper.getInstance().getSkill(skillId);
+            if (skill == null) continue;
             skillButtons.add(new SelectSkillButton(
                     x + heroClass.getSkillButtonXOffset(skillId, false),
                     y + height + heroClass.getSkillButtonYOffset(skillId, false),
@@ -170,6 +181,7 @@ public class InventoryWindow extends InteractiveTabbedWindow {
 
         for (Integer skillId : heroClass.getDarkSkillIds()) {
             Skill skill = SkillsHelper.getInstance().getSkill(skillId);
+            if (skill == null) continue;
             darkSkillButtons.add(new SelectSkillButton(
                     x + heroClass.getSkillButtonXOffset(skillId, true),
                     y + height + heroClass.getSkillButtonYOffset(skillId, true),
@@ -183,24 +195,24 @@ public class InventoryWindow extends InteractiveTabbedWindow {
         float middleX = x + 550f;
         float rightX = x + 1000f;
 
-        heroButtons.add(new SelectSkillButton(leftX, offsetY, HERO_LEVEL_ICON, getLevelText()));
-        heroButtons.add(new SelectSkillButton(middleX, offsetY, HERO_STRENGTH_ICON, getStrengthText()));
+        heroButtons.add(new SelectSkillButton(leftX, offsetY, HERO_LEVEL_ICON, getLevelText()).describe("Level"));
+        heroButtons.add(new SelectSkillButton(middleX, offsetY, HERO_STRENGTH_ICON, getStrengthText()).describe("Strength"));
         heroButtons.add(createHeroItemButton(rightX, offsetY, previewMeleeItem, getLiveWeapon(), "No melee"));
 
         offsetY -= 125f;
-        heroButtons.add(new SelectSkillButton(leftX, offsetY, "images/stats/health.png", getHealthText()));
-        heroButtons.add(new SelectSkillButton(middleX, offsetY, HERO_ATTACK_ICON, getAttackText()));
+        heroButtons.add(new SelectSkillButton(leftX, offsetY, "images/stats/health.png", getHealthText()).describe("Health"));
+        heroButtons.add(new SelectSkillButton(middleX, offsetY, HERO_ATTACK_ICON, getAttackText()).describe("Attack"));
         heroButtons.add(createHeroItemButton(rightX, offsetY, previewArmorItem, getLiveArmor(), "No armor"));
 
         offsetY -= 125f;
-        heroButtons.add(new SelectSkillButton(leftX, offsetY, "images/stats/mana.png", getManaText()));
-        heroButtons.add(new SelectSkillButton(middleX, offsetY, HERO_DEFENSE_ICON, getDefenseText()));
+        heroButtons.add(new SelectSkillButton(leftX, offsetY, "images/stats/mana.png", getManaText()).describe("Mana"));
+        heroButtons.add(new SelectSkillButton(middleX, offsetY, HERO_DEFENSE_ICON, getDefenseText()).describe("Defense"));
         heroButtons.add(createHeroItemButton(rightX, offsetY, previewRangedItem, getLiveRangedWeapon(), "No ranged"));
 
         offsetY -= 125f;
-        heroButtons.add(new SelectSkillButton(leftX, offsetY, "images/misc/exp.png", getExperienceText()));
-        heroButtons.add(new SelectSkillButton(middleX, offsetY, HERO_STEALTH_ICON, getStealthText()));
-        heroButtons.add(new SelectSkillButton(rightX, offsetY, "images/misc/gold.png", getGoldText()));
+        heroButtons.add(new SelectSkillButton(leftX, offsetY, "images/misc/exp.png", getExperienceText()).describe("Experience"));
+        heroButtons.add(new SelectSkillButton(middleX, offsetY, HERO_STEALTH_ICON, getStealthText()).describe("Stealth"));
+        heroButtons.add(new SelectSkillButton(rightX, offsetY, "images/misc/gold.png", getGoldText()).describe("Gold"));
     }
 
     private void buildInventoryButtons() {
@@ -301,6 +313,10 @@ public class InventoryWindow extends InteractiveTabbedWindow {
 
     private String getSkillsIntroSource() {
         switch (heroClass) {
+            case NECROMANCER:
+                return Messages.get("custom.necromancer.tree");
+            case MERCENARY:
+                return Messages.get("custom.mercenary.tree");
             case WIZARD:
                 return "Wizards choose between Battle Mage and Warlock after reading the Tome of Mastery dropped by Tengu.";
             case ARCHER:
@@ -323,6 +339,10 @@ public class InventoryWindow extends InteractiveTabbedWindow {
 
     private String getOtherSkillsIntroSource() {
         switch (heroClass) {
+            case NECROMANCER:
+                return Messages.get("custom.necromancer.other_skills");
+            case MERCENARY:
+                return Messages.get("custom.mercenary.other_skills");
             case WIZARD:
                 return "Warlock skills rely on curses and turning enemies against each other. Unlock Warlock through the Tome of Mastery dropped by Tengu.";
             case ARCHER:
@@ -530,8 +550,28 @@ public class InventoryWindow extends InteractiveTabbedWindow {
     public void draw(Batch batch) {
         super.draw(batch);
 
+        hoveredRow = null;
+        if (WindowHelper.getInstance().topWindow() == this) {
+            pointer.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+            GameHelper.GetSingleton().getUICamera().unproject(pointer);
+            ArrayList<ActionButton> visible = mode == MODE.HERO ? heroButtons : mode == MODE.INVENTORY ? inventoryButtons :
+                    mode == MODE.SKILLS ? skillButtons : darkSkillButtons;
+            for (ActionButton button : visible) {
+                if (button.isHitProjected(pointer.x, pointer.y)) { hoveredRow = (SelectSkillButton) button; break; }
+            }
+        }
+        Button focused = keyboardFocus.focused(getKeyboardChoices());
+        if (WindowHelper.getInstance().topWindow() == this && keyboardFocus.isKeyboardActive() && focused instanceof SelectSkillButton)
+            hoveredRow = (SelectSkillButton) focused;
+        fill(batch, x + 88f, y + height - 335f, width - 176f, 247f, new Color(0.025f, 0.045f, 0.055f, 0.7f));
         heroSprite.draw(batch);
-        FontHelper.getSingleton().writeRaw(Color.WHITE, batch, titleDescriptionFontSize, x + TITLE_DESCRIPTION_X, y + height - 150, titleDescription);
+        if (hoveredRow != null && hoveredRow.hoverDescription != null) {
+            FontHelper.FittedTextBlock hover = FontHelper.getSingleton().fitOverlayText("inventory-hover", hoveredRow.hoverDescription,
+                    hoveredRow.hoverDescription, 2.4f, getTitleDescriptionWrapWidth(), 180f);
+            FontHelper.getSingleton().writeRaw(Color.WHITE, batch, hover.size, x + TITLE_DESCRIPTION_X, y + height - 132f, hover.text);
+        } else {
+            FontHelper.getSingleton().writeRaw(Color.WHITE, batch, titleDescriptionFontSize, x + TITLE_DESCRIPTION_X, y + height - 132f, titleDescription);
+        }
 
         if (mode == MODE.SKILLS) {
             heroClass.drawBranches(batch, x, y, width, height);
@@ -612,6 +652,18 @@ public class InventoryWindow extends InteractiveTabbedWindow {
         return super.click(x, y);
     }
 
+    @Override
+    protected ArrayList<Button> getKeyboardChoices() {
+        ArrayList<Button> choices = new ArrayList<Button>(tabs);
+        ArrayList<ActionButton> visible = mode == MODE.HERO ? heroButtons : mode == MODE.INVENTORY ? inventoryButtons :
+                mode == MODE.SKILLS ? skillButtons : darkSkillButtons;
+        for (ActionButton button : visible) {
+            if (!(button instanceof InventoryButton) || ((InventoryButton) button).item != null) choices.add(button);
+        }
+        if (mode == MODE.INVENTORY && journalButton != null) choices.add(journalButton);
+        return choices;
+    }
+
     private void showSkill(Skill skill) {
         if (readOnlyPreview) {
             return;
@@ -666,33 +718,38 @@ public class InventoryWindow extends InteractiveTabbedWindow {
                 || UnitHelper.getInstance().getHero().hasSkill(Skills.SNIPER);
     }
 
+    private void fill(Batch batch, float x, float y, float width, float height, Color color) {
+        Color old = new Color(batch.getColor());
+        batch.setColor(color);
+        batch.draw(TextureHelper.GetSingleton().getSolidPixel(), x, y, width, height);
+        batch.setColor(old);
+    }
+
     private class SelectSkillButton extends ActionButton {
 
         private final String text;
         private final boolean selected;
         private final Skill skill;
         private final float buttonAlpha;
-        protected float fontSize = 3f;
-        private final GameSprite highlight;
+        protected float fontSize = 2.4f;
+        private String displayText;
+        private float textHeight;
+        protected String hoverDescription;
         private final Color textColor = new Color(Color.WHITE);
 
         public SelectSkillButton(float x, float y, String gsString, String text) {
-            super(x, y, 400, 100, "images/misc/grey.png", "images/misc/grey.png");
+            super(x, y, 400, 100, "images/misc/transparent.png", "images/misc/transparent.png");
+            fitLabel(text, Messages.maybeTranslate(text));
 
-            String localizedText = Messages.maybeTranslate(text);
-            fontSize = FontHelper.getSingleton().fitSizeToEnglishFootprint(text, localizedText, 3f, 300f);
-
-            GameSprite gs = new GameSprite(gsString, 72, 72);
-            gs.setPosition(14, 14);
+            GameSprite gs = new GameSprite(gsString, 64, 64);
+            gs.setPosition(16, 18);
             addGameSprite(gs);
-
-            highlight = new GameSprite("images/misc/yellow-highlight.png", 400, 100, 0.3f);
-            highlight.setPosition(x, y);
 
             this.text = text;
             this.selected = false;
             this.skill = null;
             this.buttonAlpha = 1f;
+            this.hoverDescription = Messages.maybeTranslate(text);
         }
 
         public SelectSkillButton(float x, float y, Item item, String text) {
@@ -702,35 +759,60 @@ public class InventoryWindow extends InteractiveTabbedWindow {
             if (itemSprite != null) {
                 clearSprites();
                 GameSprite iconSprite = itemSprite.clone();
-                iconSprite.setWidth(72);
-                iconSprite.setHeight(72);
-                iconSprite.setPosition(14, 14);
+                iconSprite.setWidth(64);
+                iconSprite.setHeight(64);
+                iconSprite.setPosition(16, 18);
                 iconSprite.setRotation(0f);
                 EnhancementVisualHelper.applyItemEnhancementPulse(iconSprite, item);
                 addGameSprite(iconSprite);
             }
+            hoverDescription = item.getNameWithQuantity() + "\n" + item.getDescription();
+            if (item instanceof EquipableItem && ((EquipableItem) item).getEquipped())
+                hoverDescription += "\n" + Messages.get("custom.inventory.equipped");
         }
 
         public SelectSkillButton(float x, float y, Skill skill) {
-            super(x, y, 400, 100, "images/misc/grey.png", "images/misc/grey.png");
+            super(x, y, 400, 100, "images/misc/transparent.png", "images/misc/transparent.png");
 
             GameSprite gs = skill.getGameSprite().clone();
-            gs.setWidth(72);
-            gs.setHeight(72);
-            gs.setPosition(14, 14);
+            gs.setWidth(64);
+            gs.setHeight(64);
+            gs.setPosition(16, 18);
             addGameSprite(gs);
 
             this.text = skill.getName();
-            fontSize = FontHelper.getSingleton().fitSizeToEnglishFootprint(skill.getSourceName(), this.text, 3f, 300f);
-            this.highlight = new GameSprite("images/misc/yellow-highlight.png", 400, 100, 0.3f);
-            this.highlight.setPosition(x, y);
+            fitLabel(skill.getSourceName(), this.text);
             this.selected = readOnlyPreview ? hasPreviewSkill(skill.getId()) : UnitHelper.getInstance().getHero().hasSkill(skill.getId());
             this.skill = skill;
             this.buttonAlpha = !selected && (readOnlyPreview || shouldFadeSkillButton(skill)) ? LOCKED_SKILL_ALPHA : 1f;
+            hoverDescription = heroClass.getSkillBigDescription(skill.getId());
+            if (selected) hoverDescription += "\n" + Messages.get("custom.inventory.learned");
+        }
+
+        private void fitLabel(String source, String localized) {
+            FontHelper.FittedTextBlock fitted = NewClassSkillTree.isNewClass(heroClass)
+                    ? FontHelper.getSingleton().fitLabelToBounds(localized, 2.4f, 282f, 70f)
+                    : FontHelper.getSingleton().fitOverlayText("inventory-row", source, localized, 2.4f, 282f, 70f);
+            displayText = fitted.text; fontSize = fitted.size; textHeight = fitted.height;
+        }
+
+        protected boolean isMarked() { return selected; }
+
+        private SelectSkillButton describe(String label) {
+            hoverDescription = Messages.maybeTranslate(label) + ": " + Messages.maybeTranslate(text);
+            return this;
+        }
+
+        @Override
+        public boolean isHitProjected(float px, float py) {
+            return canClick() && px >= x && px <= x + 400f && py >= y && py <= y + 100f;
         }
 
         @Override
         public void draw(Batch batch) {
+            boolean hover = hoveredRow == this;
+            fill(batch, x, y, 400f, 100f, hover ? Color.GOLDENROD : new Color(0.32f, 0.40f, 0.41f, 1f));
+            fill(batch, x + 2f, y + 2f, 396f, 96f, new Color(0.025f, 0.045f, 0.055f, 1f));
             Color previousColor = new Color(batch.getColor());
             if (buttonAlpha < 1f) {
                 batch.setColor(previousColor.r, previousColor.g, previousColor.b, previousColor.a * buttonAlpha);
@@ -739,12 +821,11 @@ public class InventoryWindow extends InteractiveTabbedWindow {
             super.draw(batch);
             batch.setColor(previousColor);
 
-            textColor.set(1f, 1f, 1f, buttonAlpha);
-            FontHelper.getSingleton().write(textColor, batch, fontSize, x + 100, y + 65, Messages.maybeTranslate(text));
+            textColor.set(1f, 1f, 1f, Math.max(0.65f, buttonAlpha));
+            FontHelper.getSingleton().writeRaw(textColor, batch, fontSize, x + 100f, y + (100f + textHeight) / 2f, displayText);
 
-            if (selected) {
-                highlight.draw(batch);
-            }
+            if (isMarked()) fill(batch, x + 3f, y + 3f, 4f, 94f, Color.GOLDENROD);
+            if (hover) fill(batch, x + 3f, y + 3f, 394f, 3f, Color.GOLDENROD);
         }
 
         @Override
@@ -756,11 +837,11 @@ public class InventoryWindow extends InteractiveTabbedWindow {
     }
 
     private void setTitleDescription(String englishSource, String localizedText) {
-        FontHelper.FittedTextBlock fittedDescription = FontHelper.getSingleton().fitMultilineToEnglishFootprint(
+        FontHelper.FittedTextBlock fittedDescription = FontHelper.getSingleton().fitOverlayText("inventory-intro",
                 englishSource == null ? "" : englishSource,
                 localizedText == null ? "" : localizedText,
-                3f,
-                getTitleDescriptionWrapWidth());
+                2.4f,
+                getTitleDescriptionWrapWidth(), 180f);
         titleDescription = fittedDescription.text;
         titleDescriptionFontSize = fittedDescription.size;
     }
@@ -768,34 +849,23 @@ public class InventoryWindow extends InteractiveTabbedWindow {
     private class InventoryButton extends SelectSkillButton {
 
         private final boolean equippable;
-        private final GameSprite equippedHighlight;
         private final Item item;
 
         public InventoryButton(float x, float y, String spriteString, String description) {
             super(x, y, spriteString, description);
             this.item = null;
             this.equippable = false;
-            equippedHighlight = new GameSprite("images/misc/yellow-highlight.png", 400, 100, 0.3f);
-            equippedHighlight.setPosition(x, y);
+            hoverDescription = null;
         }
 
         public InventoryButton(float x, float y, Item item) {
             super(x, y, item, item.getNameWithQuantity());
-            fontSize = FontHelper.getSingleton().fitSize(item.getNameWithQuantity(), 3f, 300f, 70f);
             this.item = item;
-            equippedHighlight = new GameSprite("images/misc/yellow-highlight.png", 400, 100, 0.3f);
-            equippedHighlight.setPosition(x, y);
             equippable = item instanceof EquipableItem;
         }
 
         @Override
-        public void draw(Batch batch) {
-            super.draw(batch);
-
-            if (equippable && ((EquipableItem) item).getEquipped()) {
-                equippedHighlight.draw(batch);
-            }
-        }
+        protected boolean isMarked() { return equippable && ((EquipableItem) item).getEquipped(); }
 
         @Override
         public void click() {

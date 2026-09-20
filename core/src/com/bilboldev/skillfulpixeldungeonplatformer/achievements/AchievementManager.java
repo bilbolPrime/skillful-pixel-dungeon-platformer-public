@@ -6,6 +6,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.InventoryHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ItemIdentityHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NightModeHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassSkillTree;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SoundHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UIHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
@@ -47,6 +48,8 @@ public class AchievementManager {
     private static final String SCROLLS_PACKAGE = "com.bilboldev.skillfulpixeldungeonplatformer.items.scrolls.";
     private static final String RINGS_PACKAGE = "com.bilboldev.skillfulpixeldungeonplatformer.items.rings.";
     private static final String WANDS_PACKAGE = "com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.wands.";
+
+
     private static final HeroClass[] VICTORY_CLASSES = new HeroClass[]{
         HeroClass.WARRIOR,
         HeroClass.WIZARD,
@@ -614,6 +617,8 @@ public class AchievementManager {
             case WIZARD:
             case ROGUE:
             case ARCHER:
+            case NECROMANCER:
+            case MERCENARY:
                 return heroClass;
             default:
                 return null;
@@ -628,6 +633,13 @@ public class AchievementManager {
         for (int subclassSkillId : TRACKED_SUBCLASS_SKILLS) {
             if (UnitHelper.getInstance().getHero().hasSkill(subclassSkillId)) {
                 return subclassSkillId;
+            }
+        }
+
+        int[] newMasteries = NewClassSkillTree.masteries(UnitHelper.getInstance().getHero().getHeroClass());
+        if (newMasteries != null) {
+            for (int subclassSkillId : newMasteries) {
+                if (UnitHelper.getInstance().getHero().hasSkill(subclassSkillId)) return subclassSkillId;
             }
         }
 

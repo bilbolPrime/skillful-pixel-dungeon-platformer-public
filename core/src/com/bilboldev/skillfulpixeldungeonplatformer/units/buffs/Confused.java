@@ -20,14 +20,14 @@ public class Confused extends Buff {
         if(this.owner instanceof Mob){
             ((Mob)this.owner).confused();
         }
-        //this.owner.modifySpeedModifier(-bonus);
+
 
         return this;
     }
 
     @Override
     public void debuff(){
-
+        if (owner instanceof Mob) ((Mob) owner).unConfuse();
     }
 }
 

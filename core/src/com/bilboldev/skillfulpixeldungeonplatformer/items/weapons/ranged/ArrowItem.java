@@ -10,7 +10,7 @@ public class ArrowItem extends Item {
         description = "Standard bow ammunition. Keep arrows in your pack; equipped bows consume one arrow per shot.";
         gs = new GameSprite("images/misc/extracted items/Arrow.png", 45, 45);
         quantity = 1;
-        goldCost = 5;
+        goldCost = 1;
     }
 
     @Override

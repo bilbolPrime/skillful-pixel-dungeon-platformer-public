@@ -30,6 +30,7 @@ public class SavedGameWindow extends Window {
 
     private final HeroClass heroClass;
     private final ArrayList<ActionButton> buttons = new ArrayList<>();
+    private final WindowChoiceFocus keyboardFocus = new WindowChoiceFocus();
     private ActionButton pressedButton;
     private String message;
     private float buttonWidth;
@@ -94,11 +95,13 @@ public class SavedGameWindow extends Window {
         for (ActionButton button : buttons) {
             button.draw(batch);
         }
+        keyboardFocus.draw(this, batch, buttons);
     }
 
     @Override
     public boolean pointerDown(float x, float y, int button) {
         clearPressedButton();
+        keyboardFocus.pointerDown(x, y, buttons);
         for (ActionButton actionButton : buttons) {
             if (actionButton.isHitProjected(x, y)) {
                 pressedButton = actionButton;
@@ -134,9 +137,11 @@ public class SavedGameWindow extends Window {
 
     @Override
     public boolean keyDown(int keycode) {
-        WindowHelper.getInstance().closeWindow(this);
-        return true;
+        return keyboardFocus.keyDown(this, keycode, buttons);
     }
+
+    @Override
+    public void cancelPointerInput() { clearPressedButton(); }
 
     private void launchGame(boolean continueSavedRun) {
         WindowHelper.getInstance().hideAll();

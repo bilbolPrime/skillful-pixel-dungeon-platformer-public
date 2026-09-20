@@ -8,6 +8,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.FontHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.DesktopMenuStyle;
 
 import java.util.ArrayList;
 
@@ -86,6 +87,14 @@ public class RedButton extends ActionButton {
         return this;
     }
 
+    @Override
+    public void setPosition(float x, float y) {
+        float deltaX = x - this.x, deltaY = y - this.y;
+        super.setPosition(x, y);
+
+        for (GameSprite sprite : gameSprites) sprite.translate(deltaX, deltaY);
+    }
+
     public static float getPreferredHeight(String text, float buttonWidth) {
         FittedButtonText fittedText = fitText(text, buttonWidth);
         GlyphLayout fittedLayout = FontHelper.getSingleton().measure(Color.WHITE, fittedText.size, fittedText.text);
@@ -106,12 +115,15 @@ public class RedButton extends ActionButton {
                 previousColor.g * backgroundTint.g * pressTint,
                 previousColor.b * backgroundTint.b * pressTint,
                 previousColor.a * backgroundTint.a);
-        for(GameSprite gameSprite : gameSprites){
+        if (DesktopMenuStyle.active()) {
+            DesktopMenuStyle.card(batch, x, y, width, height, DesktopMenuStyle.GOLD, isShowingPressFeedback());
+            DesktopMenuStyle.hover(batch, this, DesktopMenuStyle.GOLD);
+        } else for(GameSprite gameSprite : gameSprites){
             gameSprite.draw(batch);
         }
         batch.setColor(previousColor);
 
-        FittedButtonText fittedText = fitText(text, width);
+        FittedButtonText fittedText = fitText(text, width, Math.max(1f, height - TEXT_VERTICAL_PADDING * 2f));
         GlyphLayout glyphLayout = FontHelper.getSingleton().measure(textColor, fittedText.size, fittedText.text);
         offsetX = width / 2 - glyphLayout.width / 2;
         float textY = y + (height + glyphLayout.height) / 2f;
@@ -119,32 +131,22 @@ public class RedButton extends ActionButton {
     }
 
     private static FittedButtonText fitText(String text, float buttonWidth) {
-        String sourceText = text == null ? "" : text;
-        float wrapWidth = getTextWrapWidth(buttonWidth);
-        String englishText = wrapEnglishText(sourceText, buttonWidth, TEXT_SIZE);
-        GlyphLayout englishLayout = FontHelper.getSingleton().measureEnglish(Color.WHITE, TEXT_SIZE, englishText);
-        float localizedWrapWidth = Math.max(40f, Math.min(wrapWidth, englishLayout.width));
-        String localizedText = UtilsHelper.multiLineRaw(Messages.maybeTranslate(sourceText), TEXT_SIZE, localizedWrapWidth);
-        float fittedSize = FontHelper.getSingleton().fitSizeToEnglishFootprint(
-                englishText,
-                localizedText,
-                TEXT_SIZE,
-                englishLayout.width);
-
-        if (fittedSize < TEXT_SIZE) {
-            localizedText = UtilsHelper.multiLineRaw(Messages.maybeTranslate(sourceText), fittedSize, localizedWrapWidth);
-            fittedSize = FontHelper.getSingleton().fitSizeToEnglishFootprint(
-                    englishText,
-                    localizedText,
-                    TEXT_SIZE,
-                    englishLayout.width);
-        }
-
-        return new FittedButtonText(localizedText, fittedSize);
+        return fitText(text, buttonWidth, Float.POSITIVE_INFINITY);
     }
 
-    private static String wrapEnglishText(String text, float buttonWidth, float size) {
-        return UtilsHelper.multiLineEnglish(text == null ? "" : text, size, getTextWrapWidth(buttonWidth));
+    private static FittedButtonText fitText(String text, float buttonWidth, float maxTextHeight) {
+        String localized = Messages.maybeTranslate(text == null ? "" : text);
+        float wrapWidth = getTextWrapWidth(buttonWidth);
+        float size = TEXT_SIZE;
+        String wrapped;
+
+        while (true) {
+            wrapped = UtilsHelper.multiLineRaw(localized, size, wrapWidth);
+            GlyphLayout layout = FontHelper.getSingleton().measure(Color.WHITE, size, wrapped);
+            if (size <= 1f || (layout.width <= wrapWidth + 0.5f && layout.height <= maxTextHeight + 0.5f)) break;
+            size -= 0.25f;
+        }
+        return new FittedButtonText(wrapped, size);
     }
 
     private static class FittedButtonText {

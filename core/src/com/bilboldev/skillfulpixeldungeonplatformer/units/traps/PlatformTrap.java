@@ -156,7 +156,8 @@ public class PlatformTrap extends Unit {
         return this;
     }
 
-    private Rectangle getTriggerArea() {
+
+    public Rectangle getTriggerArea() {
         return new Rectangle(
                 x + TRIGGER_INSET_X,
                 y + TRIGGER_INSET_Y,

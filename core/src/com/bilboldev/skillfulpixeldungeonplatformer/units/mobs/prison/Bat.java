@@ -36,7 +36,7 @@ public class Bat extends Mob {
 
     @Override
     public void attack(boolean forced) {
-        if (!unitState.canAttack() && !forced) {
+        if (!canAttack() && !forced) {
             return;
         }
 
@@ -45,7 +45,7 @@ public class Bat extends Mob {
         Unit target = PhysicsHelper.getInstance().queryFirstHit(this, weapon.getHitArea());
         int targetHpBefore = target != null ? target.getHP() : 0;
         if (UnitHelper.getInstance().attackTarget(this, target, weapon, weapon.getDamage(), false)) {
-            heal(Math.max(0, targetHpBefore - target.getHP()));
+            heal(Math.round(Math.max(0, targetHpBefore - target.getHP()) * 0.5f));
             playSound(Sounds.HIT, 0.4f);
         }
         else {

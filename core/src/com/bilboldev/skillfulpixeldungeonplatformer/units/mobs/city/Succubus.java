@@ -51,8 +51,9 @@ public class Succubus extends Mob {
                 }
 
                 float horizontalDistance = Math.abs(target.x - getOwner().x);
-                if (horizontalDistance > ConstantsHelper.TILE * 3f && blinkAt <= 0f) {
-                    ((Succubus) getOwner()).blinkNear(target);
+                getOwner().facingRight = getOwner().x < target.x;
+                if (horizontalDistance > ConstantsHelper.TILE * 3f && blinkAt <= 0f
+                        && getOwner().canAttack() && ((Succubus) getOwner()).blinkNear(target)) {
                     getOwner().fakeAttack();
                     blinkAt = 3f;
                     return;
@@ -70,7 +71,7 @@ public class Succubus extends Mob {
 
     @Override
     public void attack(boolean forced) {
-        if (!unitState.canAttack() && !forced) {
+        if (!canAttack() && !forced) {
             return;
         }
 
@@ -79,7 +80,7 @@ public class Succubus extends Mob {
         Unit target = PhysicsHelper.getInstance().queryFirstHit(this, weapon.getHitArea());
         if (UnitHelper.getInstance().attackTarget(this, target, weapon, weapon.getDamage(), false)) {
             if (target != null && RandomHelper.getInstance().randomInt(3) == 0) {
-                float charmDuration = 3f + RandomHelper.getInstance().randomInt(5);
+                float charmDuration = 1f + RandomHelper.getInstance().randomInt(3) * 0.5f;
                 Charm charm = (Charm) target.getBuff(Charm.class);
                 if (charm != null) {
                     charm.setPermanent(false).setDuration(charmDuration);
@@ -98,14 +99,22 @@ public class Succubus extends Mob {
         }
     }
 
-    private void blinkNear(Unit target) {
+    private boolean blinkNear(Unit target) {
         Room currentRoom = MapHelper.getInstance().getRoom(room);
         if (currentRoom == null) {
-            return;
+            return false;
         }
 
         ArrayList<String> candidates = new ArrayList<String>();
-        for (String platform : currentRoom.getPlatforms()) {
+
+        ArrayList<String> landingPlatforms = new ArrayList<String>(currentRoom.getPlatforms());
+        int targetTile = (int) (target.x / ConstantsHelper.TILE);
+        for (int tileX = Math.max(1, targetTile - 3); tileX <= Math.min(currentRoom.getWidth() - 1, targetTile + 3); tileX++) {
+            float floor = MapHelper.getInstance().calculateFloorY(tileX * ConstantsHelper.TILE, target.y);
+            String platform = tileX + "_" + ((int) (floor / ConstantsHelper.TILE) - 1);
+            if (!landingPlatforms.contains(platform)) landingPlatforms.add(platform);
+        }
+        for (String platform : landingPlatforms) {
             int tileX = Integer.parseInt(platform.split("_")[0]);
             int tileY = Integer.parseInt(platform.split("_")[1]);
             float candidateX = tileX * ConstantsHelper.TILE;
@@ -115,8 +124,19 @@ public class Succubus extends Mob {
             }
 
             float candidateY = (tileY + 1) * ConstantsHelper.TILE;
-            if (!MapHelper.getInstance().getActiveRoomIdentifier().equals(room)
-                    || !com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper.getInstance().freeSpace((int) candidateX, (int) candidateY, room)) {
+
+            if (Math.abs(candidateY - target.y) > ConstantsHelper.UNIT_DIMENSIONS
+                    || candidateX < 1f || candidateX + ConstantsHelper.UNIT_DIMENSIONS >= currentRoom.getWidth() * ConstantsHelper.TILE
+                    || currentRoom.getPlatforms().contains(tileX + "_" + (tileY + 1))
+                    || !MapHelper.getInstance().getActiveRoomIdentifier().equals(room)
+                    || !UnitHelper.getInstance().freeSpace(this, (int) candidateX, (int) candidateY, room)) {
+                continue;
+            }
+            float eye = ConstantsHelper.UNIT_DIMENSIONS * 0.5f;
+            float eyeHeight = ConstantsHelper.UNIT_DIMENSIONS * 0.72f;
+            if (MapHelper.getInstance().shouldUsePlatformSightLines()
+                    && !MapHelper.getInstance().hasPlatformLineOfSight(currentRoom, candidateX + eye, candidateY + eyeHeight,
+                            target.x + eye, target.y + eyeHeight)) {
                 continue;
             }
 
@@ -124,7 +144,7 @@ public class Succubus extends Mob {
         }
 
         if (candidates.isEmpty()) {
-            return;
+            return false;
         }
 
         Collections.sort(candidates);
@@ -138,6 +158,7 @@ public class Succubus extends Mob {
         momentX = 0f;
         facingRight = x < target.x;
         PhysicsHelper.getInstance().syncBodyToUnit(this);
+        return true;
     }
 
     @Override

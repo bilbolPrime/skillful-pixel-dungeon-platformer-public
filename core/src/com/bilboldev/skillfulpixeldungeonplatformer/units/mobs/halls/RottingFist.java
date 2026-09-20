@@ -9,7 +9,9 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.traps.PoisonCloud;
 
 public class RottingFist extends YogFist {
+    private static final float POISON_INTERVAL = 2f;
     private float regenAt;
+    private float poisonAt;
 
     {
         boss = true;
@@ -36,6 +38,9 @@ public class RottingFist extends YogFist {
 
     @Override
     public void act(float delta) {
+        if (room != null && room.equals(MapHelper.getInstance().getActiveRoomIdentifier())) {
+            poisonAt = Math.max(0f, poisonAt - delta);
+        }
         if (MapHelper.getInstance().isStandingOnWater(this) && hp < mhp) {
             regenAt -= delta;
             if (regenAt <= 0f) {
@@ -58,7 +63,8 @@ public class RottingFist extends YogFist {
         Unit target = ai == null ? null : ai.getOther();
         super.attack(forced);
 
-        if (target == null || target.isDead() || target.getRoom() == null || !target.getRoom().equals(room)) {
+        if (target == null || target.isDead() || target.getRoom() == null || !target.getRoom().equals(room)
+                || poisonAt > 0f) {
             return;
         }
 
@@ -68,6 +74,7 @@ public class RottingFist extends YogFist {
         cloud.floorY = target.floorY;
         cloud.setRoom(room);
         UnitHelper.getInstance().addUnit(cloud);
+        poisonAt = POISON_INTERVAL;
     }
 
     @Override

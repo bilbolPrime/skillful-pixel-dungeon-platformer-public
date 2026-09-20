@@ -20,8 +20,17 @@ public class ScrollOfPsionicBlast extends Scroll {
         float damage = Math.max(15f, MapHelper.getInstance().getDepth() * 4f);
         int affected = 0;
         for (Mob mob : getActiveRoomMobs(false)) {
-            new TemporaryBlind().setPermanent(false).setDuration(2.5f).setOwner(mob);
             mob.takeDamage(getHero(), null, damage);
+
+            if (!mob.isDead()) {
+                TemporaryBlind blind = (TemporaryBlind) mob.getBuff(TemporaryBlind.class);
+                if (blind == null) {
+                    new TemporaryBlind().setPermanent(false).setDuration(2.5f).setOwner(mob);
+                } else if (blind.active()) {
+
+                    mob.blinded();
+                }
+            }
             affected++;
         }
 

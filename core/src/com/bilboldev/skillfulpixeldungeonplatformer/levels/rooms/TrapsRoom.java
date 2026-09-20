@@ -11,18 +11,26 @@ public class TrapsRoom extends SingleDoorSpecialRoom {
 
     @Override
     public Room build() {
-        buildWidePlatforms();
+        resetLayout();
+        width = 22 + 2 * layoutVariant(2);
+        getLayout().describe("hazard-crossing", 10, 3);
 
-        placeItem(new PotionOfLevitation(), 5, 5);
-        placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), 12, 7);
+        addPlatformSpan(width - 5, width - 2, 3);
+        return finishLayout();
+    }
 
-        addTrap(7, 5, TrapType.TOXIC, false);
-        addTrap(8, 5, TrapType.PARALYTIC, true);
-        addTrap(9, 5, TrapType.POISON, false);
-        addTrap(10, 5, TrapType.ALARM, true);
-        addTrap(11, 7, TrapType.LIGHTNING, false);
-        addTrap(12, 7, TrapType.GRIPPING, true);
+    @Override
+    protected void placeContents() {
 
-        return this;
+        placeItem(new PotionOfLevitation(), 5, 3);
+        placeItem(SpecialRoomRewards.randomWeaponOrArmorReward(), width - 3, 4);
+
+        addTrap(7, 3, TrapType.TOXIC, false);
+        addTrap(8, 3, TrapType.PARALYTIC, true);
+        addTrap(9, 3, TrapType.POISON, false);
+        addTrap(11, 3, TrapType.ALARM, true);
+        addTrap(12, 3, TrapType.LIGHTNING, false);
+        addTrap(13, 3, TrapType.GRIPPING, true);
+
     }
 }

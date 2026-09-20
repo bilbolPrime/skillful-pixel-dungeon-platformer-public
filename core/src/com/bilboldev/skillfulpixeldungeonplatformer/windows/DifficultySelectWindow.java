@@ -27,13 +27,20 @@ public class DifficultySelectWindow extends Window {
 
     private final HeroClass heroClass;
     private final boolean replaceExistingSave;
+    private int runSlot = -1;
     private final ArrayList<ActionButton> buttons = new ArrayList<>();
+    private final WindowChoiceFocus keyboardFocus = new WindowChoiceFocus();
     private ActionButton pressedButton;
 
     public DifficultySelectWindow(HeroClass heroClass, boolean replaceExistingSave) {
         super(WINDOW_WIDTH, WINDOW_HEIGHT);
         this.heroClass = heroClass;
         this.replaceExistingSave = replaceExistingSave;
+    }
+
+    public DifficultySelectWindow(HeroClass heroClass, int runSlot) {
+        this(heroClass, false);
+        this.runSlot = runSlot;
     }
 
     @Override
@@ -60,11 +67,13 @@ public class DifficultySelectWindow extends Window {
         for (ActionButton button : buttons) {
             button.draw(batch);
         }
+        keyboardFocus.draw(this, batch, buttons);
     }
 
     @Override
     public boolean pointerDown(float x, float y, int button) {
         clearPressedButton();
+        keyboardFocus.pointerDown(x, y, buttons);
         for (ActionButton actionButton : buttons) {
             if (actionButton.isHitProjected(x, y)) {
                 pressedButton = actionButton;
@@ -100,11 +109,22 @@ public class DifficultySelectWindow extends Window {
 
     @Override
     public boolean keyDown(int keycode) {
-        WindowHelper.getInstance().closeWindow(this);
-        return true;
+        return keyboardFocus.keyDown(this, keycode, buttons);
     }
 
+    @Override
+    public void cancelPointerInput() { clearPressedButton(); }
+
     private void launchGame(DifficultyHelper.Difficulty difficulty) {
+        if (runSlot >= 0 && SaveHelper.getInstance().slotOccupied(runSlot)) {
+            runSlot = SaveHelper.getInstance().firstEmptySlot();
+            if (runSlot < 0) {
+                hide();
+                WindowHelper.getInstance().addWindow(new TextWindow(1100, 240,
+                        com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages.get("desktop.runs.full")).build());
+                return;
+            }
+        }
         if (replaceExistingSave) {
             SaveHelper.getInstance().deleteSave(heroClass);
         }
@@ -112,7 +132,8 @@ public class DifficultySelectWindow extends Window {
         DifficultyHelper.getInstance().setCurrentDifficulty(difficulty);
         WindowHelper.getInstance().hideAll();
         SkillfulPixelDungeonPlatformer.transition(
-            new LoadingScreen().prepare(new GameScreen(heroClass, difficulty), SkillfulPixelDungeonPlatformer.getActiveScreen()));
+            new LoadingScreen().prepare(runSlot >= 0 ? new GameScreen(heroClass, difficulty, runSlot)
+                    : new GameScreen(heroClass, difficulty), SkillfulPixelDungeonPlatformer.getActiveScreen()));
     }
 
     private void clearPressedButton() {

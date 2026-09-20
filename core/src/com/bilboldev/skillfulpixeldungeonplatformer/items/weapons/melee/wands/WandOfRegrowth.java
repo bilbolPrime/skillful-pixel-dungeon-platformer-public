@@ -21,7 +21,10 @@ public class WandOfRegrowth extends Wand {
         owner.heal(Math.max(2, Math.round(scalePower(6f))));
         owner.removeBuff(new Poisoned());
         if (owner instanceof Hero) {
-            ((Hero) owner).modifyMana(Math.max(1, Math.round(scalePower(2f))));
+
+            int restoredMana = Math.min(Math.max(0, getManaCost() - 1),
+                    Math.max(1, Math.round(scalePower(2f))));
+            ((Hero) owner).modifyMana(restoredMana);
         }
     }
 }

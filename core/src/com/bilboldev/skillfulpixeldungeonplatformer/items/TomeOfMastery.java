@@ -3,6 +3,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.items;
 import com.badlogic.gdx.graphics.Color;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.InventoryHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassSkillTree;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SkillsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SoundHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
@@ -32,8 +33,8 @@ public class TomeOfMastery extends Item {
     }
 
     public void read() {
-        Hero hero = UnitHelper.getInstance().getHero();
-        if (hero == null) {
+        final Hero hero = UnitHelper.getInstance().getHero();
+        if (!isOwnedByLiveHero(hero)) {
             return;
         }
 
@@ -63,21 +64,21 @@ public class TomeOfMastery extends Item {
         for (final int skillId : choices) {
             Skill skill = SkillsHelper.getInstance().getSkill(skillId);
             final String lockedRequirementText = getMissingRequirementText(hero, skillId);
-            choiceWindow.addChoice(skill.getName(),
+            choiceWindow.addChoice(SkillsHelper.getInstance().getSkillName(skillId),
                     new Runnable() {
                 @Override
                 public void run() {
-                    chooseSubclass(skillId);
+                    chooseSubclass(hero, skillId);
                 }
-            }, lockedRequirementText == null);
+            }, skill != null && lockedRequirementText == null);
         }
 
         WindowHelper.getInstance().addWindow(choiceWindow.build());
     }
 
-    private void chooseSubclass(int skillId) {
-        Hero hero = UnitHelper.getInstance().getHero();
-        if (hero == null || hero.hasSkill(skillId) || hero.skillLockedOut(skillId)) {
+    private void chooseSubclass(Hero hero, int skillId) {
+        if (!isOwnedByLiveHero(hero) || getChosenSubclass(hero) != -1
+                || hero.getBuff(Blind.class) != null || hero.getBuff(TemporaryBlind.class) != null) {
             return;
         }
 
@@ -91,12 +92,11 @@ public class TomeOfMastery extends Item {
         }
 
         Skill skill = SkillsHelper.getInstance().getSkill(skillId);
-        hero.learnSkill(skill);
+        if (!hero.learnMastery(skill, this)) return;
         if (skill instanceof ActiveSkill) {
             hero.assignQuickSkillIfNeeded((ActiveSkill) skill);
         }
 
-        InventoryHelper.getInstance().removeItem(this);
         SoundHelper.GetSingleton().play(Sounds.MASTERY);
         EffectsHelper.getInstance().mastery(hero);
         EffectsHelper.getInstance().message(hero, Messages.maybeTranslate("Way of the %s!", skill.getName()), Color.GOLD, 0f);
@@ -105,6 +105,22 @@ public class TomeOfMastery extends Item {
             1100f,
             120f,
             Messages.maybeTranslate("You have chosen the way of the %s!", skill.getName()));
+    }
+
+    private boolean isOwnedByLiveHero(Hero hero) {
+        return hero != null && hero == UnitHelper.getInstance().getHero() && !hero.isDead() && hero.getHP() > 0
+                && InventoryHelper.getInstance().getItems().contains(this);
+    }
+
+
+    public boolean canGrantTo(Hero hero, Skill skill) {
+        if (!isOwnedByLiveHero(hero) || hero.getBuff(Blind.class) != null
+                || hero.getBuff(TemporaryBlind.class) != null || getChosenSubclass(hero) != -1
+                || !SkillsHelper.getInstance().meetsRequirements(hero, skill)) return false;
+        int[] choices = getSubclassChoices(hero.getHeroClass());
+        if (choices != null) for (int choice : choices)
+            if (choice == skill.getId() && !hero.skillLockedOut(choice)) return true;
+        return false;
     }
 
     private int getChosenSubclass(Hero hero) {
@@ -118,6 +134,7 @@ public class TomeOfMastery extends Item {
     }
 
     private int[] getSubclassChoices(HeroClass heroClass) {
+        if (NewClassSkillTree.isNewClass(heroClass)) return NewClassSkillTree.masteries(heroClass);
         switch (heroClass) {
             case WARRIOR:
                 return new int[]{Skills.GLADIATOR, Skills.BERSERKER};
@@ -141,7 +158,11 @@ public class TomeOfMastery extends Item {
                 Skills.FREE_RUNNER,
                 Skills.ASSASSIN,
                 Skills.WARDEN,
-                Skills.SNIPER
+                Skills.SNIPER,
+                Skills.SPIRIT_BINDER,
+                Skills.LICH,
+                Skills.MARSHAL,
+                Skills.EXECUTIONER
         };
     }
 
@@ -160,7 +181,7 @@ public class TomeOfMastery extends Item {
                 builder.append(" ").append(Messages.maybeTranslate("and")).append(" ");
             }
 
-            builder.append(SkillsHelper.getInstance().getSkill(requirement).getName());
+            builder.append(SkillsHelper.getInstance().getSkillName(requirement));
         }
 
         return builder.length() == 0 ? null : builder.toString();

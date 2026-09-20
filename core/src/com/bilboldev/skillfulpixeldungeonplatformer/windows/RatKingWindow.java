@@ -4,17 +4,22 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.bilboldev.skillfulpixeldungeonplatformer.SkillfulPixelDungeonPlatformer;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.FontHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RatKingSupportHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RatKingSupportHelper.TitleThemeOption;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.TextureHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.ActionButton;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.PauseMenuRowButton;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.screens.TitleScreen;
 
 import java.util.ArrayList;
 
@@ -46,7 +51,7 @@ public class RatKingWindow extends Window {
     private PauseMenuRowButton companionButton;
     private FireworksOptionButton fireworksButton;
     private GameFilm preview;
-    private final ArrayList<GameFilm> previewFloors = new ArrayList<>();
+    private final ArrayList<GameSprite> previewFloors = new ArrayList<>();
     private float previewFrameAt;
     private float portraitPanelX;
     private float portraitPanelY;
@@ -63,8 +68,7 @@ public class RatKingWindow extends Window {
     private float contractTextX;
     private float contractTextY;
     private float contractTextWidth;
-    private boolean donationGateActive;
-    private boolean freeDesktopLockActive;
+    private boolean supporterOfferActive;
 
     public RatKingWindow() {
         super(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -80,32 +84,24 @@ public class RatKingWindow extends Window {
         fireworksButton = null;
         pressedButton = null;
         previewFrameAt = 0f;
-        donationGateActive = shouldShowDonationGate();
-        freeDesktopLockActive = SkillfulPixelDungeonPlatformer.isFreeDesktopBuild();
+        supporterOfferActive = SkillfulPixelDungeonPlatformer.getPlatformProfile().isFreeVersion();
 
         layoutPanels();
 
-        if (donationGateActive) {
+        if (supporterOfferActive) {
             companionButton = new PauseMenuRowButton(portraitPanelX,
                     y + 110f,
                     width - OUTER_PADDING * 2f,
                     ROW_HEIGHT) {
                 @Override
                 public void clicked() {
-                    WindowHelper.getInstance().addWindow(new RatKingDonationWindow().build());
+                    Window offer = new FreeVersionAboutWindow().build();
+                    if (SkillfulPixelDungeonPlatformer.getActiveScreen() instanceof TitleScreen
+                            && ((TitleScreen) SkillfulPixelDungeonPlatformer.getActiveScreen()).usesDesktopMenuScenes())
+                        WindowHelper.getInstance().addWindow(offer);
+                    else WindowHelper.getInstance().replaceWindow(offer);
                 }
-            }.setCenteredText(Messages.get("custom.generated.donation_required_e289a7f07f"));
-        }
-        else if (freeDesktopLockActive) {
-            companionButton = new PauseMenuRowButton(portraitPanelX,
-                    y + 110f,
-                    width - OUTER_PADDING * 2f,
-                    ROW_HEIGHT) {
-                @Override
-                public void clicked() {
-                    WindowHelper.getInstance().replaceWindow(new FreeVersionAboutWindow().build());
-                }
-            }.setCenteredText("STEAM PURCHASE REQUIRED");
+            }.setCenteredText(Messages.get("custom.ui.free_version.supporter"));
         }
         else {
             companionButton = new PauseMenuRowButton(portraitPanelX,
@@ -160,18 +156,13 @@ public class RatKingWindow extends Window {
 
     @Override
     public void draw(Batch batch) {
-        if (shouldShowDonationGate() != donationGateActive) {
-            refresh();
-            return;
-        }
-
         super.draw(batch);
 
         previewFrameAt += Gdx.graphics.getDeltaTime() * 1f;
         preview.tileX = PREVIEW_FRAMES[((int) previewFrameAt) % PREVIEW_FRAMES.length];
         preview.setPosition(previewBaseX, previewBaseY);
 
-        for (GameFilm previewFloor : previewFloors) {
+        for (GameSprite previewFloor : previewFloors) {
             previewFloor.draw(batch);
         }
         preview.draw(batch);
@@ -269,7 +260,7 @@ public class RatKingWindow extends Window {
 
     private void refreshButtonStates() {
         RatKingSupportHelper helper = RatKingSupportHelper.getInstance();
-        if (companionButton != null && !donationGateActive && !freeDesktopLockActive) {
+        if (companionButton != null && !supporterOfferActive) {
             companionButton.setChecked(helper.isCompanionEnabled());
         }
 
@@ -286,18 +277,15 @@ public class RatKingWindow extends Window {
         RatKingSupportHelper helper = RatKingSupportHelper.getInstance();
         String floorSprite = helper.getSelectedTitleTheme().createTheme().getFloor().spriteString;
         String tilesSprite = floorSprite.replace("/floor.png", "/tiles.png");
-        float previewFloorScale = PREVIEW_TILE_SIZE / ConstantsHelper.UNIT_DIMENSIONS;
         float floorY = previewBaseY - PREVIEW_PLATFORM_GAP;
-        float floorStartX = previewBoxX + previewBoxWidth / 2f - PREVIEW_TILE_SIZE * (PREVIEW_PLATFORM_TILE_COUNT / 2f) + PREVIEW_TILE_SIZE * PREVIEW_PLATFORM_X_OFFSET_TILES;
+        float floorStartX = previewBoxX + previewBoxWidth / 2f - PREVIEW_TILE_SIZE * (PREVIEW_PLATFORM_TILE_COUNT / 2f)
+                + PREVIEW_TILE_SIZE * PREVIEW_PLATFORM_X_OFFSET_TILES - (PREVIEW_TILE_SIZE - ConstantsHelper.UNIT_DIMENSIONS) / 2f;
+        TextureRegion tile = new TextureRegion(TextureHelper.GetSingleton().getTexture(tilesSprite), 13 * 16, 2 * 16, 16, 16);
 
         previewFloors.clear();
         for (int i = 0; i < PREVIEW_PLATFORM_TILE_COUNT; i++) {
-            GameFilm previewFloor = new GameFilm(tilesSprite, ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS, 1f);
-            previewFloor.clipSizeX = 16;
-            previewFloor.clipSizeY = 16;
-            previewFloor.tileX = 13;
-            previewFloor.tileY = 2;
-            previewFloor.setScale(previewFloorScale, previewFloorScale);
+
+            GameSprite previewFloor = new GameSprite(new Sprite(tile), PREVIEW_TILE_SIZE, PREVIEW_TILE_SIZE);
             previewFloor.setPosition(floorStartX + i * PREVIEW_TILE_SIZE, floorY);
             previewFloors.add(previewFloor);
         }
@@ -321,10 +309,6 @@ public class RatKingWindow extends Window {
     private void drawContractSection(Batch batch) {
         String wrappedText = UtilsHelper.multiLine(Messages.get("custom.generated.rat_king_contract_5c72c2fef4"), (int) CONTRACT_TEXT_SIZE, contractTextWidth);
         FontHelper.getSingleton().writeWhiteRaw(batch, CONTRACT_TEXT_SIZE, contractTextX, contractTextY, wrappedText);
-    }
-
-    private boolean shouldShowDonationGate() {
-        return RatKingSupportHelper.getInstance().shouldRequireMobileDonation();
     }
 
     private class ThemeOptionButton extends PauseMenuRowButton {

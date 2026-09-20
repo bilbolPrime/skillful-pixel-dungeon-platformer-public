@@ -14,7 +14,8 @@ public class ScrollOfRecharging extends Scroll {
 
     @Override
     public void consume() {
-        getHero().setMp(getHero().getMmp());
+
+        getHero().modifyMana(getHero().getMmp() - getHero().getMp());
         EffectsHelper.getInstance().message(getHero(), "Mana restored", Color.CYAN, 0f);
         super.consume();
     }

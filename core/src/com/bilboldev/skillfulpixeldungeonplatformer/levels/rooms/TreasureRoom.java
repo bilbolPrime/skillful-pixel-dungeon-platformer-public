@@ -11,7 +11,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.doors.Door
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.TreasureOnScreen;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.other.Statue;
 
-public class TreasureRoom extends Room {
+public class TreasureRoom extends SingleDoorSpecialRoom {
     {
         canSpawn = false;
         width = 15;
@@ -23,45 +23,20 @@ public class TreasureRoom extends Room {
     }
 
     @Override
-    public Door getRandomDoor(){
-        int tileX = 0;
-        int tileY = 0;
-        boolean doorExists = false;
-        do {
-            doorExists = false;
-            String platform = "";
-            for(String candidatePlatform : platforms){
-                platform = candidatePlatform;
-                if(RandomHelper.getInstance().randomBoolean()){
-                    break;
-                }
-            }
-
-            tileX = Integer.parseInt(platform.split("_")[0]);
-            tileY = Integer.parseInt(platform.split("_")[1]);
-
-            for(Door door : doors){
-                if(door.x == tileX * ConstantsHelper.TILE && door.y == (tileY + 1) * ConstantsHelper.TILE){
-                    doorExists = true;
-                    break;
-                }
-            }
-        }while(doorExists || tileX < 0 || tileX >= width);
-
-        Door door = new Door();
-        door.x = tileX * ConstantsHelper.TILE;
-        door.y = (tileY + 1)* ConstantsHelper.TILE;
-
-        return door;
+    public Room build(){
+        resetLayout();
+        width = 22 + 2 * layoutVariant(2);
+        getLayout().describe("statue-treasure-court", width / 2, 3);
+        addPlatformSpan(5, 8, 4);
+        addPlatformSpan(width - 9, width - 5, 4);
+        return this;
     }
 
     @Override
-    public Room build(){
-        platforms.clear();
-        waterPlatforms.clear();
-        stuff.clear();
-        addPlatformSpan(2, width - 3, 2);
-        addPlatformSpan(4, width - 5, 4);
+    protected void placeContents() {
+        for (int tile : new int[]{width / 2 - 2, width / 2, width / 2 + 2}) {
+            requireContentPlacement(tile, 3, ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS);
+        }
 
         statue = new Statue();
         statue.x = (width / 2 )* ConstantsHelper.TILE - 2 * ConstantsHelper.TILE;
@@ -96,7 +71,6 @@ public class TreasureRoom extends Room {
         UnitHelper.getInstance().addUnit(treasure);
 
 
-        return this;
     }
 }
 

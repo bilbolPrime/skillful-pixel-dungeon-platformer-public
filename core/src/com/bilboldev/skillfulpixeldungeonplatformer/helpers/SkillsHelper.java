@@ -4,6 +4,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Aggression;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.BattleMage;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.BerserkerBuff;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Buff;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.FireMastery;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.GrandMaster;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.GladiatorBuff;
@@ -16,6 +17,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Toughness;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.WandMaster;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Warlock;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skill;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skills;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.Blind;
@@ -28,6 +30,26 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.Ir
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.KneeShot;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.KnockBack;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.ManaArmor;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.MindShot;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.HeadShot;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.RaiseSkeleton;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.DrainLife;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.Curse;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.CorpseExplosion;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.SpiritBinder;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Lich;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.MasterOfDeath;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Wanted;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Packrat;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.SteadyAim;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.QuickDraw;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Marshal;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Executioner;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Execute;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.NoWitnesses;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.IAmTheLaw;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.RaiseSkeletonArcher;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.SummonGhost;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.MassManaArmor;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.Rampage;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.AimedShot;
@@ -59,7 +81,7 @@ public class SkillsHelper {
     private void init(){
         skills = new ArrayList<>();
 
-        // Warrior
+
         Skill skill = new Skill(Skills.TRAINING, HeroClass.WARRIOR, 1, "Training", "Training", "A warrior can never be prepared enough.\nGain 1 strength","images/skills/warrior-training.png") {
             @Override
             public void affect(Unit owner){
@@ -79,7 +101,9 @@ public class SkillsHelper {
         skill = new Skill(Skills.REGENERATION, HeroClass.WARRIOR, 1, "Regeneration", "Regeneration", "The ability to heal at an accelerated rate is crucial when constantly facing enemies.\n+20% regeneration","images/skills/warrior-regeneration.png") {
             @Override
             public void affect(Unit owner){
-                new Regeneration().setOwner(owner);
+                Buff existing = owner.getBuff(Regeneration.class);
+                if (existing != null) existing.setPermanent(true);
+                else new Regeneration().setOwner(owner);
             }};
 
         skills.add(skill.setRequires(Skills.HEALTH).setTreeOffsets(100, -480 - 125));
@@ -87,7 +111,9 @@ public class SkillsHelper {
         skill = new Skill(Skills.TOUGHNESS, HeroClass.WARRIOR, 1, "Toughness", "+20% defence", "Many years of conflict has made this hero durable. What hurts others barely scratches this one.\n+20% defence","images/skills/warrior-toughness.png") {
             @Override
             public void affect(Unit owner){
-                new Toughness().setOwner(owner);
+                Buff existing = owner.getBuff(Toughness.class);
+                if (existing != null) existing.setPermanent(true);
+                else new Toughness().setOwner(owner);
             }};
 
         skills.add(skill.setTreeOffsets(100, -480));
@@ -103,7 +129,9 @@ public class SkillsHelper {
         skill = new Skill(Skills.MELEE_DAMAGE, HeroClass.WARRIOR, 2, "Aggression", "+20% damage", "Being at war for so long can make warriors... more violent.\n+20% damage","images/skills/warrior-aggression.png") {
             @Override
             public void affect(Unit owner){
-                new Aggression().setOwner(owner);
+                Buff existing = owner.getBuff(Aggression.class);
+                if (existing != null) existing.setPermanent(true);
+                else new Aggression().setOwner(owner);
             }};
 
         skills.add(skill.setRequires(Skills.TOUGHNESS).setTreeOffsets(100 + 450, -480 - 125));
@@ -126,7 +154,7 @@ public class SkillsHelper {
         skills.add(new Frenzy(Skills.FRENZY, HeroClass.WARRIOR, 4, "Frenzy", "Frenzy", "Sometimes a warrior should just let go. Entering a frenzy state increases damage by 50% but lowers speed by 25%","images/skills/frenzy.png").setRequires(Skills.BERSERKER).setTreeOffsets(100 + 1350, -480 - 125));
         skills.add(new Rampage(Skills.RAMPAGE, HeroClass.WARRIOR, 4, "Rampage", "Rampage", "Deals damage to all enemies in range.","images/skills/warrior-rampage.png").setRequires(Skills.FRENZY).setTreeOffsets(100 + 1350, -480 ));
 
-        // Wizard
+
         skill = new Skill(Skills.MANA, HeroClass.WIZARD, 1, "Spirituality", "+20% mana", "Spirit is as important as body. Champions who train their spirit can conjure their inner strength with increased stamina.\n- +20% mana","images/skills/mana.png") {
             @Override
             public void affect(Unit owner){
@@ -158,7 +186,7 @@ public class SkillsHelper {
         skill = new Skill(Skills.SUMMON_FIRE_PLUS, HeroClass.WIZARD, 3, "Summoning Mastery", "Better stats", "Practicing summoning skills leads to better summons that can do more damage and withstand more.\n- Fire elementals have 20% more health\n- Fire elementals take 20% less damage","images/skills/summon-elemental-plus.png") {
             @Override
             public void affect(Unit owner){
-                new Aggression().setOwner(owner);
+
             }};
 
         skills.add(skill.setRequires(Skills.SUMMON_FIRE).setTreeOffsets(100 + 900, -480 - 375));
@@ -166,7 +194,7 @@ public class SkillsHelper {
         skill = new Skill(Skills.SUMMON_FIRE_PLUS_PLUS, HeroClass.WIZARD, 4, "Summoning Expert", "Extra summon", "Extensive training and focus allows the champion to control two summons at the same time.","images/skills/summon-elemental-plus-plus.png") {
             @Override
             public void affect(Unit owner){
-                new Aggression().setOwner(owner);
+
             }};
 
         skills.add(skill.setRequires(Skills.SUMMON_FIRE_PLUS).setTreeOffsets(100 + 1350, -480 - 375));
@@ -239,7 +267,7 @@ public class SkillsHelper {
         skill = new Dominate(Skills.DOMINATE, HeroClass.WIZARD, 4, "Dominate", "Dominate", "Dominate the target turning it into nothing more than a slave of your will for a duration.","images/skills/dominate.png");
         skills.add(skill.setRequires(Skills.CONFUSE).setTreeOffsets(100 + 900 + 450, -480 - 375));
 
-        // Rogue
+
         skills.add(new Skill(Skills.BANDIT, HeroClass.ROGUE, 1, "Bandit", "More loot", "Rogues learn to spot and pocket extra valuables.\n- +100% gold found\n- Gold cannot be stolen","images/skills/Bandit.png").setTreeOffsets(100, -480));
         skills.add(new Skill(Skills.STEALTH, HeroClass.ROGUE, 1, "Stealth", "Stay unseen", "Rogues excel at staying unseen.\n- Hero is harder to spot","images/skills/Stealth.png").setTreeOffsets(100 + 450, -480 - 125));
         skills.add(new Skill(Skills.LOCK_SMITH, HeroClass.ROGUE, 2, "Lock Smith", "Trap handling", "Triggering traps becomes harmless to a practiced rogue.\n- 100% chance to disarm traps on contact\n- Works on hidden traps too","images/skills/Lock Smith.png").setRequires(Skills.BANDIT).setTreeOffsets(100, -480 - 125));
@@ -270,7 +298,7 @@ public class SkillsHelper {
         }.setRequires(Skills.BANDIT).setTreeOffsets(100 + 450, -480 - 125));
         skills.add(new Skill(Skills.SILENT_DEATH, HeroClass.ROGUE, 4, "Silent Death", "Execution", "Sleeping non-boss enemies have a 25% chance to die instantly from melee attacks.","images/skills/Silent Death.png").setRequires(Skills.ASSASSIN).setTreeOffsets(100 + 900 + 450, -480 - 250));
 
-        // Huntress
+
         skills.add(new Skill(Skills.AWARENESS, HeroClass.ARCHER, 1, "Awareness", "Awareness", "Heightened awareness keeps the huntress ready for incoming missiles.\n+25% defense from ranged attacks","images/skills/Awareness.png").setTreeOffsets(100 + 450, -480));
         skills.add(new Skill(Skills.ACCURACY, HeroClass.ARCHER, 1, "Accuracy", "Accuracy", "Steady aim with the bow makes every shot more reliable.\n+25% accuracy when using the bow","images/skills/Accuracy.png").setTreeOffsets(100, -480 - 125));
         skills.add(new Skill(Skills.FLETCHING, HeroClass.ARCHER, 2, "Fletching", "Fletching", "Patient crafting keeps arrows ready for the next fight.\nGenerates arrows passively.","images/skills/Fletching.png").setRequires(Skills.ACCURACY).setTreeOffsets(100 + 450, -480 - 125));
@@ -295,6 +323,26 @@ public class SkillsHelper {
         skills.add(new Bombvoyage(Skills.BOMBVOYAGE, HeroClass.ARCHER, 4, "Bombvoyage", "Bombvoyage", "Fire an explosive arrowhead that spreads damage beyond the main target.\n- 5 mana\n- Consumes 1 arrow\n- 75% AOE damage","images/skills/Bombvoyage.png").setRequires(Skills.SNIPER).setTreeOffsets(100 + 1350, -480 - 375));
         skills.add(new IronTip(Skills.IRON_TIP, HeroClass.ARCHER, 3, "Iron Tip", "Iron Tip", "Fire a heavy iron-tipped arrow that keeps going through the fight.\n- 4 mana\n- Consumes 1 arrow\n- Arrow passes through enemies","images/skills/Iron Tip.png").setRequires(Skills.SNIPER).setTreeOffsets(100 + 1350, -480 - 125));
 
+        registerNewClassSkill(new MindShot());
+        registerNewClassSkill(new RaiseSkeleton());
+        registerNewClassSkill(new DrainLife());
+        registerNewClassSkill(new Curse());
+        registerNewClassSkill(new SpiritBinder());
+        registerNewClassSkill(new SummonGhost());
+        registerNewClassSkill(new Lich());
+        registerNewClassSkill(new RaiseSkeletonArcher());
+        registerNewClassSkill(new CorpseExplosion());
+        registerNewClassSkill(new MasterOfDeath());
+        registerNewClassSkill(new Wanted());
+        registerNewClassSkill(new Packrat());
+        registerNewClassSkill(new SteadyAim());
+        registerNewClassSkill(new QuickDraw());
+        registerNewClassSkill(new HeadShot());
+        registerNewClassSkill(new Marshal());
+        registerNewClassSkill(new IAmTheLaw());
+        registerNewClassSkill(new Executioner());
+        registerNewClassSkill(new NoWitnesses());
+        registerNewClassSkill(new Execute());
     }
 
 
@@ -305,27 +353,61 @@ public class SkillsHelper {
             }
         }
 
-        // avoid null
-        return skills.get(0);
+        return null;
+    }
+
+
+    private void registerNewClassSkill(Skill skill) {
+        if (skill == null || getSkill(skill.getId()) != null)
+            throw new IllegalArgumentException("Missing or duplicate class skill");
+        NewClassSkillTree.configure(skill);
+        skills.add(skill);
+    }
+
+    public String getSkillName(int id) {
+        Skill skill = getSkill(id);
+        if (skill != null) return skill.getName();
+        NewClassSkillTree.Node node = NewClassSkillTree.uniqueNode(id);
+        return node == null ? "#" + id : com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages.maybeTranslate(node.name);
+    }
+
+    public boolean isSupported(Hero hero, Skill skill) {
+        return hero != null && skill != null && getSkill(skill.getId()) == skill
+                && NewClassSkillTree.allows(hero.getHeroClass(), skill);
+    }
+
+    public boolean meetsRequirements(Hero hero, Skill skill) {
+        if (!isSupported(hero, skill)) return false;
+        HeroClass type = hero.getHeroClass();
+        ArrayList<Integer> requirements = type.hasSkillInTree(skill.getId())
+                ? type.getSkillRequirements(skill.getId()) : skill.getRequires();
+        for (int id : requirements) if (!hero.hasSkill(id)) return false;
+        return true;
     }
 
     public int skillCost(Skill skill){
-        if (UnitHelper.getInstance().getHero() != null) {
-            HeroClass heroClass = UnitHelper.getInstance().getHero().getHeroClass();
+        if (skill == null || getSkill(skill.getId()) != skill) return -1;
+        Hero hero = UnitHelper.getInstance().getHero();
+        if (hero != null) {
+            if (!isSupported(hero, skill)) return -1;
+            HeroClass heroClass = hero.getHeroClass();
             if (heroClass.hasSkillInTree(skill.getId())) {
                 return heroClass.getSkillPointCost(skill.getId());
             }
         }
 
         int baseCost = skill.getSkillClass().getSkillPointCost(skill.getId());
-        if (UnitHelper.getInstance().getHero() == null) {
+        if (hero == null || skill.getSkillClass() == HeroClass.NEUTRAL) {
             return baseCost;
         }
 
-        return baseCost * UnitHelper.getInstance().getHero().getHeroClass().classPenalty(skill.getSkillClass());
+        int penalty = hero.getHeroClass().classPenalty(skill.getSkillClass());
+        return baseCost < 0 || penalty < 0 ? -1 : baseCost * penalty;
     }
 
     public boolean canLearn(Skill skill){
+        Hero hero = UnitHelper.getInstance().getHero();
+        if (!isSupported(hero, skill) || hero.isDead()) return false;
         if(UnitHelper.getInstance().getHero().hasSkill(skill.getId())){
             return false;
         }
@@ -340,29 +422,15 @@ public class SkillsHelper {
 
         int skillPoints = UnitHelper.getInstance().getHero().getSkillPoints();
         int skillCost = skillCost(skill);
-        if(skillPoints < skillCost){
+        if(skillCost < 0 || skillPoints < skillCost){
             return false;
         }
 
-        ArrayList<Integer> requirements = skill.getRequires();
-        if (UnitHelper.getInstance().getHero() != null) {
-            HeroClass heroClass = UnitHelper.getInstance().getHero().getHeroClass();
-            if (heroClass.hasSkillInTree(skill.getId())) {
-                requirements = heroClass.getSkillRequirements(skill.getId());
-            }
-        }
-
-        for(int requirement : requirements){
-            if(!UnitHelper.getInstance().getHero().hasSkill(requirement)){
-                return false;
-            }
-        }
-
-        return true;
+        return meetsRequirements(hero, skill);
     }
 
     public boolean isSubclassSkill(int skillId) {
-        return skillId == Skills.GLADIATOR
+        return NewClassSkillTree.opposite(skillId) != 0 || skillId == Skills.GLADIATOR
                 || skillId == Skills.BERSERKER
                 || skillId == Skills.BATTLE_MAGE
                 || skillId == Skills.WARLOCK
@@ -372,15 +440,17 @@ public class SkillsHelper {
                 || skillId == Skills.SNIPER;
     }
 
-    public void learnSkill(Skill skill){
+    public boolean learnSkill(Skill skill){
         if(!canLearn(skill)){
-            return;
+            return false;
         }
 
-        UnitHelper.getInstance().getHero().learnSkill(skill);
+        int cost = skillCost(skill);
+        if (!UnitHelper.getInstance().getHero().learnSkill(skill)) return false;
         if (skill instanceof com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.ActiveSkill) {
             UnitHelper.getInstance().getHero().assignQuickSkillIfNeeded((com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.ActiveSkill) skill);
         }
-        UnitHelper.getInstance().getHero().modifySkillPoints(-skillCost(skill));
+        UnitHelper.getInstance().getHero().modifySkillPoints(-cost);
+        return true;
     }
 }

@@ -43,7 +43,7 @@ public class Thief extends Mob {
 
     @Override
     public void attack(boolean forced) {
-        if (!unitState.canAttack() && !forced) {
+        if (!canAttack() && !forced) {
             return;
         }
 

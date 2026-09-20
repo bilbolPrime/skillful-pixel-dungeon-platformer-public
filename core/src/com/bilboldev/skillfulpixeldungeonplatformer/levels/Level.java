@@ -25,6 +25,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.MercenaryRoom;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.MerchantRoom;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.PoolRoom;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
+import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.RoomRoutes;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.StorageRoom;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.TrapsRoom;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.TreasuryRoom;
@@ -40,27 +41,11 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 public class Level {
     private static final long GUARANTEED_STRENGTH_POTION_RANDOM_SALT = 0x3B5C2D719A4E8F61L;
     private static final long LOCKED_ROOM_REWARD_RANDOM_SALT = 0x4C7D11F2A8B5673EL;
-    private static final int[] FIRST_FLOOR_ALL_SPECIAL_ROOMS = new int[]{
-            ConstantsHelper.ROOM_MERCHANT,
-            ConstantsHelper.ROOM_MERCENARY,
-            ConstantsHelper.ROOM_LIBRARY,
-            ConstantsHelper.ROOM_TREASURE,
-            ConstantsHelper.ROOM_ARMORY,
-            ConstantsHelper.ROOM_GARDEN,
-            ConstantsHelper.ROOM_LABORATORY,
-            ConstantsHelper.ROOM_MAGIC_WELL,
-            ConstantsHelper.ROOM_CRYPT,
-            ConstantsHelper.ROOM_POOL,
-            ConstantsHelper.ROOM_TREASURY,
-            ConstantsHelper.ROOM_TRAPS,
-            ConstantsHelper.ROOM_STORAGE,
-            ConstantsHelper.ROOM_VAULT,
-            ConstantsHelper.ROOM_GRAVEYARD
-    };
     private static final int[] RANDOM_SPECIAL_ROOMS = new int[]{
             ConstantsHelper.ROOM_LIBRARY,
             ConstantsHelper.ROOM_TREASURE,
@@ -106,112 +91,59 @@ public class Level {
         String identifier = RandomHelper.getInstance().uniqueId();
         String identifierExit = RandomHelper.getInstance().uniqueId();
 
-        entryRoom = (EntryRoom) new EntryRoom(identifier).build();
+        entryRoom = new EntryRoom(identifier).buildFoyer(depth);
         setSignMessage(depth);
 
         entryDoor = entryRoom.getLevelEntryDoor();
-        exitRoom = new ExitRoom(identifierExit).build();
+        exitRoom = new ExitRoom(identifierExit).buildFoyer(depth);
 
 
-        initialPopulationSpawning = true;
-        try {
-            for(int i = 0; i < rooms; i++){
-                identifier = RandomHelper.getInstance().uniqueId();
-                Room room = new Room(identifier).build();
-                if (!allowsGeneratedRoomWater()) {
-                    room.clearWaterPlatforms();
-                }
-
-                if(room.getCanSpawn()){
-                    for(int j = 0; j < getTargetMobsPerRoom(); j++){
-                        spawnUnit(room);
-                    }
-                }
-
-                this.rooms.add(room);
-            }
-        }
-        finally {
-            initialPopulationSpawning = false;
+        for(int i = 0; i < rooms; i++){
+            identifier = RandomHelper.getInstance().uniqueId();
+            Room room = new Room(identifier).planForFloor(depth, i).build();
+            if (!allowsGeneratedRoomWater()) room.clearWaterPlatforms();
+            this.rooms.add(room);
         }
 
-        for(Room room : this.rooms){
-            ArrayList<Room> candidateConnections = new ArrayList<Room>();
-            for (Room connection : this.rooms) {
-                if (connection == null
-                        || connection == room
-                        || connection.getIdentifier().equals(room.getIdentifier())
-                        || connection.connectedTo(room.getIdentifier())
-                        || room.connectedTo(connection.getIdentifier())) {
-                    continue;
-                }
 
-                candidateConnections.add(connection);
-            }
 
-            if (candidateConnections.isEmpty()) {
-                continue;
-            }
+        RoomConnections.connectOrdinaryRooms(this.rooms);
 
-            Room connection = candidateConnections.get(RandomHelper.getInstance().randomInt(candidateConnections.size()));
-            Door door1 = connection.getRandomDoor();
-            Door door2 = room.getRandomDoor();
 
-            door1.otherDoor = door2;
-            door2.otherDoor = door1;
-
-            door1.setLeadsTo(room.getIdentifier());
-            door2.setLeadsTo(connection.getIdentifier());
-
-            connection.addDoor(door1);
-            room.addDoor(door2);
-        }
-
-        // Entry
         Room chosenRoom = this.rooms.get(RandomHelper.getInstance().randomInt(this.rooms.size()));
         if (allowsGeneratedRoomWater()) {
             chosenRoom.ensureWater();
         }
-        Door door1 = chosenRoom.getRandomDoor();
-        Door door2 = entryRoom.getRandomDoor();
-
-        door1.otherDoor = door2;
-        door2.otherDoor = door1;
-
-        door1.setLeadsTo(entryRoom.getIdentifier());
-        door2.setLeadsTo(chosenRoom.getIdentifier());
-
-        chosenRoom.addDoor(door1);
-        entryRoom.addDoor(door2);
+        RoomConnections.connect(chosenRoom, entryRoom);
 
 
-        // Exit
+
         chosenRoom = this.rooms.get(RandomHelper.getInstance().randomInt(this.rooms.size()));
-        door1 = chosenRoom.getRandomDoor();
-        door2 = exitRoom.getRandomDoor();
-
-        door1.otherDoor = door2;
-        door2.otherDoor = door1;
-
-        door1.setLeadsTo(exitRoom.getIdentifier());
-        door2.setLeadsTo(chosenRoom.getIdentifier());
-
-        chosenRoom.addDoor(door1);
-        exitRoom.addDoor(door2);
+        RoomConnections.connect(chosenRoom, exitRoom);
 
 
-    addGeneratedSpecialRooms(depth);
+        addGeneratedSpecialRoom(chooseSpecialRoom(depth));
 
 
         addRoom(entryRoom);
         addRoom(exitRoom);
 
+        for (Room room : this.rooms) RoomRoutes.ensureTraversable(room);
         Door doorExit = exitRoom.getRandomDoor().toExitDoor();
         exitRoom.addDoor(doorExit);
 
+        RoomConnections.validateConnected(this.rooms, entryRoom, exitRoom);
+
         for (Room room : this.rooms) {
+            room.populate();
             room.placeTrapsIfNeeded();
         }
+
+        initialPopulationSpawning = true;
+        try {
+            for (Room room : this.rooms) if (room.getCanSpawn())
+                for (int j = 0; j < getTargetMobsPerRoom(); j++) spawnUnit(room);
+        } finally { initialPopulationSpawning = false; }
 
         if (!MapHelper.getInstance().isRestoringGeneratedLevels()) {
             placeLockedDoorRewards(depth);
@@ -225,6 +157,9 @@ public class Level {
 
             placeGuaranteedStrengthPotionIfNeeded(depth);
         }
+
+        RoomConnections.validateConnected(this.rooms, entryRoom, exitRoom);
+        for (Room room : this.rooms) RoomRoutes.validateContent(room);
 
         return this;
     }
@@ -250,6 +185,7 @@ public class Level {
                 return;
             }
         }
+        throw new IllegalStateException("No supported strength-potion slot on floor " + depth);
     }
 
     private boolean shouldPlaceGuaranteedStrengthPotion(int depth) {
@@ -270,7 +206,7 @@ public class Level {
             }
 
             if (!spawnKeyOutsideRoom(room)) {
-                continue;
+                throw new IllegalStateException("No accessible key slot outside " + room.getIdentifier());
             }
 
             lockedDoor.lockWithKey();
@@ -294,9 +230,10 @@ public class Level {
 
     private boolean spawnKeyOutsideRoom(Room lockedRoom) {
         ArrayList<Room> candidateRooms = new ArrayList<>();
+        Set<Room> reachable = RoomConnections.reachableWithoutLocks(rooms, entryRoom, lockedRoom);
 
         for (Room room : rooms) {
-            if (room == null || room == lockedRoom) {
+            if (room == null || room == lockedRoom || !reachable.contains(room)) {
                 continue;
             }
 
@@ -338,14 +275,6 @@ public class Level {
         }
 
         Room room = rooms.get(RandomHelper.getInstance().randomInt(rooms.size()));
-        addGeneratedSpecialRoom(specialRoom, room);
-    }
-
-    protected void addGeneratedSpecialRoom(int specialRoom, Room room) {
-        if (rooms == null || rooms.isEmpty() || room == null) {
-            return;
-        }
-
         String identifier = RandomHelper.getInstance().uniqueId();
         Room specialRoomToAdd = createSpecialRoom(specialRoom, identifier);
         if (specialRoomToAdd == null) {
@@ -353,21 +282,9 @@ public class Level {
         }
 
         Door specialRoomDoor = createMarkedSpecialDoor(room.getRandomDoor(), specialRoom);
-        specialRoomDoor.setLeadsTo(specialRoomToAdd.getIdentifier());
-        room.addDoor(specialRoomDoor);
-
         Door roomDoor = specialRoomToAdd.getRandomDoor();
-        roomDoor.setLeadsTo(room.getIdentifier());
-
-        roomDoor.otherDoor = specialRoomDoor;
-        specialRoomDoor.otherDoor = roomDoor;
-
-        specialRoomToAdd.addDoor(roomDoor);
+        RoomConnections.connect(room, specialRoomDoor, specialRoomToAdd, roomDoor);
         addRoom(specialRoomToAdd);
-    }
-
-    protected void addGeneratedSpecialRooms(int depth) {
-        addGeneratedSpecialRoom(chooseSpecialRoom(depth));
     }
 
     private Room createSpecialRoom(int specialRoom, String identifier) {
@@ -482,7 +399,7 @@ public class Level {
             spawnUnit(toSpawn, room);
         }
         catch (Exception e){
-
+            if (initialPopulationSpawning) throw new IllegalStateException("Could not populate " + room.getIdentifier(), e);
         }
     }
 
@@ -498,24 +415,27 @@ public class Level {
                 maybePromoteToChampion((Mob) unit, room);
             }
 
-            for (int attempt = 0; attempt < 12; attempt++) {
-                Door spawn = room.getRandomSpawn();
-                if (spawn == null) {
-                    return false;
-                }
-
-                unit.x = spawn.x;
-                unit.y = spawn.y;
-                unit.floorY = spawn.y;
-                if (isSpawnSpaceFree(unit, room.getIdentifier())) {
+            ArrayList<String> candidates = room.getSpawnCandidates();
+            while (!candidates.isEmpty()) {
+                String[] position = candidates.remove(RandomHelper.getInstance().randomInt(candidates.size())).split("_");
+                unit.x = Integer.parseInt(position[0]) * ConstantsHelper.TILE;
+                unit.y = Integer.parseInt(position[1]) * ConstantsHelper.TILE;
+                unit.floorY = unit.y;
+                if (room.hasSupportedPlacement(unit.x, unit.floorY,
+                        ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS)
+                        && isSpawnSpaceFree(unit, room.getIdentifier())) {
                     UnitHelper.getInstance().addUnit(unit);
                     return true;
                 }
             }
         }
-        catch (Exception ignored) {
+        catch (Exception failure) {
+            if (initialPopulationSpawning) throw new IllegalStateException("Could not place " + toSpawn.getSimpleName()
+                    + " in " + room.getIdentifier(), failure);
         }
 
+        if (initialPopulationSpawning) throw new IllegalStateException("No free supported slot for "
+                + toSpawn.getSimpleName() + " in " + room.getIdentifier());
         return false;
     }
 
@@ -526,6 +446,10 @@ public class Level {
 
         String roomIdentifier = room.getIdentifier();
         int championChance = DifficultyHelper.getInstance().getCurrentDifficulty().getChampionChancePercent();
+
+        if (depth <= 2) {
+            championChance /= 2;
+        }
         if (roomIdentifier == null || roomHasChampion(roomIdentifier) || !RandomHelper.getInstance().randomChance(championChance)) {
             return;
         }

@@ -34,7 +34,7 @@ public class WandOfLightning extends Wand {
         int maxTargets = getWandPowerMultiplier() >= 1.5f ? 4 : 3;
         for (int jump = 0; jump < maxTargets && currentTarget != null; jump++) {
             struckTargets.add(currentTarget);
-            float damage = scalePower(Math.max(2f, 5f - jump + RandomHelper.getInstance().randomFloat(2f)));
+            float damage = scalePower(Math.max(2f, 7f - jump + RandomHelper.getInstance().randomFloat(2f)));
             currentTarget.takeDamage(owner, this, damage);
             EffectsHelper.getInstance().add(new LightningSpread().init(
                     currentTarget.x + ConstantsHelper.UNIT_DIMENSIONS / 2f,

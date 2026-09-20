@@ -44,7 +44,7 @@ public class IncinerationWand extends Wand {
 
         ArrayList<Unit> units = new ArrayList<Unit>(UnitHelper.getInstance().getUnits());
         for (Unit unit : units) {
-            if (!(unit instanceof Mob) || unit.showOnly() || unit.isDead()) {
+            if (!(unit instanceof Mob) || unit.showOnly() || unit.isDead() || unit.isFriendly == owner.isFriendly) {
                 continue;
             }
 
@@ -80,7 +80,7 @@ public class IncinerationWand extends Wand {
     }
 
     private float rollDamage() {
-        float damage = 5 + RandomHelper.getInstance().randomInt(6);
+        float damage = 8 + RandomHelper.getInstance().randomInt(6);
 
         if (owner.getBuff(FireMastery.class) != null) {
             damage *= 1.2f;

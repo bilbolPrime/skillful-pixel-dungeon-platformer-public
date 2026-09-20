@@ -35,7 +35,7 @@ public class MercenaryDoor extends SpecialRoomDoor {
     }
 
     private void refreshSign() {
-        MercenaryType resolvedType = resolveMercenaryType();
+        MercenaryType resolvedType = getRecruitType();
         String resolvedTemplate = MapHelper.getInstance().getTheme().getTemplate();
         if (resolvedType == signType && resolvedTemplate.equals(signTemplate)) {
             return;
@@ -46,7 +46,12 @@ public class MercenaryDoor extends SpecialRoomDoor {
         sign = createMercenarySign(resolvedType, resolvedTemplate);
     }
 
-    private MercenaryType resolveMercenaryType() {
+
+    public void rememberRecruitType(MercenaryType type) {
+        if (type != null) rememberedType = type;
+    }
+
+    public MercenaryType getRecruitType() {
         if (leadsTo == null) {
             return rememberedType;
         }

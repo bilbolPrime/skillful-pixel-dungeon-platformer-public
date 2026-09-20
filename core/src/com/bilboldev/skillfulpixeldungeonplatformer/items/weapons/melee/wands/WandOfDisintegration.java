@@ -38,7 +38,7 @@ public class WandOfDisintegration extends Wand {
             return;
         }
 
-        float damage = scalePower(4f + targets.size() * 2f + RandomHelper.getInstance().randomInt(3));
+        float damage = scalePower(6f + targets.size() * 2f + RandomHelper.getInstance().randomInt(3));
         for (Unit target : targets) {
             target.takeDamage(owner, this, damage);
         }

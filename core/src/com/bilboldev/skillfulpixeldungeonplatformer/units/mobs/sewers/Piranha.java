@@ -86,6 +86,7 @@ public class Piranha extends Mob {
         movingRight = false;
         setHP(0);
         changeState(UnitState.DEAD, true);
+        notifyDeathCommitted();
         die();
     }
 
@@ -134,6 +135,7 @@ public class Piranha extends Mob {
                 return;
             }
 
+            owner.facingRight = owner.x < target.x;
             if (Math.abs(target.x - owner.x) > ConstantsHelper.UNIT_DIMENSIONS) {
                 owner.movingRight = target.x > owner.x;
                 owner.movingLeft = target.x < owner.x;
@@ -144,8 +146,6 @@ public class Piranha extends Mob {
                     attack();
                 }
             }
-
-            owner.facingRight = owner.x < target.x;
 
             if (Math.abs(target.x - owner.x) > 5 * ConstantsHelper.UNIT_DIMENSIONS) {
                 Unit candidateTarget = findTarget();

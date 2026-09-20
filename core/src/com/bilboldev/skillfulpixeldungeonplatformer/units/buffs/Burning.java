@@ -11,6 +11,16 @@ public class Burning extends Buff {
 
     private float tickAt = TICK_INTERVAL;
 
+
+    private float damageMultiplier = 1f;
+
+    public Burning setDamageMultiplier(float multiplier) {
+        damageMultiplier = multiplier;
+        return this;
+    }
+
+    public float getDamageMultiplier() { return damageMultiplier; }
+
     public Burning() {
         super("Burning", "Taking fire damage over time.", "images/buffs/fire.png");
         duration = BASE_DURATION;
@@ -47,7 +57,7 @@ public class Burning extends Buff {
         }
 
         while (tickAt <= 0f && owner.getHP() > 0) {
-            owner.takeDamage(owner, null, 1f);
+            owner.takeDamage(owner, null, damageMultiplier);
             if (owner instanceof Hero && owner.isDead()) {
                 AchievementManager.getInstance().onDeathFromFire();
             }

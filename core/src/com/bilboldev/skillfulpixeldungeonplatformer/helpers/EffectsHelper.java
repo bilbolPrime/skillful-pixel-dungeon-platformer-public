@@ -7,6 +7,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.BlackSpark;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.Blood;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.CombatText;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.EnchantingAura;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.Effect;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.Effects;
@@ -56,7 +57,27 @@ public class EffectsHelper {
             return;
         }
 
-        message(unit, Messages.get("custom.ui.miss"), Color.RED, 0f);
+        combatText(unit, Messages.get("custom.ui.miss"), new Color(1f, 0.82f, 0.45f, 1f));
+    }
+
+
+    public void hitResult(Unit source, Unit defender, int appliedDamage) {
+        Color color = appliedDamage == 0 ? new Color(0.80f, 0.90f, 1f, 1f)
+                : defender.isHero ? new Color(1f, 0.55f, 0.40f, 1f) : new Color(1f, 0.91f, 0.65f, 1f);
+        combatText(defender, Integer.toString(appliedDamage), color);
+        if (appliedDamage <= 0) return;
+        if (defender.gf != null) defender.gf.showImpactFlash();
+        if (source != null && (source.isHero || defender.isHero)
+                && defender.getRoom() != null && defender.getRoom().equals(MapHelper.getInstance().getActiveRoomIdentifier())
+                && appliedDamage >= Math.max(4f, defender.getMaxHP() * 0.15f)) {
+            GameHelper.GetSingleton().showHitImpulse((float) appliedDamage / Math.max(1, defender.getMaxHP()),
+                    source.x <= defender.x ? 1f : -1f);
+        }
+    }
+
+    private void combatText(Unit unit, String text, Color color) {
+        add(new CombatText().init(unit.x + ConstantsHelper.UNIT_DIMENSIONS / 2f,
+                unit.y + ConstantsHelper.UNIT_DIMENSIONS + 28f, text, color));
     }
 
     public void heal(Unit owner){
@@ -124,7 +145,15 @@ public class EffectsHelper {
     }
 
     public void waterSplash(Unit owner){
-        effects.add(new WaterSplash().init(owner.x, owner.y, 0, owner.speedX, 0, 0));
+        Effect splash = new WaterSplash().init(owner.x, owner.y, 0, owner.speedX, 0, 0);
+
+
+        if (!owner.isHero) effects.add(splash);
+    }
+
+    public void footContact(float footX, float footY, boolean wet, WaterSplash.Contact contact) {
+        add(new WaterSplash().initContact(footX, footY, wet, contact));
+        SoundHelper.GetSingleton().playFootContact(wet, contact);
     }
 
     public void enchanting(Unit owner, Item item, Prefix prefix) {

@@ -16,7 +16,7 @@ public class RingOfShadows extends Ring {
 
     @Override
     protected void whileEquipped(Hero hero, float deltaSeconds) {
-        float keepAggroRadius = (2.5f + 0.75f * getLevel()) * ConstantsHelper.TILE;
+        float keepAggroRadius = (2.5f + 0.75f / getLevel()) * ConstantsHelper.TILE;
         float keepAggroRadiusSq = keepAggroRadius * keepAggroRadius;
         for (Unit unit : UnitHelper.getInstance().getUnits()) {
             if (!(unit instanceof Mob) || unit.isFriendly || unit.isDead()) {

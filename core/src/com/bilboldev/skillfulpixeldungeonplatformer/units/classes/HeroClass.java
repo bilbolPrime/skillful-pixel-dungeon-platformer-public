@@ -2,10 +2,14 @@ package com.bilboldev.skillfulpixeldungeonplatformer.units.classes;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SkillsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassAssets;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassSkillTree;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.armor.Cloth;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.armor.LeatherArmor;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.ArrowItem;
+import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.BulletItem;
+import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Handgun;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.potions.HealthPotion;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.potions.ManaPotion;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.potions.PotionOfStrength;
@@ -28,7 +32,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skills;
 import java.util.ArrayList;
 
 public enum HeroClass {
-    NEUTRAL, WARRIOR, ROGUE, WIZARD, ARCHER;
+    NEUTRAL, WARRIOR, ROGUE, WIZARD, ARCHER, NECROMANCER, MERCENARY;
 
     private static final float SKILL_BUTTON_WIDTH = 400f;
     private static final float SKILL_BUTTON_HEIGHT = 100f;
@@ -46,6 +50,8 @@ public enum HeroClass {
             case ROGUE: return Messages.get("custom.generated.rogue_f232febd10");
             case WIZARD: return Messages.get("custom.generated.wizard_af2c41eb4e");
             case ARCHER: return Messages.get("custom.generated.huntress_a3bb9e35da");
+            case NECROMANCER: return Messages.get("custom.classes.necromancer.name");
+            case MERCENARY: return Messages.get("custom.classes.mercenary.name");
             case NEUTRAL: return "Mobs";
         }
 
@@ -58,6 +64,8 @@ public enum HeroClass {
             case ROGUE: return "Rogue";
             case WIZARD: return "Wizard";
             case ARCHER: return "Huntress";
+            case NECROMANCER: return "Necromancer";
+            case MERCENARY: return "Mercenary";
             case NEUTRAL: return "Mobs";
         }
 
@@ -71,6 +79,8 @@ public enum HeroClass {
             case ROGUE: return Messages.get("custom.generated.rogues_rely_on_agility_stealth_9fa3bff11c");
             case WIZARD: return Messages.get("custom.generated.wizards_master_the_arts_of_3efc4cde47");
             case ARCHER: return Messages.get("custom.generated.huntresses_excel_at_ranged_combat_11d04f6ebd");
+            case NECROMANCER: return Messages.get("custom.classes.necromancer.description");
+            case MERCENARY: return Messages.get("custom.classes.mercenary.description");
             case NEUTRAL: return "Mobs";
         }
 
@@ -83,6 +93,8 @@ public enum HeroClass {
             case ROGUE: return "Rogues rely on agility, stealth, and careful timing to survive. They strike hard, dodge often, and slip through danger.";
             case WIZARD: return "Wizards master the arts of magic and crowd control, overwhelming enemies with powerful spells and utility.";
             case ARCHER: return "Huntresses excel at ranged combat and battlefield control, picking enemies apart before they can close the gap.";
+            case NECROMANCER: return "Necromancers wield daggers and mind magic, drawing power from fallen enemies to raise allies, drain life, and curse their foes.";
+            case MERCENARY: return "Mercenaries fight with swords and exclusive firearms, carrying plentiful bullets and using precise shots and battlefield tactics.";
             case NEUTRAL: return "Mobs";
         }
 
@@ -103,6 +115,8 @@ public enum HeroClass {
             case ROGUE: return "rogue";
             case WIZARD: return "wizard";
             case ARCHER: return "huntress";
+            case NECROMANCER: return "necromancer";
+            case MERCENARY: return "mercenary";
         }
 
         return "warrior";
@@ -120,10 +134,12 @@ public enum HeroClass {
 
     public int getHealth(int level){
         switch (this){
-            case WARRIOR: return  30 + 25 * (level - 1);
-            case ROGUE: return  24 + 18 * (level - 1);
-            case WIZARD: return  15 + 10 * (level - 1);
-            case ARCHER: return  22 + 16 * (level - 1);
+            case WARRIOR: return  30 + 16 * (level - 1);
+            case ROGUE: return  26 + 14 * (level - 1);
+            case WIZARD: return  20 + 13 * (level - 1);
+            case ARCHER: return  24 + 14 * (level - 1);
+            case NECROMANCER: return 22 + 14 * (level - 1);
+            case MERCENARY: return 28 + 15 * (level - 1);
         }
 
         return 1;
@@ -135,6 +151,8 @@ public enum HeroClass {
             case ROGUE: return  25 + 10 * (level - 1);
             case WIZARD: return  50 + 25 * (level - 1);
             case ARCHER: return  25 + 12 * (level - 1);
+            case NECROMANCER: return 50 + 25 * (level - 1);
+            case MERCENARY: return 20 + 10 * (level - 1);
         }
 
         return 1;
@@ -143,12 +161,14 @@ public enum HeroClass {
     public int getBaseStrength() {
         switch (this) {
             case WARRIOR:
+            case MERCENARY:
                 return 11;
             case ROGUE:
                 return 10;
             case ARCHER:
                 return 10;
             case WIZARD:
+            case NECROMANCER:
                 return 10;
         }
 
@@ -185,6 +205,8 @@ public enum HeroClass {
             case ROGUE: return  8f;
             case WIZARD: return  7f;
             case ARCHER: return  7.5f;
+            case NECROMANCER: return 7f;
+            case MERCENARY: return 6f;
         }
 
         return 1;
@@ -196,6 +218,8 @@ public enum HeroClass {
             case ROGUE: return Messages.maybeTranslate("Fast");
             case WIZARD: return Messages.maybeTranslate("Medium speed");
             case ARCHER: return Messages.maybeTranslate("Medium speed");
+            case NECROMANCER:
+            case MERCENARY: return Messages.maybeTranslate("Medium speed");
         }
 
         return "..";
@@ -207,6 +231,8 @@ public enum HeroClass {
             case ROGUE: return  650f;
             case WIZARD: return  600f;
             case ARCHER: return  625f;
+            case NECROMANCER: return 580f;
+            case MERCENARY: return 550f;
         }
 
         return 1;
@@ -218,9 +244,17 @@ public enum HeroClass {
             case ROGUE: return Messages.maybeTranslate("Fast");
             case WIZARD: return Messages.maybeTranslate("Fast");
             case ARCHER: return Messages.maybeTranslate("Fast");
+            case NECROMANCER:
+            case MERCENARY: return Messages.maybeTranslate("Medium speed");
         }
 
         return "..";
+    }
+
+    public String getJumpButtonArt() {
+        if (this == NECROMANCER) return NewClassAssets.NECROMANCER_JUMP;
+        if (this == MERCENARY) return NewClassAssets.MERCENARY_JUMP;
+        return "images/units/" + getAssetFolderName() + "/button-jump.png";
     }
 
     public GameSprite getClassPortrait(){
@@ -229,6 +263,8 @@ public enum HeroClass {
             case ROGUE: return new GameSprite("images/units/rogue/portrait.png", 200, 200);
             case WIZARD: return new GameSprite("images/units/wizard/portrait.png", 200, 200);
             case ARCHER: return new GameSprite("images/units/huntress/portrait.png", 200, 200);
+            case NECROMANCER: return new GameSprite(NewClassAssets.NECROMANCER_PORTRAIT, 200, 200);
+            case MERCENARY: return new GameSprite(NewClassAssets.MERCENARY_PORTRAIT, 200, 200);
         }
 
         return new GameSprite("images/units/warrior/portrait.png", 200, 200);
@@ -240,6 +276,8 @@ public enum HeroClass {
             case ROGUE: return new GameSprite("images/stats/rogue.png", 74, 74);
             case WIZARD: return new GameSprite("images/stats/magic.png", 74, 74);
             case ARCHER: return new GameSprite("images/stats/ranged.png", 74, 74);
+            case NECROMANCER: return new GameSprite(NewClassAssets.NECROMANCER_PORTRAIT, 74, 74);
+            case MERCENARY: return new GameSprite(NewClassAssets.MERCENARY_PORTRAIT, 74, 74);
         }
 
         return new GameSprite("images/stats/warrior.png", 74, 74);
@@ -249,6 +287,8 @@ public enum HeroClass {
         if(this == otherClass){
             return 1;
         }
+        if (this == NECROMANCER) return WIZARD.classPenalty(otherClass);
+        if (this == MERCENARY) return WARRIOR.classPenalty(otherClass);
 
         switch (this) {
             case WARRIOR:
@@ -301,6 +341,8 @@ public enum HeroClass {
     }
 
     public String classPenaltyDescription(HeroClass heroClass){
+        if (this == NECROMANCER && heroClass != NECROMANCER) return WIZARD.classPenaltyDescription(heroClass);
+        if (this == MERCENARY && heroClass != MERCENARY) return WARRIOR.classPenaltyDescription(heroClass);
         if (this == WARRIOR && (heroClass == ARCHER || heroClass == WIZARD)) {
             return Messages.maybeTranslate("Hopeless");
         }
@@ -357,11 +399,24 @@ public enum HeroClass {
                 startingBonuses.add(new StartingBonus("2x Rations", "Huntresses start with two rations", "images/items/food.png"));
                 startingBonuses.add(new StartingBonus("4x Health pots", "Huntresses start with four healing potions", "images/items/health-potion.png"));
                 break;
+            case NECROMANCER:
+                startingBonuses.add(StartingBonus.localized("custom.newstarters.necromancer.1", "images/misc/extracted items/DAGGER.png"));
+                startingBonuses.add(StartingBonus.localized("custom.newstarters.necromancer.2", "images/armor/cloth.png"));
+                startingBonuses.add(StartingBonus.localized("custom.newstarters.necromancer.3", "images/items/health-potion.png"));
+                startingBonuses.add(StartingBonus.localized("custom.newstarters.necromancer.4", "images/misc/extracted items/SCROLL_SKILLPOINT.png"));
+                break;
+            case MERCENARY:
+                startingBonuses.add(StartingBonus.localized("custom.newstarters.mercenary.1", "images/weapons/short-sword.png"));
+                startingBonuses.add(StartingBonus.localized("custom.newstarters.mercenary.2", NewClassAssets.ItemArt.HANDGUN.key()));
+                startingBonuses.add(StartingBonus.localized("custom.newstarters.mercenary.3", NewClassAssets.BULLET_ICON));
+                startingBonuses.add(StartingBonus.localized("custom.newstarters.mercenary.4", "images/armor/leather-armor.png"));
+                break;
         }
         return startingBonuses;
     }
 
     public ArrayList<Integer> getSkillIds(){
+        if (NewClassSkillTree.isNewClass(this)) return NewClassSkillTree.ids(this, false);
         ArrayList<Integer> toReturn = new ArrayList<>();
 
         if(this == WARRIOR){
@@ -412,6 +467,7 @@ public enum HeroClass {
     }
 
     public ArrayList<Integer> getDarkSkillIds(){
+        if (NewClassSkillTree.isNewClass(this)) return NewClassSkillTree.ids(this, true);
         ArrayList<Integer> toReturn = new ArrayList<>();
 
         if(this == WARRIOR){
@@ -461,6 +517,8 @@ public enum HeroClass {
     }
 
     public ArrayList<Integer> getSkillRequirements(int skillId) {
+        NewClassSkillTree.Node node = NewClassSkillTree.node(this, skillId);
+        if (node != null) return node.requirements();
         ArrayList<Integer> requirements = new ArrayList<>();
 
         if (this == WARRIOR && skillId == Skills.LOCK_SMITH) {
@@ -482,11 +540,13 @@ public enum HeroClass {
             return requirements;
         }
 
-        return new ArrayList<>(getBaseSkill(skillId).getRequires());
+        Skill skill = getBaseSkill(skillId);
+        return skill == null ? requirements : new ArrayList<>(skill.getRequires());
     }
 
     public String getSkillBigDescription(int skillId) {
         Skill skill = getBaseSkill(skillId);
+        if (skill == null) return SkillsHelper.getInstance().getSkillName(skillId);
         String toReturn = Messages.maybeTranslate("%s: %s", skill.getName(), getSkillDescription(skillId));
         ArrayList<Integer> requirements = getSkillRequirements(skillId);
         String requiresLabel = Messages.maybeTranslate("Requires");
@@ -496,7 +556,7 @@ public enum HeroClass {
                     "%s\n%s: %s",
                     toReturn,
                     requiresLabel,
-                    getBaseSkill(requirements.get(0)).getName());
+                    SkillsHelper.getInstance().getSkillName(requirements.get(0)));
         }
 
         if (requirements.size() > 1) {
@@ -505,7 +565,7 @@ public enum HeroClass {
                 if (index > 0) {
                     requiredString += ", ";
                 }
-                requiredString += getBaseSkill(requirements.get(index)).getName();
+                requiredString += SkillsHelper.getInstance().getSkillName(requirements.get(index));
             }
 
             return Messages.maybeTranslate("%s\n%s", toReturn, requiredString);
@@ -515,12 +575,20 @@ public enum HeroClass {
     }
 
     private String getSkillDescription(int skillId) {
+        if (this == WIZARD && skillId == Skills.MANA) {
+            return Messages.maybeTranslate("Spiritual training increases a wizard's stamina for magic.\n- +20% base class mana");
+        }
+
+        if (this == WARRIOR && skillId == Skills.HEALTH) {
+            return Messages.maybeTranslate("Physical training helps warriors endure close combat.\n- +20% base class health");
+        }
+
         if (this == WARRIOR && skillId == Skills.LOCK_SMITH) {
             return Messages.maybeTranslate("Some warriors have survived so many traps they know them inside out.\n- 100% chance to disarm traps on contact\n- Does NOT work on hidden traps");
         }
 
         if (this == ROGUE && skillId == Skills.HEALTH) {
-            return Messages.maybeTranslate("Seasoned rogues learn to stay on their feet when plans go wrong.\n- +15% health");
+            return Messages.maybeTranslate("Seasoned rogues learn to stay on their feet when plans go wrong.\n- +15% base class health");
         }
 
         if (this == ROGUE && skillId == Skills.AWARENESS) {
@@ -547,6 +615,8 @@ public enum HeroClass {
     }
 
     public int getSkillButtonXOffset(int skillId, boolean darkSkills) {
+        NewClassSkillTree.Node node = NewClassSkillTree.node(this, skillId);
+        if (node != null) return getTreeColumnX(node.column);
         Skill skill = getBaseSkill(skillId);
 
         if (!darkSkills && this == WARRIOR && skillId == Skills.LOCK_SMITH) {
@@ -585,10 +655,12 @@ public enum HeroClass {
             return getTreeColumnX(3);
         }
 
-        return skill.getXOffset();
+        return skill == null ? TREE_FIRST_COLUMN_X : skill.getXOffset();
     }
 
     public int getSkillButtonYOffset(int skillId, boolean darkSkills) {
+        NewClassSkillTree.Node node = NewClassSkillTree.node(this, skillId);
+        if (node != null) return getTreeRowY(node.row);
         Skill skill = getBaseSkill(skillId);
 
         if (!darkSkills && this == WARRIOR && skillId == Skills.LOCK_SMITH) {
@@ -635,14 +707,20 @@ public enum HeroClass {
             return getTreeRowY(3);
         }
 
-        return skill.getYOffset();
+        return skill == null ? TREE_FIRST_ROW_Y : skill.getYOffset();
     }
 
     public int getSkillPointCost(int skillId) {
+        NewClassSkillTree.Node node = NewClassSkillTree.node(this, skillId);
+        if (node != null) return node.cost;
+        if (!NewClassSkillTree.allows(this, getBaseSkill(skillId))) return -1;
         return getSkillColumn(skillId);
     }
 
     public int getSkillColumn(int skillId) {
+        NewClassSkillTree.Node node = NewClassSkillTree.node(this, skillId);
+        if (node != null) return node.column;
+        if (getBaseSkill(skillId) == null) return -1;
         boolean darkSkill = isDarkSkill(skillId);
         int resolvedX = getSkillButtonXOffset(skillId, darkSkill);
         int column = 1 + Math.round((resolvedX - TREE_FIRST_COLUMN_X) / (float) TREE_COLUMN_SPACING);
@@ -655,7 +733,7 @@ public enum HeroClass {
 
 
     public void drawBranches(Batch batch, float x, float y, float width, float height){
-        if(this == WARRIOR || this == ROGUE || this == ARCHER){
+        if(this == WARRIOR || this == ROGUE || this == ARCHER || NewClassSkillTree.isNewClass(this)){
             drawSkillRequirementLinks(batch, x, y, height, getSkillIds(), false);
         }
 
@@ -700,7 +778,7 @@ public enum HeroClass {
     }
 
     public void drawDarkSkillsBranches(Batch batch, float x, float y, float width, float height){
-        if(this == WARRIOR || this == ROGUE || this == ARCHER){
+        if(this == WARRIOR || this == ROGUE || this == ARCHER || NewClassSkillTree.isNewClass(this)){
             drawSkillRequirementLinks(batch, x, y, height, getDarkSkillIds(), true);
         }
 
@@ -742,8 +820,9 @@ public enum HeroClass {
 
     private void drawSkillRequirementLinks(Batch batch, float x, float y, float height, ArrayList<Integer> skillIds, boolean darkSkills) {
         for (Integer skillId : skillIds) {
+            if (getBaseSkill(skillId) == null) continue;
             for (Integer requiredSkillId : getSkillRequirements(skillId)) {
-                if (!skillIds.contains(requiredSkillId)) {
+                if (!skillIds.contains(requiredSkillId) || getBaseSkill(requiredSkillId) == null) {
                     continue;
                 }
 
@@ -808,6 +887,8 @@ public enum HeroClass {
             case ROGUE:  return "images/units/rogue/rogue.png";
             case WIZARD:  return "images/units/wizard/wizard.png";
             case ARCHER:  return "images/units/huntress/huntress.png";
+            case NECROMANCER: return NewClassAssets.NECROMANCER;
+            case MERCENARY: return NewClassAssets.MERCENARY;
         }
         return "images/units/warrior/warrior.png";
     }
@@ -821,6 +902,19 @@ public enum HeroClass {
                 items.add(new ShortSword());
                 items.add(new LeatherArmor());
                 items.add(new HealthPotion().setQuantity(5));
+                break;
+            case MERCENARY:
+                items.add(new ShortSword());
+                items.add(new Handgun());
+                items.add(new LeatherArmor());
+                items.add(new HealthPotion().setQuantity(5));
+                items.add(new BulletItem().setQuantity(10));
+                break;
+            case NECROMANCER:
+                items.add(new Dagger());
+                items.add(new Cloth());
+                items.add(new HealthPotion().setQuantity(5));
+                items.add(new ManaPotion().setQuantity(5));
                 break;
             case WIZARD:
                 FireBoltWand starterWand = new FireBoltWand();
@@ -858,6 +952,8 @@ public enum HeroClass {
             case ROGUE: return new Hero(ROGUE);
             case WIZARD: return new Wizard();
             case ARCHER: return new Hero(ARCHER);
+            case NECROMANCER: return new Hero(NECROMANCER);
+            case MERCENARY: return new Hero(MERCENARY);
         }
 
         return new Hero();

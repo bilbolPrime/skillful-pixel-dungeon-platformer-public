@@ -40,8 +40,8 @@ public class Button {
         this.y = y;
         this.width = width;
         this.height = height;
-       // this.notPressed = new Texture(notPressed);
-      //  this.pressed = new Texture(pressed);
+
+
         this.rec = new Rectangle(x, y, width, height);
         this.recExtended = new Rectangle(x - hitMargin, y - hitMargin, width + 2 * hitMargin, height + 2 * hitMargin);
         this.topOffset = Gdx.graphics.getHeight();
@@ -72,18 +72,18 @@ public class Button {
 
         boolean isTapped = false;
 
-        //for(int i = 0; Gdx.input.isTouched() && i < 5; i++){
-        //    if(Gdx.input.isTouched(i) && isHit(Gdx.input.getX(i), Gdx.input.getY(i))){
-        //        isTapped = true;
-        //        break;
-        //    }
-        //}
+
+
+
+
+
+
 
         batch.draw(isTapped ? pressed : notPressed, x, y);
     }
 
     public void disable(){
-        //Gdx.app.log("button", "disabled button");
+
         enabled = false;
     }
 
@@ -94,6 +94,10 @@ public class Button {
     public boolean isEnabled() {
         return enabled;
     }
+
+    public float getWidth() { return width; }
+
+    public float getHeight() { return height; }
 
     public void setPosition(float x, float y) {
         float deltaX = x - this.x;

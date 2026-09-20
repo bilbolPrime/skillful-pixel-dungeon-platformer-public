@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.weapons.enchantments;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.EnhancementHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.Weapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 
@@ -21,7 +22,8 @@ public class TemperingEnchantment extends WeaponEnhancement {
         float minDamage = weapon.min();
         float maxDamage = weapon.max();
         int upgradeLevel = EnhancementHelper.getUpgradeLevel(weapon);
-        int temperedFloor = Math.max(1, Math.round(minDamage + (maxDamage - minDamage) * (0.25f + 0.1f * Math.min(2, upgradeLevel))));
+        int temperedFloor = Math.max(1, Math.round(DifficultyHelper.getInstance().scaleEnemyDamage(attacker,
+                minDamage + (maxDamage - minDamage) * (0.25f + 0.1f * Math.min(2, upgradeLevel)))));
         int bonusDamage = temperedFloor - appliedDamage;
         if (bonusDamage > 0) {
             target.takeDamage(attacker, weapon, bonusDamage);

@@ -14,7 +14,10 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.LongSwor
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.MeleeAttack;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.Rod;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.AI;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.AgressiveAI;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Buff;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.doors.Door;
@@ -23,8 +26,20 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.SludgeBomb
 public class Goo extends Mob {
     private static final float WATER_HEAL_INTERVAL = 1f;
     private static final int WATER_HEAL_AMOUNT = 2;
+    private static final float SPECIAL_OPENING_SECONDS = 3f;
+    private static final float PUSH_INTERVAL_SECONDS = 4f;
+    private static final float SPIT_INTERVAL_SECONDS = 6f;
+    private static final float SPECIAL_WINDUP_SECONDS = 0.35f;
+    private static final float SPECIAL_RECOVERY_SECONDS = 0.4f;
+    private enum Special { NONE, PUSH, SPIT }
     protected float lastSludge = 0f;
     private float healOnWaterAt = WATER_HEAL_INTERVAL;
+    private Special pendingSpecial = Special.NONE;
+    private float specialWindupRemaining;
+    private AI committedAI;
+    private Unit committedTarget;
+    private boolean committedFriendly;
+    private boolean committedFacingRight;
     {
         boss = true;
         hp = mhp = 80;
@@ -42,42 +57,29 @@ public class Goo extends Mob {
         ai = new AgressiveAI(this){
             @Override
             public void act(float delta){
-                lastSludge += 1f * delta;
+                lastSludge += delta;
+                if (pendingSpecial != Special.NONE) return;
+                super.act(delta);
+            }
 
-                if(lastSludge > 10f && getOther() != null){
-                    if(UtilsHelper.distance(getOwner(), getOther()) < ConstantsHelper.UNIT_DIMENSIONS){
-                        MeleeAttack attack = (MeleeAttack) getOwner().getWeapon();
-                        attack.setDamageRange(5f, 30f);
-                        getOwner().getWeapon().modifyKnockback(500f);
-                        getOwner().attack(true);
-                        getOwner().getWeapon().modifyKnockback(-500f);
-                        attack.setDamageRange(2f, 12f);
-                        EffectsHelper.getInstance().message(getOwner(), "...", Color.RED, 0f);
-                        lastSludge = 9f;
+            @Override
+            public void attacked(float delta){
+                Unit target = getOther();
+
+                if (lastSludge >= SPECIAL_OPENING_SECONDS && target != null && getOwner().canAttack()) {
+                    if (UtilsHelper.distance(getOwner(), target) < ConstantsHelper.UNIT_DIMENSIONS) {
+                        beginSpecial(Special.PUSH, target);
+                        return;
                     }
-                    else {
-                        getOwner().attack(true);
-                        EffectsHelper.getInstance().message(getOwner(), "Burp", Color.RED, 0f);
-                        for(int i = 0; i < 5; i++){
-                            SludgeBomb sludgeBomb = new SludgeBomb();
-                            sludgeBomb.isFriendly = getOwner().isFriendly;
-                            sludgeBomb.facingRight =  getOwner().facingRight;
-                            sludgeBomb.x =  getOwner().x;
-                            sludgeBomb.y =  getOwner().y + ConstantsHelper.UNIT_DIMENSIONS / 2;
-                            sludgeBomb.setOwner(getOwner());
-                            sludgeBomb.setSpeedX( getOwner().facingRight ? (400 + i * 125) : -(400 + i * 125));
-                            sludgeBomb.setSpeedY( 50 + i * 75f);
-                            UnitHelper.getInstance().addUnit(sludgeBomb);
-                        }
-
-                        lastSludge = 0f;
+                    if (Math.abs(target.y - y) <= ConstantsHelper.UNIT_DIMENSIONS
+                            && Math.abs(target.x - x) <= ConstantsHelper.TILE * 4f
+                            && UnitHelper.getInstance().canSeeTarget(Goo.this, target)) {
+                        beginSpecial(Special.SPIT, target);
+                        return;
                     }
-
-
-
                 }
 
-                super.act(delta);
+                super.attacked(delta);
             }
         };
 
@@ -91,7 +93,17 @@ public class Goo extends Mob {
 
     @Override
     public void act(float delta) {
+        if (pendingSpecial != Special.NONE && !canContinueSpecial()) cancelSpecial();
         super.act(delta);
+        if (pendingSpecial != Special.NONE) {
+            if (!canContinueSpecial()) cancelSpecial();
+            else {
+                facingRight = committedFacingRight;
+                movingLeft = movingRight = false;
+                specialWindupRemaining = Math.max(0f, specialWindupRemaining - delta);
+                if (specialWindupRemaining <= 0f) releaseSpecial();
+            }
+        }
         MapHelper mapHelper = MapHelper.getInstance();
 
         if (getRoom() == null || !getRoom().equals(mapHelper.getActiveRoomIdentifier())) {
@@ -114,12 +126,71 @@ public class Goo extends Mob {
         resetHealOnWaterTimer();
     }
 
+    private void beginSpecial(Special special, Unit target) {
+        pendingSpecial = special;
+        specialWindupRemaining = SPECIAL_WINDUP_SECONDS;
+        committedAI = ai;
+        committedTarget = target;
+        committedFriendly = isFriendly;
+        committedFacingRight = facingRight = x < target.x;
+        movingLeft = movingRight = false;
+        lastSludge = SPECIAL_OPENING_SECONDS - (special == Special.PUSH ? PUSH_INTERVAL_SECONDS : SPIT_INTERVAL_SECONDS);
+        startAttackAnimation(SPECIAL_WINDUP_SECONDS + SPECIAL_RECOVERY_SECONDS);
+        EffectsHelper.getInstance().message(this, special == Special.PUSH ? "..." : "Burp", Color.RED, 0f);
+    }
+
+    private boolean canContinueSpecial() {
+        if (isDead() || getHP() < 1 || room == null || !room.equals(MapHelper.getInstance().getActiveRoomIdentifier())
+                || ai == null || ai != committedAI || isFriendly != committedFriendly
+                || ai.isBlind() || !ai.canTarget(committedTarget)) return false;
+        for (Buff buff : buffs) if (buff.preventsAttacks()) return false;
+        return true;
+    }
+
+    private void cancelSpecial() {
+        pendingSpecial = Special.NONE;
+        specialWindupRemaining = 0f;
+        committedAI = null;
+        committedTarget = null;
+    }
+
+    private void releaseSpecial() {
+        Special special = pendingSpecial;
+
+        pendingSpecial = Special.NONE;
+        if (special == Special.PUSH) {
+            MeleeAttack attack = (MeleeAttack) getWeapon();
+            attack.setDamageRange(5f, 30f);
+            attack.modifyKnockback(500f);
+            try {
+                applyMeleeContact(attack);
+            } finally {
+                attack.modifyKnockback(-500f);
+                attack.setDamageRange(2f, 12f);
+            }
+        } else if (special == Special.SPIT) {
+            for (int i = 0; i < 5; i++) {
+                SludgeBomb sludgeBomb = new SludgeBomb();
+                sludgeBomb.isFriendly = isFriendly;
+                sludgeBomb.facingRight = facingRight;
+                sludgeBomb.x = x;
+                sludgeBomb.y = y + ConstantsHelper.UNIT_DIMENSIONS / 2;
+                sludgeBomb.setOwner(this);
+                sludgeBomb.setSpeedX(facingRight ? (400 + i * 125) : -(400 + i * 125));
+                sludgeBomb.setSpeedY(50 + i * 75f);
+                UnitHelper.getInstance().addUnit(sludgeBomb);
+            }
+        }
+        cancelSpecial();
+    }
+
     private void resetHealOnWaterTimer() {
         healOnWaterAt = WATER_HEAL_INTERVAL;
     }
 
     @Override
     public void die() {
+        cancelSpecial();
         super.die();
         Room currentRoom = MapHelper.getInstance().getRoom(room);
         if (currentRoom == null) {

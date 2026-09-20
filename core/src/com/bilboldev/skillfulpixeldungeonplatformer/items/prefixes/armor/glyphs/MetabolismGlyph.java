@@ -23,6 +23,6 @@ public class MetabolismGlyph extends ArmorGlyph {
             return;
         }
 
-        defender.heal(Math.max(1, defender.getMaxHP() / 10 + EnhancementHelper.getUpgradeLevel(defender.getArmor())));
+        defender.heal(Math.max(1, defender.getMaxHP() / 40 + EnhancementHelper.getUpgradeLevel(defender.getArmor())));
     }
 }

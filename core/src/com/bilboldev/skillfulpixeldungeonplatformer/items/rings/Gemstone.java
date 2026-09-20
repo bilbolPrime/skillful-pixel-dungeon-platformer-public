@@ -50,6 +50,14 @@ public class Gemstone extends Ring {
         return Math.round(charge);
     }
 
+    public float getCharge() {
+        return charge;
+    }
+
+    public void restoreCharge(float savedCharge) {
+        charge = Math.max(0f, Math.min(MAX_CHARGE, savedCharge));
+    }
+
     @Override
     public String getBigDescription() {
         StringBuilder info = new StringBuilder(super.getBigDescription());

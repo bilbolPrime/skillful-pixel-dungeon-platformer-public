@@ -1,9 +1,16 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.themes;
 
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.Level;
+import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.BossArenaArchitecture;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpecialRoomFocalPoint;
 
 public abstract class Theme {
+    private SpecialRoomFocalPoint specialRoomFocalPoint;
+    private BossArenaArchitecture bossArenaArchitecture;
     protected String template;
     protected GameSprite door;
     protected GameSprite closedDoor;
@@ -127,6 +134,11 @@ public abstract class Theme {
         return wall;
     }
 
+    public void drawWall(Batch batch, Room room, int depth, int tileX, int tileY) {
+        wall.setPosition(tileX * ConstantsHelper.TILE, tileY * ConstantsHelper.TILE);
+        wall.draw(batch);
+    }
+
     public GameSprite getWallFading(){
         return wallFading;
     }
@@ -137,6 +149,28 @@ public abstract class Theme {
 
     public GameSprite getPlatform(){
         return platform;
+    }
+
+    public void drawPlatform(Batch batch, Room room, int tileX, int tileY) {
+        platform.setPosition(tileX * ConstantsHelper.TILE, tileY * ConstantsHelper.TILE);
+        platform.draw(batch);
+    }
+
+
+    public void drawArchitecture(Batch batch, Room room, int depth) {
+    }
+
+    public void drawBossArena(Batch batch, Room room) {
+        if (!BossArenaArchitecture.supports(room) || !SpecialRoomFocalPoint.supportsTemplate(template)) return;
+        if (bossArenaArchitecture == null) bossArenaArchitecture = new BossArenaArchitecture(template);
+        bossArenaArchitecture.draw(batch, room);
+    }
+
+
+    public void drawSpecialRoomFocalPoint(Batch batch, Room room) {
+        if (!SpecialRoomFocalPoint.supports(room) || !SpecialRoomFocalPoint.supportsTemplate(template)) return;
+        if (specialRoomFocalPoint == null) specialRoomFocalPoint = new SpecialRoomFocalPoint(template);
+        specialRoomFocalPoint.draw(batch, room);
     }
 
     public GameSprite getFader(){

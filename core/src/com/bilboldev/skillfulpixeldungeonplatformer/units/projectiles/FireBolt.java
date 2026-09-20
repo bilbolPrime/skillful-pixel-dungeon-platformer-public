@@ -7,6 +7,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.PhysicsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpriteTrail;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 
@@ -132,8 +133,9 @@ public class FireBolt extends ThrownProjectile {
         }
 
         if(gs != null && !used){
-            gs.setPosition(x, y + (facingRight ? 1 : -1) * (25 - gs.getHeight()) / 2);
+            gs.setPosition(getRenderX(), getRenderY() + (facingRight ? 1 : -1) * (25 - gs.getHeight()) / 2);
             gs.setRotation(facingRight  ? 0 : 180);
+            SpriteTrail.draw(batch, gs, speedX * 0.025f, speedY * 0.025f, 24f);
             gs.draw(batch);
         }
     }

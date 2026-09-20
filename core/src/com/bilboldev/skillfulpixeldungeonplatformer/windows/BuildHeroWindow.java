@@ -4,12 +4,13 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.bilboldev.skillfulpixeldungeonplatformer.SkillfulPixelDungeonPlatformer;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.FontHelper;
-import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SaveHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.BuildHeroHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassSkillTree;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SkillsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
-import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.ActionButton;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.Button;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.screens.GameScreen;
 import com.bilboldev.skillfulpixeldungeonplatformer.screens.LoadingScreen;
@@ -59,6 +60,7 @@ public class BuildHeroWindow extends InteractiveTabbedWindow {
 
         for(Integer skillId : heroClass.getSkillIds()){
             Skill skill = SkillsHelper.getInstance().getSkill(skillId);
+            if (skill == null) continue;
             skillButtons.add(new SelectSkillButton(
                     x + heroClass.getSkillButtonXOffset(skillId, false),
                     y + height + heroClass.getSkillButtonYOffset(skillId, false),
@@ -67,6 +69,7 @@ public class BuildHeroWindow extends InteractiveTabbedWindow {
 
         for(Integer skillId : heroClass.getDarkSkillIds()){
             Skill skill = SkillsHelper.getInstance().getSkill(skillId);
+            if (skill == null) continue;
             darkSkillButtons.add(new SelectSkillButton(
                     x + heroClass.getSkillButtonXOffset(skillId, true),
                     y + height + heroClass.getSkillButtonYOffset(skillId, true),
@@ -100,7 +103,7 @@ public class BuildHeroWindow extends InteractiveTabbedWindow {
         });
 
         offsetY -= 125;
-        String heroJumpButton = "images/units/" + heroClass.getAssetFolderName() + "/button-jump.png";
+        String heroJumpButton = heroClass.getJumpButtonArt();
         heroButtons.add(new SelectSkillButton(offsetX, offsetY, heroJumpButton, heroClass.getMoveSpeedDescription()){
             @Override
             public void click(){
@@ -195,12 +198,7 @@ public class BuildHeroWindow extends InteractiveTabbedWindow {
         heroButtons.add(new ActionButton(x + width - 400, y + height / 2 - 200, 200, 200, "images/intro/play.png", "images/intro/play.png"){
             @Override
             public void click(){
-                if (SaveHelper.getInstance().hasSave(heroClass)) {
-                    WindowHelper.getInstance().addWindow(new SavedGameWindow(heroClass).build());
-                    return;
-                }
-
-                WindowHelper.getInstance().addWindow(new DifficultySelectWindow(heroClass, false).build());
+                BuildHeroHelper.getSingleton().play(heroClass);
             }
         });
 
@@ -295,8 +293,15 @@ public class BuildHeroWindow extends InteractiveTabbedWindow {
         return super.click(x, y);
     }
 
+    @Override
+    protected ArrayList<Button> getKeyboardChoices() {
+        ArrayList<Button> choices = new ArrayList<Button>(tabs);
+        choices.addAll(mode == MODE.HERO ? heroButtons : mode == MODE.SKILLS ? skillButtons : darkSkillButtons);
+        return choices;
+    }
+
     private void showSkill(String sprite, String description){
-        WindowHelper.getInstance().addWindow(new DescriptionWindow(sprite, description, 1500, 400).build());
+        BuildHeroHelper.getSingleton().showDetail(sprite, description);
     }
 
     private float getHeroDescriptionWrapWidth() {
@@ -320,6 +325,7 @@ public class BuildHeroWindow extends InteractiveTabbedWindow {
         private boolean selected;
         private Skill skill;
         private float fontSize = 3f;
+        private FontHelper.FittedTextBlock classLabel;
 
         public SelectSkillButton(float x, float y, String gsString, String text) {
             super(x, y, 400, 100, "images/misc/grey.png", "images/misc/grey.png");
@@ -334,6 +340,9 @@ public class BuildHeroWindow extends InteractiveTabbedWindow {
             addGameSprite(gs);
 
             this.text = text;
+            if (NewClassSkillTree.isNewClass(heroClass)) {
+                classLabel = FontHelper.getSingleton().fitLabelToBounds(Messages.maybeTranslate(text), 2.4f, 282f, 70f);
+            }
         }
 
         public SelectSkillButton(float x, float y, Skill skill) {
@@ -349,12 +358,20 @@ public class BuildHeroWindow extends InteractiveTabbedWindow {
             fontSize = FontHelper.getSingleton().fitSizeToEnglishFootprint(skill.getSourceName(), this.text, 3f, 300f);
 
             this.skill = skill;
+            if (NewClassSkillTree.isNewClass(heroClass)) {
+                classLabel = FontHelper.getSingleton().fitLabelToBounds(this.text, 2.4f, 282f, 70f);
+            }
         }
 
         @Override
         public void draw(Batch batch){
             super.draw(batch);
-            FontHelper.getSingleton().writeWhite(batch, fontSize, x + 100, y + 65, Messages.maybeTranslate(text));
+            if (classLabel != null) {
+                FontHelper.getSingleton().writeRaw(Color.WHITE, batch, classLabel.size, x + 100,
+                        y + (100f + classLabel.height) / 2f, classLabel.text);
+            } else {
+                FontHelper.getSingleton().writeWhite(batch, fontSize, x + 100, y + 65, Messages.maybeTranslate(text));
+            }
         }
 
         @Override

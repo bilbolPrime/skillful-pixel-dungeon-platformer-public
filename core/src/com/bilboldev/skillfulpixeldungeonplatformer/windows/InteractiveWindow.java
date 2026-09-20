@@ -6,9 +6,11 @@ import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.Button;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class InteractiveWindow extends Window {
     protected ArrayList<ActionButton> actionButtons;
+    protected final WindowChoiceFocus keyboardFocus = new WindowChoiceFocus();
 
     public InteractiveWindow(float width, float height) {
         super(width, height);
@@ -18,13 +20,16 @@ public class InteractiveWindow extends Window {
     @Override
     public Window build(){
         super.build();
-        this.x += 100;
+        float offset = horizontalOffset();
+        this.x += offset;
         for(GameSprite gs : gameSprites){
-            gs.translate(100, 0);
+            gs.translate(offset, 0);
         }
 
         return this;
     }
+
+    protected float horizontalOffset() { return 100f; }
 
     @Override
     public void draw(Batch batch){
@@ -33,6 +38,18 @@ public class InteractiveWindow extends Window {
         for(Button button : actionButtons){
             button.draw(batch);
         }
+        keyboardFocus.draw(this, batch, getKeyboardChoices());
+    }
+
+    protected List<? extends Button> getKeyboardChoices() { return actionButtons; }
+
+    @Override
+    public boolean keyDown(int keycode) { return keyboardFocus.keyDown(this, keycode, getKeyboardChoices()); }
+
+    @Override
+    public boolean pointerDown(float x, float y, int button) {
+        keyboardFocus.pointerDown(x, y, getKeyboardChoices());
+        return super.pointerDown(x, y, button);
     }
 
     @Override

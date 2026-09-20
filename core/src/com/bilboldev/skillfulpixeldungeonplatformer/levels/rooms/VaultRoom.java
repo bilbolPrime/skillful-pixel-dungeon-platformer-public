@@ -10,13 +10,22 @@ public class VaultRoom extends SingleDoorSpecialRoom {
 
     @Override
     public Room build() {
-        buildWidePlatforms();
-        placeRewardContainer(SpecialRoomRewards.randomWandOrRingReward(), "images/misc/extracted items/CRYSTAL_CHEST.png", 96, 96, 8, 5);
-        placeRewardContainer(SpecialRoomRewards.randomWandOrRingReward(), "images/misc/extracted items/LOCKED_CHEST.png", 96, 96, 11, 7);
+        resetLayout();
+        width = 18 + 2 * layoutVariant(2);
+        getLayout().describe("vault-alcove", width - 6, 4);
+        addPlatformSpan(7, 11, 3);
+        addPlatformSpan(width - 5, width - 3, 3);
+        addPlatformSpan(width - 7, width - 3, 5);
+        return finishLayout();
+    }
+
+    @Override
+    protected void placeContents() {
+        placeRewardContainer(SpecialRoomRewards.randomWandOrRingReward(), "images/misc/extracted items/CHEST.png", 96, 96, 9, 4);
+        placeRewardContainer(SpecialRoomRewards.randomWandOrRingReward(), "images/misc/extracted items/CHEST.png", 96, 96, width - 5, 6);
         if (RandomHelper.getInstance().randomChance(35)) {
-            placeRewardContainer(SpecialRoomRewards.randomWandOrRingReward(), "images/misc/extracted items/CRYSTAL_CHEST.png", 96, 96, 13, 5);
+            placeRewardContainer(SpecialRoomRewards.randomWandOrRingReward(), "images/misc/extracted items/CHEST.png", 96, 96, width - 3, 4);
         }
 
-        return this;
     }
 }

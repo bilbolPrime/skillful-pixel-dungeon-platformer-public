@@ -15,6 +15,8 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.UnitState;
 
 public class SpikeTrap extends Unit {
     protected boolean used;
+
+    public boolean isSpent() { return used; }
     protected float lastCheck, animationAt;
 
     {

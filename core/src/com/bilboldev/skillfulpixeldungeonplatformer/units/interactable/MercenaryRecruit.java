@@ -10,6 +10,8 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.armor.Armor;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.MeleeWeapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.RangedWeapon;
+import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.MercenaryRoom;
+import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
@@ -92,6 +94,11 @@ public class MercenaryRecruit extends Interactable {
     }
 
     public MercenaryAlly hire() {
+
+        Room den = MapHelper.getInstance().getRoom(getRoom());
+        if (den instanceof MercenaryRoom) {
+            ((MercenaryRoom) den).rememberRecruitType(mercenaryType);
+        }
         MercenaryAlly ally = new MercenaryAlly();
         ally.setPersistentId(getPersistentId());
         ally.setRoom(getRoom());

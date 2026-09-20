@@ -48,8 +48,10 @@ public final class DesktopLauncher {
 
         DesktopWindowModeService windowModeService = new DesktopWindowModeService();
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
-        configuration.setTitle("Skillful Pixel Dungeon Platformer");
+        configuration.setTitle("Pixel Dungeon Platformer");
+        configuration.setWindowIcon("icon.png");
         configuration.setResizable(true);
+        configuration.setWindowListener(new DesktopFocusListener());
         windowModeService.applyStartupConfiguration(configuration);
         configuration.useVsync(true);
 
@@ -63,8 +65,9 @@ public final class DesktopLauncher {
 
         new Lwjgl3Application(
         new SkillfulPixelDungeonPlatformer(
-                freeDesktopBuild ? PlatformProfile.desktopFree(windowModeService) : PlatformProfile.desktop(windowModeService),
-                steamService),
+                (freeDesktopBuild ? PlatformProfile.desktopFree(windowModeService) : PlatformProfile.desktop(windowModeService))
+                        .withGamepad(new DesktopGamepadService()),
+                steamService, steamService == null ? null : new DesktopCloudStorage()),
                 configuration);
     }
 
@@ -89,14 +92,14 @@ public final class DesktopLauncher {
             }
 
             if (!SteamAPI.init()) {
-                showLaunchError("Steam initialization failed. Please launch Skillful Pixel Dungeon Platformer through Steam.");
+                showLaunchError("Steam initialization failed. Please launch Pixel Dungeon Platformer through Steam.");
                 return false;
             }
 
             SteamApps steamApps = new SteamApps();
             try {
                 if (!steamApps.isSubscribedApp(STEAM_APP_ID)) {
-                    showLaunchError("Steam did not confirm ownership of Skillful Pixel Dungeon Platformer for this account.");
+                    showLaunchError("Steam did not confirm ownership of Pixel Dungeon Platformer for this account.");
                     return false;
                 }
             } finally {
@@ -137,7 +140,7 @@ public final class DesktopLauncher {
     private static void showLaunchError(String message) {
         System.err.println("[SteamLaunch] " + message);
         if (!steamSelfTestMode) {
-            JOptionPane.showMessageDialog(null, message, "Skillful Pixel Dungeon Platformer", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, message, "Pixel Dungeon Platformer", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

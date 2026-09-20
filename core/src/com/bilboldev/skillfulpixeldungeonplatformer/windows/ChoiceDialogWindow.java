@@ -103,6 +103,9 @@ public class ChoiceDialogWindow extends DescriptionWindow {
     }
 
     @Override
+    protected ArrayList<ActionButton> getKeyboardChoices() { return actionButtons; }
+
+    @Override
     public void draw(Batch batch) {
         super.draw(batch);
         for (ActionButton actionButton : actionButtons) {

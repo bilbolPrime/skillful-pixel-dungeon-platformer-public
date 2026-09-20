@@ -1,5 +1,8 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.helpers;
 
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.NecromancerCurse;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.MercenaryFear;
+
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.Weapon;
@@ -10,6 +13,9 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.ThrownProjectile;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.GunProjectile;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.NewClassSpellProjectile;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.NecromancerMinion;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.ActiveSkill;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.traps.PlatformTrap;
 
@@ -62,6 +68,7 @@ public class UnitHelper {
             ((com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob) unit).applyCurrentRunDifficulty();
         }
 
+
         units.add(unit);
         unitStage.addActor(unit);
         PhysicsHelper.getInstance().register(unit);
@@ -79,8 +86,13 @@ public class UnitHelper {
         addUnit(unit, false);
     }
 
+
+
     public void removeUnit(Unit unit){
         if(units.contains(unit)){
+            if (unit instanceof NecromancerMinion) NewClassSpellProjectile.clearFrom(unit);
+            NecromancerCurse.clear(unit);
+            MercenaryFear.clear(unit);
             PhysicsHelper.getInstance().unregister(unit);
             unit.remove();
             units.remove(unit);
@@ -301,6 +313,17 @@ public class UnitHelper {
     }
 
     public boolean attackTarget(Unit source, Unit target, Weapon attackingItem, float damage, boolean magic, float accuracyMultiplier) {
+        return attackTarget(source, target, attackingItem, damage, magic, accuracyMultiplier, null, 1f);
+    }
+
+
+    public boolean attackGunTarget(Unit source, Unit target, Weapon attackingItem, GunProjectile shot,
+                                   float scale, boolean splash, float accuracyMultiplier) {
+        return attackTarget(source, target, attackingItem, shot.getDamage(), splash, accuracyMultiplier, shot, scale);
+    }
+
+    private boolean attackTarget(Unit source, Unit target, Weapon attackingItem, float damage, boolean magic,
+                                 float accuracyMultiplier, GunProjectile gunShot, float scale) {
         boolean attackedFromInvisibility = source != null && source.isInvisible();
         if (source != null && source.isInvisible()) {
             source.setInvisible(false);
@@ -310,7 +333,9 @@ public class UnitHelper {
             return false;
         }
 
-        if (attackingItem != null && attackingItem.getPrefix() != null) {
+        if (gunShot != null) {
+            damage = gunShot.resolveHitDamage(target, scale);
+        } else if (attackingItem != null && attackingItem.getPrefix() != null) {
             damage = attackingItem.getPrefix().modifyAttackDamage(source, target, attackingItem, damage);
         }
 
@@ -322,19 +347,22 @@ public class UnitHelper {
             }
         }
 
+        damage = DifficultyHelper.getInstance().scaleEnemyDamage(source, damage);
         int previousHp = target.getHP();
         target.takeDamage(source, attackingItem, damage);
         int damageDealt = Math.max(0, previousHp - target.getHP());
 
-        if (source instanceof Hero) {
+
+        boolean hitEffects = gunShot == null || (damageDealt > 0 && gunShot.claimHitEffects(target));
+        if (hitEffects && source instanceof Hero) {
             ((Hero) source).handleSuccessfulAttack(target, attackingItem, damageDealt);
         }
 
-        if (attackingItem != null && attackingItem.getPrefix() != null) {
+        if (hitEffects && attackingItem != null && attackingItem.getPrefix() != null) {
             attackingItem.getPrefix().onAttack(source, target, attackingItem, damageDealt);
         }
 
-        if (source instanceof com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob) {
+        if (hitEffects && source instanceof com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob) {
             ((com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob) source).onSuccessfulAttack(target, damageDealt);
         }
 
@@ -457,17 +485,17 @@ public class UnitHelper {
 
     public boolean freeSpace( int x, int y, String room){
         for(Unit unit : units){
-           //if(unit.showOnly){
-           //    continue;
-           //}
+
+
+
 
             if(unit.getRoom() == null || !unit.getRoom().equals(room)){
                 continue;
             }
 
-          // if(unit.showOnly()) {
-          //     continue;
-          // }
+
+
+
 
             if(unit.getHitBox().contains(x, y)){
                 return false;

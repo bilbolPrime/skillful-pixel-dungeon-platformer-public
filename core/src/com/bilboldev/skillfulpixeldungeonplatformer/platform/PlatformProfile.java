@@ -9,13 +9,20 @@ public final class PlatformProfile {
     private final boolean keyboardControlsEnabled;
     private final WindowModeService windowModeService;
     private final boolean freeDesktopBuild;
+    private final GamepadService gamepadService;
 
     private PlatformProfile(boolean touchControlsEnabled, boolean keyboardControlsEnabled, WindowModeService windowModeService,
             boolean freeDesktopBuild) {
+        this(touchControlsEnabled, keyboardControlsEnabled, windowModeService, freeDesktopBuild, GamepadService.NONE);
+    }
+
+    private PlatformProfile(boolean touchControlsEnabled, boolean keyboardControlsEnabled, WindowModeService windowModeService,
+            boolean freeDesktopBuild, GamepadService gamepadService) {
         this.touchControlsEnabled = touchControlsEnabled;
         this.keyboardControlsEnabled = keyboardControlsEnabled;
         this.windowModeService = windowModeService == null ? WindowModeService.unsupported() : windowModeService;
         this.freeDesktopBuild = freeDesktopBuild;
+        this.gamepadService = gamepadService;
     }
 
     public static PlatformProfile android() {
@@ -61,4 +68,15 @@ public final class PlatformProfile {
     public boolean isFreeDesktopBuild() {
         return freeDesktopBuild;
     }
+
+
+    public boolean isFreeVersion() {
+        return touchControlsEnabled || freeDesktopBuild;
+    }
+
+    public PlatformProfile withGamepad(GamepadService service) {
+        return new PlatformProfile(touchControlsEnabled, keyboardControlsEnabled, windowModeService, freeDesktopBuild,
+                touchControlsEnabled || service == null ? GamepadService.NONE : service);
+    }
+    public GamepadService gamepadService() { return gamepadService; }
 }

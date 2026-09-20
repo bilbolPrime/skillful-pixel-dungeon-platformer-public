@@ -39,7 +39,11 @@ images/intro/fireball-background.png
 images/intro/fireball-effect-1.png
 images/intro/fireball-front.png
 images/intro/library.png
+images/intro/mercenary.png
+images/intro/necromancer.png
 images/intro/pixel-dungeon-over.png
+images/intro/pixel-dungeon-platformer-over.png
+images/intro/pixel-dungeon-platformer.png
 images/intro/pixel-dungeon.png
 images/intro/play.png
 images/intro/rankings.png
@@ -66,6 +70,11 @@ images/misc/green.png
 images/misc/grey.png
 images/misc/hp_bar.png
 images/misc/items.png
+images/misc/extracted items/CHEST.png
+images/misc/extracted items/LOCKED_CHEST.png
+images/misc/extracted items/POTION_MANA.png
+images/misc/extracted items/SWORD.png
+images/misc/extracted items/TOMB.png
 images/misc/plants.png
 images/misc/mana_bar.png
 images/misc/red.png
@@ -137,8 +146,14 @@ images/stats/ranged.png
 images/stats/rogue-archer.png
 images/stats/rogue.png
 images/stats/warrior.png
+images/tiles/caves/library.png
+images/tiles/caves/raised.png
+images/tiles/city/library.png
+images/tiles/city/raised.png
 images/tiles/common/door-sign-down.png
 images/tiles/common/door-sign-up.png
+images/tiles/halls/library.png
+images/tiles/halls/raised.png
 images/tiles/kingdom/door-closed.png
 images/tiles/kingdom/door-sign-down.png
 images/tiles/kingdom/door-sign-up.png
@@ -149,6 +164,9 @@ images/tiles/kingdom/platform.png
 images/tiles/kingdom/sign.png
 images/tiles/kingdom/wall-fading.png
 images/tiles/kingdom/wall.png
+images/tiles/prison/library.png
+images/tiles/prison/raised.png
+images/tiles/sewers/decoration.png
 images/tiles/sewers/door-cage.png
 images/tiles/sewers/door-closed.png
 images/tiles/sewers/door-locked.png
@@ -170,6 +188,10 @@ images/units/fire-elemental/fire-elemental.png
 images/units/gnoll/gnoll.png
 images/units/goo/goo.png
 images/units/mage/portrait.png
+images/units/mercenary/button-jump.png
+images/units/mercenary/portrait.png
+images/units/necromancer/button-jump.png
+images/units/necromancer/portrait.png
 images/units/merchant/merchant.png
 images/units/merchant/single.png
 images/units/rat/rat.png
@@ -232,3 +254,7 @@ images/menu/fonts/font15x.png
 images/menu/fonts/font2x.png
 images/menu/fonts/font25x.png
 images/menu/fonts/font3x.png
+images/units/necromancer/necromancer.png
+images/units/mercenary/mercenary.png
+images/classes/sibling-items.png
+images/classes/sibling-skills.png

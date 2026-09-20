@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
@@ -12,7 +13,7 @@ public class PoisonBolt extends FireBolt {
 
     {
         gs = new GameSprite("images/misc/green.png", 20, 20);
-        damage = 3f;
+        damage = 6f;
     }
 
     public PoisonBolt setPoisonDuration(float poisonDuration) {
@@ -23,7 +24,7 @@ public class PoisonBolt extends FireBolt {
     @Override
     public void onUnitCollision(Unit target) {
         if (owner != null && UnitHelper.getInstance().attackTarget(owner, target, attackingItem, damage, magicAttack)) {
-            new Poisoned().setDuration(poisonDuration).setOwner(target);
+            new Poisoned().setDamageMultiplier(DifficultyHelper.getInstance().getEnemyDamageMultiplier(owner)).setDuration(poisonDuration).setOwner(target);
             playSound(Sounds.ZAP, 1f);
         } else {
             playSound(Sounds.MISS, 0.4f);

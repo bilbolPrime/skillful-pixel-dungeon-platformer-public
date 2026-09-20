@@ -20,13 +20,15 @@ public class Effects extends Unit {
     @Override
     public void draw(Batch batch, float alpha){
         iteratingEffects = true;
+        int classMotes = NewClassBurst.budget();
         for (int index = 0; index < effects.size(); index++) {
             Effect effect = effects.get(index);
             if(!effect.active()){
                 continue;
             }
 
-            effect.draw(batch);
+            if (effect instanceof NewClassBurst) classMotes -= ((NewClassBurst)effect).drawMotes(batch, classMotes);
+            else effect.draw(batch);
         }
         iteratingEffects = false;
         flushPendingEffects();
@@ -61,6 +63,14 @@ public class Effects extends Unit {
     public void add(Effect effect){
         if (effect == null) {
             return;
+        }
+
+        if (effect instanceof NewClassBurst) {
+            int available = NewClassBurst.budget();
+            for (Effect existing : effects) if (existing instanceof NewClassBurst) available -= ((NewClassBurst)existing).moteCount();
+            for (Effect pending : pendingEffects) if (pending instanceof NewClassBurst) available -= ((NewClassBurst)pending).moteCount();
+            ((NewClassBurst)effect).limitMotes(available);
+            if (!effect.active()) return;
         }
 
         if (iteratingEffects) {

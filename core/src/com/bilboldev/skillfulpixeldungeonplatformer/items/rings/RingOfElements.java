@@ -4,11 +4,11 @@ import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 
 public class RingOfElements extends Ring {
-    private static final float DAMAGE_REDUCTION = 0.08f;
+    private static final float DAMAGE_REDUCTION = 0.06f;
 
     {
         name = "Ring of Elements";
-        description = "This ring dulls elemental and hazardous damage, making hostile effects less punishing.";
+        description = "This ring cushions incoming damage. Each ring level reduces incoming damage by 6% while worn.";
         gs = new GameSprite("images/misc/extracted items/RING_DIAMOND.png", 45, 45);
     }
 

@@ -23,6 +23,7 @@ public class DeathEnchantment extends WeaponEnhancement {
             return;
         }
 
-        target.takeDamage(attacker, weapon, target.getHP());
+
+        target.takeDamage(attacker, weapon, target.getHP() + 9999f);
     }
 }

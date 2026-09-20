@@ -31,6 +31,11 @@ public class LoadingScreen extends BaseScreen {
 
     private BaseScreen preparing, disposing;
     private boolean disposed, prepared;
+    private java.util.function.Consumer<RuntimeException> failureHandler;
+    private Runnable loaded;
+
+    public LoadingScreen onFailure(java.util.function.Consumer<RuntimeException> handler) { failureHandler = handler; return this; }
+    public LoadingScreen onLoaded(Runnable action) { loaded = action; return this; }
 
     public LoadingScreen prepare(BaseScreen preparing, BaseScreen disposing){
         this.preparing = preparing;
@@ -63,7 +68,16 @@ public class LoadingScreen extends BaseScreen {
 
         if(frame > 10f && !prepared){
             prepared = true;
-            SkillfulPixelDungeonPlatformer.transition(this.preparing, true);
+            try {
+                SkillfulPixelDungeonPlatformer.transition(this.preparing, true);
+            } catch (RuntimeException error) {
+                if (failureHandler == null) throw error;
+                try { preparing.dispose(); } catch (RuntimeException cleanup) { error.addSuppressed(cleanup); }
+                dispose();
+                failureHandler.accept(error);
+                return;
+            }
+            if (loaded != null) loaded.run();
         }
     }
 

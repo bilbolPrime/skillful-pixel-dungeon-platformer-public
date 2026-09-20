@@ -1210,7 +1210,8 @@ public class QuestManager {
 
         ArrayList<Room> candidates = new ArrayList<Room>();
         for (Room room : level.rooms) {
-            if (room == null || !room.getCanSpawn() || room.getClass() != Room.class) {
+            if (room == null || !room.getCanSpawn() || room.getClass() != Room.class
+                    || room.getSpawnCandidates().isEmpty()) {
                 continue;
             }
 
@@ -1218,7 +1219,7 @@ public class QuestManager {
         }
 
         if (candidates.isEmpty()) {
-            return level.getAtRoom();
+            throw new IllegalStateException("No supported quest placement on floor " + level.getDepth());
         }
 
         return candidates.get(RandomHelper.getInstance().randomInt(candidates.size()));
@@ -1244,7 +1245,7 @@ public class QuestManager {
                 continue;
             }
 
-            for (String platform : room.getPlatforms()) {
+            for (String platform : questSupportCells(room)) {
                 String[] platformParts = platform.split("_");
                 int tileX = Integer.parseInt(platformParts[0]);
                 int tileY = Integer.parseInt(platformParts[1]);
@@ -1261,6 +1262,10 @@ public class QuestManager {
         if (room == null) {
             return false;
         }
+
+        float x = tileX * ConstantsHelper.TILE, y = (tileY + 1) * ConstantsHelper.TILE;
+        if (!room.hasSupportedPlacement(x, y, ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS)
+                || room.getLayout().arrivalReserved(x, y, ConstantsHelper.UNIT_DIMENSIONS)) return false;
 
         if (room.getWaterPlatforms().contains(UtilsHelper.platformKey(tileX, tileY)) || tileY + 1 >= room.getHeight()) {
             return false;
@@ -1305,7 +1310,7 @@ public class QuestManager {
             return null;
         }
 
-        for (String platform : room.getPlatforms()) {
+        for (String platform : questSupportCells(room)) {
             String[] platformParts = platform.split("_");
             int tileX = Integer.parseInt(platformParts[0]);
             int tileY = Integer.parseInt(platformParts[1]);
@@ -1315,6 +1320,14 @@ public class QuestManager {
         }
 
         return null;
+    }
+
+    private ArrayList<String> questSupportCells(Room room) {
+        java.util.TreeSet<String> cells = new java.util.TreeSet<String>(room.getPlatforms());
+
+        for (int x = 1; x < room.getWidth() - 1; x++)
+            cells.add(UtilsHelper.platformKey(x, ConstantsHelper.MIN_FLOOR - 1));
+        return new ArrayList<String>(cells);
     }
 
     private Room findRoomInLevel(Level level, String roomId) {
@@ -1599,7 +1612,8 @@ public class QuestManager {
             bestWeapon = new ShortSword();
         }
 
-        return createRewardItemData(bestWeapon);
+
+        return createRewardItemData(InventoryHelper.getInstance().chooseMercenaryGun(bestWeapon, MapHelper.getInstance().getDepth(), null));
     }
 
     private RewardItemData generateGhostArmorReward() {
@@ -1687,6 +1701,7 @@ public class QuestManager {
         weaponClasses.add(ShortSword.class);
         weaponClasses.add(Spear.class);
         weaponClasses.add(Sword.class);
+        InventoryHelper.getInstance().applyDepthEquipmentWeights(weaponClasses, MapHelper.getInstance().getDepth());
         return createItemInstance(weaponClasses.get(RandomHelper.getInstance().randomInt(weaponClasses.size())));
     }
 
@@ -1697,6 +1712,7 @@ public class QuestManager {
         armorClasses.add(MailArmor.class);
         armorClasses.add(PlateArmor.class);
         armorClasses.add(ScaleArmor.class);
+        InventoryHelper.getInstance().applyDepthEquipmentWeights(armorClasses, MapHelper.getInstance().getDepth());
         return createItemInstance(armorClasses.get(RandomHelper.getInstance().randomInt(armorClasses.size())));
     }
 

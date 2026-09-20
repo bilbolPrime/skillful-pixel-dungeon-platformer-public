@@ -7,6 +7,7 @@ public class StartingBonus {
     protected String title;
     protected String description;
     protected GameSprite gs;
+    private String messageKey;
 
     public StartingBonus(String title, String description, String sprite){
         this.title = title;
@@ -15,11 +16,18 @@ public class StartingBonus {
     }
 
     public String getTitle(){
-        return Messages.capitalizeForDisplay(Messages.maybeTranslate(title));
+        return Messages.capitalizeForDisplay(messageKey == null ? Messages.maybeTranslate(title) : Messages.get(messageKey + ".title"));
     }
 
     public String getDescription(){
-        return Messages.maybeTranslate(description);
+        return messageKey == null ? Messages.maybeTranslate(description) : Messages.get(messageKey + ".description");
+    }
+
+
+    public static StartingBonus localized(String key, String sprite) {
+        StartingBonus bonus = new StartingBonus(Messages.get(key + ".title"), Messages.get(key + ".description"), sprite);
+        bonus.messageKey = key;
+        return bonus;
     }
 
     public GameSprite getGameSprite(){

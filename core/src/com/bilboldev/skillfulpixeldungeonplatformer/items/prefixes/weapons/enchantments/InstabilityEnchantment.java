@@ -33,7 +33,7 @@ public class InstabilityEnchantment extends WeaponEnhancement {
         enchantments.add(new FireEnchantment());
         enchantments.add(new HorrorEnchantment());
         enchantments.add(new VampiricEnchantment());
-        enchantments.add(new LuckyEnchantment());
+
         enchantments.add(new ParalysisEnchantment());
         enchantments.add(new VenomousEnchantment());
         enchantments.add(new ShockEnchantment());

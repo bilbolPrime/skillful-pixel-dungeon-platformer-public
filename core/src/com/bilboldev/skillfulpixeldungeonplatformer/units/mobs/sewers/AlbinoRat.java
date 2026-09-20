@@ -2,6 +2,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.sewers;
 
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.PhysicsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Gold;
@@ -24,7 +25,7 @@ public class AlbinoRat extends Rat {
 
     @Override
     public void attack(boolean forced) {
-        if (!unitState.canAttack() && !forced) {
+        if (!canAttack() && !forced) {
             return;
         }
 
@@ -39,7 +40,7 @@ public class AlbinoRat extends Rat {
                 if (bleeding != null) {
                     bleeding.setDuration(bleeding.getRemainingDuration() + bleedDuration);
                 } else {
-                    new Bleeding().setDuration(bleedDuration).setOwner(target);
+                    new Bleeding().setDamageMultiplier(DifficultyHelper.getInstance().getEnemyDamageMultiplier(this)).setDuration(bleedDuration).setOwner(target);
                 }
             }
             playSound(Sounds.HIT, 0.4f);

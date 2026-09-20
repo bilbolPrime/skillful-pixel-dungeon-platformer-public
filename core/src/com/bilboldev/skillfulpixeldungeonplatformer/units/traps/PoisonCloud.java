@@ -2,6 +2,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.units.traps;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
@@ -32,6 +33,10 @@ public class PoisonCloud extends Unit {
     public PoisonCloud setOwner(Unit owner) {
         this.owner = owner;
         return this;
+    }
+
+    public Unit getOwner() {
+        return owner;
     }
 
     @Override
@@ -72,7 +77,7 @@ public class PoisonCloud extends Unit {
             }
 
             if (area.overlaps(unit.getHitBox())) {
-                unit.takeDamage(this, null, 1f);
+                unit.takeDamage(this, null, DifficultyHelper.getInstance().scaleEnemyDamage(owner, 1f));
             }
         }
     }
@@ -95,7 +100,8 @@ public class PoisonCloud extends Unit {
         }
     }
 
-    private Rectangle getCloudArea() {
+
+    public Rectangle getCloudArea() {
         float radiusX = Math.min(MAX_HORIZONTAL_RADIUS_TILES * ConstantsHelper.TILE, elapsed * ConstantsHelper.TILE);
         float radiusY = Math.min(MAX_VERTICAL_RADIUS_TILES * ConstantsHelper.TILE, elapsed * ConstantsHelper.TILE);
         float centerX = x + ConstantsHelper.UNIT_DIMENSIONS / 2f;

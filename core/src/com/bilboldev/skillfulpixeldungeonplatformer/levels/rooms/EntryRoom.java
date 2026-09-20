@@ -23,26 +23,37 @@ public class EntryRoom extends Room{
         super(identifier);
     }
 
+    public EntryRoom buildFoyer(int depth) {
+        RoomFoyers.build(this, depth, true);
+        Door terminal = new Door();
+        terminal.x = 3 * ConstantsHelper.TILE;
+        terminal.y = ConstantsHelper.MIN_FLOOR * ConstantsHelper.TILE;
+        levelEntryDoor = terminal.toEntryDoor();
+        addDoor(levelEntryDoor);
+        setSign(new Sign("The words on this sign cannot be understood.", 6 * ConstantsHelper.TILE, terminal.y));
+        return this;
+    }
+
     @Override
     public Room build(){
         super.build();
         levelEntryDoor = getRandomDoor().toEntryDoor();
         addDoor(levelEntryDoor);
 
-        // Add the sign in a very non-abstract way
+
         if(levelEntryDoor.y == ConstantsHelper.MIN_FLOOR * ConstantsHelper.TILE){
-            // Add it to the right of the door
+
             Sign sign = new Sign("The words on this sign cannot be understood.", levelEntryDoor.x  + ConstantsHelper.TILE, levelEntryDoor.y);
             setSign(sign);
         }
-        else { // Get the platform and add it to left / right of door
+        else {
             for(String platform : platforms){
                 int tileX = Integer.parseInt(platform.split("_")[0]);
                 int tileY = Integer.parseInt(platform.split("_")[1]);
 
-                // Find the platform
+
                 if(tileX * ConstantsHelper.TILE == levelEntryDoor.x && (tileY + 1) * ConstantsHelper.TILE == levelEntryDoor.y){
-                    // Check the right or left
+
                     String candidatePlatform = UtilsHelper.platformKey(tileX + 1, tileY);
                     if(platforms.contains(candidatePlatform)){
                         Sign sign = new Sign("The words on this sign cannot be understood.", levelEntryDoor.x  + ConstantsHelper.TILE, levelEntryDoor.y);

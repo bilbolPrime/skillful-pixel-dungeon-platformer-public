@@ -20,24 +20,9 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Properties;
 
-/**
- * Desktop (Steam) achievement service powered by SteamWorks4J.
- *
- * <p>Steam achievement API names must match the IDs registered in the Steamworks partner
- * dashboard, which by convention are the same strings returned by {@link Achievement#getId()}
- * (e.g. {@code MONSTERS_SLAIN_1}).
- *
- * <p>Lifecycle:
- * <ol>
- *   <li>{@link #init()} is called once before the LibGDX application starts.
- *   <li>{@link #update()} is called every frame so Steam callbacks are processed.
- *   <li>{@link #onDispose()} is called when the application exits.
- * </ol>
- */
 public class DesktopAchievementService implements AchievementService {
 
     private static final String TAG = "DesktopAchievementService";
-    private static final String ACHIEVEMENT_ID_PREFIX = "SPD_BADGE_";
     private static final String ACHIEVEMENT_RESOURCE = "steam-achievements.properties";
 
     private final EnumMap<Achievement, String> achievementIds = new EnumMap<>(Achievement.class);
@@ -153,9 +138,9 @@ public class DesktopAchievementService implements AchievementService {
 
         for (Achievement achievement : Achievement.values()) {
             String configuredId = properties.getProperty(achievement.getId());
-            achievementIds.put(achievement, configuredId == null || configuredId.trim().isEmpty()
-                    ? ACHIEVEMENT_ID_PREFIX + achievement.getId()
-                    : configuredId.trim());
+            if (configuredId != null && !configuredId.trim().isEmpty()) {
+                achievementIds.put(achievement, configuredId.trim());
+            }
         }
     }
 

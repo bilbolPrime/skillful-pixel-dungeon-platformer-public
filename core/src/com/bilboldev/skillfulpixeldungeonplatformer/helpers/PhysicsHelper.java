@@ -35,8 +35,11 @@ public final class PhysicsHelper {
     public static final float PIXELS_PER_METER = 32f;
 
     private static final float TIME_STEP = 1f / 60f;
+    private static final float MAX_GAME_DELTA = 0.1f;
     private static final float LAST_MELEE_DRAW_TIME = 0.2f;
     private static final float AIR_CONTROL_LERP = 0.18f;
+    private static final float HERO_AIR_BRAKE_RATE = 8f;
+    public static final float HERO_DESCENT_GRAVITY_MULTIPLIER = 1.3f;
     private static final short CATEGORY_TERRAIN = 0x0001;
     private static final short CATEGORY_UNIT = 0x0002;
     private static final short CATEGORY_PROJECTILE = 0x0004;
@@ -237,14 +240,26 @@ public final class PhysicsHelper {
         updateBodyActivation();
     }
 
+
+    public static float boundGameDelta(float delta) {
+        return delta > 0f ? Math.min(delta, MAX_GAME_DELTA) : 0f;
+    }
+
     public void step(float delta) {
+        delta = boundGameDelta(delta);
         ensureRoom(MapHelper.getInstance().getActiveRoom());
         processPendingBodyChanges();
         updateBodyActivation();
 
-        accumulator += Math.min(delta, 0.25f);
+        accumulator += delta;
         while (accumulator >= TIME_STEP) {
+
+            Unit hero = UnitHelper.getInstance().getHero();
+            Body heroBody = unitBodies.get(hero);
+            if (heroBody != null) heroBody.setGravityScale(getGravityScale(hero));
+            captureRenderTransforms(true);
             world.step(TIME_STEP, 6, 2);
+            captureRenderTransforms(false);
             accumulator -= TIME_STEP;
         }
 
@@ -276,10 +291,54 @@ public final class PhysicsHelper {
         if (unit instanceof ThrownProjectile) {
             body.setTransform(toWorld(unit.x) + data.halfExtentMeters, toWorld(unit.y) + data.halfExtentMeters, 0f);
             body.setLinearVelocity(toWorldSpeed(unit.speedX), toWorldSpeed(unit.speedY));
+            resetRenderTransform(body);
             return;
         }
 
         body.setTransform(toWorld(unit.x + ConstantsHelper.UNIT_DIMENSIONS / 2f), toWorld(unit.y) + data.halfExtentMeters, 0f);
+        resetRenderTransform(body);
+    }
+
+
+    public void resetRenderTransform(Unit unit) {
+        Body body = unit instanceof ThrownProjectile ? projectileBodies.get(unit) : unitBodies.get(unit);
+        if (body != null) resetRenderTransform(body);
+    }
+
+    private void resetRenderTransform(Body body) {
+        PhysicsBodyData data = (PhysicsBodyData)body.getUserData();
+        data.previousX = data.currentX = body.getPosition().x;
+        data.previousY = data.currentY = body.getPosition().y;
+    }
+
+    private void captureRenderTransforms(boolean beforeStep) {
+        for (Body body : unitBodies.values()) captureRenderTransform(body, beforeStep);
+        for (Body body : projectileBodies.values()) captureRenderTransform(body, beforeStep);
+    }
+
+    private void captureRenderTransform(Body body, boolean beforeStep) {
+        if (!body.isActive()) return;
+        PhysicsBodyData data = (PhysicsBodyData)body.getUserData();
+        if (beforeStep) {
+            data.previousX = body.getPosition().x;
+            data.previousY = body.getPosition().y;
+        } else {
+            data.currentX = body.getPosition().x;
+            data.currentY = body.getPosition().y;
+        }
+    }
+
+    public float getRenderX(Unit unit) { return unit.x + renderOffset(unit, true); }
+    public float getRenderY(Unit unit) { return unit.y + renderOffset(unit, false); }
+
+    private float renderOffset(Unit unit, boolean horizontal) {
+        Body body = unit instanceof ThrownProjectile ? projectileBodies.get(unit) : unitBodies.get(unit);
+        if (body == null || !body.isActive()) return 0f;
+        PhysicsBodyData data = (PhysicsBodyData)body.getUserData();
+        float previous = horizontal ? data.previousX : data.previousY;
+        float current = horizontal ? data.currentX : data.currentY;
+        float alpha = MathUtils.clamp(accumulator / TIME_STEP, 0f, 1f);
+        return toPixels(MathUtils.lerp(previous, current, alpha) - current);
     }
 
     public void syncUnitFromPhysics(Unit unit) {
@@ -314,6 +373,7 @@ public final class PhysicsHelper {
         }
 
         PhysicsBodyData data = (PhysicsBodyData) body.getUserData();
+        if (unit.isHero) return hasHeroFootSupport(body, data);
         final boolean[] grounded = new boolean[]{false};
         final float startX = body.getPosition().x;
         final float startY = body.getPosition().y - data.halfExtentMeters + 0.02f;
@@ -333,6 +393,47 @@ public final class PhysicsHelper {
         return grounded[0] && Math.abs(body.getLinearVelocity().y) < toWorldSpeed(50f);
     }
 
+
+    public boolean hasTerrainFootContact(Unit unit) {
+        Body body = unitBodies.get(unit);
+        if (body == null || !body.isActive() || unit.isCanFly() || body.getLinearVelocity().y > 0.001f) return false;
+        for (Contact contact : world.getContactList()) {
+            if (!contact.isEnabled() || !contact.isTouching()) continue;
+            Fixture a = contact.getFixtureA(), b = contact.getFixtureB();
+            boolean bodyIsB = b.getBody() == body;
+            if (!bodyIsB && a.getBody() != body) continue;
+            if (getTerrainData(bodyIsB ? a : b) == null) continue;
+            float supportNormalY = contact.getWorldManifold().getNormal().y * (bodyIsB ? 1f : -1f);
+            if (supportNormalY >= 0.5f) return true;
+        }
+        return false;
+    }
+
+    private boolean hasHeroFootSupport(Body body, PhysicsBodyData data) {
+
+        if (body.getLinearVelocity().y > 0.001f || body.getLinearVelocity().y <= -toWorldSpeed(50f)) return false;
+        final boolean[] supported = new boolean[]{false};
+        final float bottom = body.getPosition().y - data.halfExtentMeters;
+        float startY = bottom + 0.02f;
+        com.badlogic.gdx.physics.box2d.RayCastCallback sample = new com.badlogic.gdx.physics.box2d.RayCastCallback() {
+            @Override
+            public float reportRayFixture(Fixture fixture, Vector2 point, Vector2 normal, float fraction) {
+                TerrainFixtureData terrain = getTerrainData(fixture);
+                if (terrain == null || normal.y < 0.5f || point.y > bottom + 0.02f
+                        || (terrain.oneWay && bottom < terrain.topY)) return -1f;
+                supported[0] = true;
+                return fraction;
+            }
+        };
+        float halfFoot = Math.max(0f, data.halfExtentMeters - toWorld(2f));
+        for (int foot = -1; foot <= 1; foot++) {
+            float sampleX = body.getPosition().x + foot * halfFoot;
+            world.rayCast(sample, sampleX, startY, sampleX, startY - toWorld(6f));
+            if (supported[0]) return true;
+        }
+        return false;
+    }
+
     public float getFloorY(Unit unit) {
         if (isGrounded(unit)) {
             return unit.y;
@@ -341,11 +442,119 @@ public final class PhysicsHelper {
         return MapHelper.getInstance().calculateFloorY(unit.x, unit.y);
     }
 
-    public void applyMovement(Unit unit, boolean grounded, boolean allowDirectionalInput) {
+
+    public boolean canReachInteraction(Unit hero, float targetX, float targetFloorY) {
+        Body body = unitBodies.get(hero);
+
+        if (body == null || !isActiveRoom(hero.getRoom())
+                || Float.isNaN(targetX) || Float.isNaN(targetFloorY)
+                || Math.abs(hero.y - targetFloorY) > ConstantsHelper.TILE * 0.25f) return false;
+        float targetSupport = interactionSupportAt(targetX, targetFloorY);
+        if (Float.isNaN(targetSupport)) return false;
+        PhysicsBodyData data = (PhysicsBodyData) body.getUserData();
+        float centerX = hero.x + ConstantsHelper.UNIT_DIMENSIONS / 2f;
+        float halfFoot = Math.max(0f, toPixels(data.halfExtentMeters) - 2f);
+        boolean compatibleSupport = false;
+        for (int foot = -1; foot <= 1; foot++) {
+            float support = interactionSupportAt(centerX + foot * halfFoot, hero.y);
+            if (!Float.isNaN(support) && Math.abs(support - targetSupport) <= 8f) {
+                compatibleSupport = true;
+                break;
+            }
+        }
+        if (!compatibleSupport) return false;
+        final boolean[] blocked = {false};
+        float startY = hero.y + ConstantsHelper.UNIT_DIMENSIONS / 2f;
+        float endY = targetFloorY + ConstantsHelper.UNIT_DIMENSIONS / 2f;
+        if (Math.abs(centerX - targetX) + Math.abs(startY - endY) < 0.01f) return true;
+        world.rayCast(new com.badlogic.gdx.physics.box2d.RayCastCallback() {
+            @Override public float reportRayFixture(Fixture fixture, Vector2 point, Vector2 normal, float fraction) {
+                if (getTerrainData(fixture) == null) return -1f;
+                blocked[0] = true;
+                return 0f;
+            }
+        }, toWorld(centerX), toWorld(startY), toWorld(targetX), toWorld(endY));
+        return !blocked[0];
+    }
+
+
+    public boolean hasCorpseLineOfSight(Room room, float x1, float y1, float x2, float y2) {
+        return hasSolidLineOfSight(room, x1, y1, x2, y2);
+    }
+
+
+    public boolean hasSolidLineOfSight(Room room, float x1, float y1, float x2, float y2) {
+        if (room == null || !room.getIdentifier().equals(activeRoomIdentifier)
+                || !Float.isFinite(x1) || !Float.isFinite(y1) || !Float.isFinite(x2) || !Float.isFinite(y2)) return false;
+        for (Body body : terrainBodies) for (Fixture fixture : body.getFixtureList()) {
+            if (fixture.testPoint(toWorld(x1), toWorld(y1)) || fixture.testPoint(toWorld(x2), toWorld(y2))) return false;
+        }
+        if (Math.abs(x1 - x2) + Math.abs(y1 - y2) < 0.001f) return true;
+        final boolean[] blocked = {false};
+        world.rayCast((fixture, point, normal, fraction) -> {
+            if (getTerrainData(fixture) == null) return -1f;
+            blocked[0] = true;
+            return 0f;
+        }, toWorld(x1), toWorld(y1), toWorld(x2), toWorld(y2));
+        return !blocked[0];
+    }
+
+
+    public boolean isCorpseActionSpaceClear(Room room, final Rectangle area) {
+        return isTerrainSpaceClear(room, area, false);
+    }
+
+
+    public boolean isUnitRestoreSpaceClear(Room room, final Rectangle area) {
+        return isTerrainSpaceClear(room, area, true);
+    }
+
+    private boolean isTerrainSpaceClear(Room room, final Rectangle area, final boolean ignoreOneWay) {
+        if (room == null || !room.getIdentifier().equals(activeRoomIdentifier) || area == null
+                || !Float.isFinite(area.x) || !Float.isFinite(area.y) || area.width <= 0f || area.height <= 0f
+                || !Float.isFinite(area.width) || !Float.isFinite(area.height)) return false;
+        final boolean[] blocked = {false};
+        final Vector2 vertex = new Vector2();
+        world.QueryAABB(fixture -> {
+            TerrainFixtureData terrain = getTerrainData(fixture);
+            if (terrain == null || ignoreOneWay && terrain.oneWay) return true;
+            PolygonShape shape = (PolygonShape)fixture.getShape();
+            float left = Float.POSITIVE_INFINITY, right = Float.NEGATIVE_INFINITY;
+            float bottom = Float.POSITIVE_INFINITY, top = Float.NEGATIVE_INFINITY;
+            for (int i = 0; i < shape.getVertexCount(); i++) {
+                shape.getVertex(i, vertex);
+                Vector2 point = fixture.getBody().getWorldPoint(vertex);
+                left = Math.min(left, toPixels(point.x)); right = Math.max(right, toPixels(point.x));
+                bottom = Math.min(bottom, toPixels(point.y)); top = Math.max(top, toPixels(point.y));
+            }
+            blocked[0] = area.x < right && area.x + area.width > left
+                    && area.y < top && area.y + area.height > bottom;
+            return !blocked[0];
+        }, toWorld(area.x), toWorld(area.y), toWorld(area.x + area.width), toWorld(area.y + area.height));
+        return !blocked[0];
+    }
+
+    private float interactionSupportAt(float x, float feetY) {
+        final float[] top = {Float.NaN};
+        world.rayCast(new com.badlogic.gdx.physics.box2d.RayCastCallback() {
+            @Override public float reportRayFixture(Fixture fixture, Vector2 point, Vector2 normal, float fraction) {
+                if (getTerrainData(fixture) == null || normal.y < 0.5f) return -1f;
+                top[0] = toPixels(point.y);
+                return fraction;
+            }
+        }, toWorld(x), toWorld(feetY + 8f), toWorld(x), toWorld(feetY - ConstantsHelper.TILE * 0.25f));
+        return top[0];
+    }
+
+    public void applyMovement(Unit unit, boolean grounded, boolean allowDirectionalInput, float delta) {
         Body body = unitBodies.get(unit);
         if (body == null) {
             return;
         }
+
+        delta = boundGameDelta(delta);
+        ((PhysicsBodyData)body.getUserData()).movementDelta = delta;
+        if (delta == 0f) return;
 
         body.setGravityScale(getGravityScale(unit));
 
@@ -359,9 +568,8 @@ public final class PhysicsHelper {
         if (grounded || unit.isCanFly()) {
             desiredVelocityX = inputVelocityX + toWorldSpeed(unit.momentX);
         } else {
-            if (allowDirectionalInput && inputVelocityX != 0f) {
-                unit.airMomentumX = MathUtils.lerp(unit.airMomentumX, inputVelocityX, AIR_CONTROL_LERP);
-                unit.airMomentumX = MathUtils.clamp(unit.airMomentumX, -toWorldSpeed(unit.getSpeedX()), toWorldSpeed(unit.getSpeedX()));
+            if (allowDirectionalInput && (inputVelocityX != 0f || unit.isHero)) {
+                unit.airMomentumX = steerAirVelocity(unit, inputVelocityX, delta);
             }
             desiredVelocityX = unit.airMomentumX + toWorldSpeed(unit.momentX);
         }
@@ -415,7 +623,12 @@ public final class PhysicsHelper {
             return 0f;
         }
 
-        return unit.isLevitating() ? 0.5f : 1f;
+        float scale = unit.isLevitating() ? 0.5f : 1f;
+        Body body = unitBodies.get(unit);
+        if (unit.isHero && body != null && body.getLinearVelocity().y < -0.001f) {
+            scale *= HERO_DESCENT_GRAVITY_MULTIPLIER;
+        }
+        return scale;
     }
 
     public String describeHorizontalMovementBlockers(Unit unit) {
@@ -562,6 +775,8 @@ public final class PhysicsHelper {
         for (String platform : platforms) {
             int tileX = Integer.parseInt(platform.split("_")[0]);
             int tileY = Integer.parseInt(platform.split("_")[1]) + 1;
+            if (!room.isBossArena() && !com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.RoomGeometry
+                    .validPlatform(room, tileX, tileY - 1)) continue;
             if (!platformRows.containsKey(tileY)) {
                 platformRows.put(tileY, new ArrayList<Integer>());
             }
@@ -692,6 +907,7 @@ public final class PhysicsHelper {
         for (Map.Entry<ThrownProjectile, Body> entry : projectileBodies.entrySet()) {
             if (entry.getValue().isActive()) {
                 syncProjectileFromPhysics(entry.getKey());
+                entry.getKey().afterPhysicsStep();
             }
         }
     }
@@ -796,7 +1012,8 @@ public final class PhysicsHelper {
 
         TerrainFixtureData terrainData = getTerrainData(otherFixture);
         if (terrainData != null) {
-            if (projectile.collidesWithTerrain() && shouldEnableTerrainContact(projectileFixture.getBody(), terrainData, projectileData)) {
+            if (projectile.collidesWithTerrain() && (projectile.hitsBothSidesOfPlatforms()
+                    || shouldEnableTerrainContact(projectileFixture.getBody(), terrainData, projectileData))) {
                 projectile.onTerrainCollision();
             }
             return;
@@ -853,6 +1070,8 @@ public final class PhysicsHelper {
             return true;
         }
 
+        if (bodyData.bodyKind == BodyKind.UNIT && ((Unit)bodyData.reference).isDroppingThroughPlatform()) return false;
+
         if (bodyData.flying) {
             return false;
         }
@@ -876,6 +1095,8 @@ public final class PhysicsHelper {
             return true;
         }
 
+        if (bodyData.bodyKind == BodyKind.UNIT && ((Unit)bodyData.reference).isDroppingThroughPlatform()) return false;
+
         if (bodyData.flying) {
             return false;
         }
@@ -888,6 +1109,18 @@ public final class PhysicsHelper {
         return bodyBottom >= terrain.topY - toWorld(8f);
     }
 
+    private float steerAirVelocity(Unit unit, float inputVelocityX, float delta) {
+        if (delta <= 0f) return unit.airMomentumX;
+        if (inputVelocityX == 0f) {
+            if (!unit.isHero) return unit.airMomentumX;
+            float speed = toWorldSpeed(unit.getSpeedX());
+            return MathUtils.clamp(unit.airMomentumX * (float)Math.exp(-HERO_AIR_BRAKE_RATE * delta), -speed, speed);
+        }
+        float alpha = 1f - (float)Math.pow(1f - AIR_CONTROL_LERP, delta * 60f);
+        float speed = toWorldSpeed(unit.getSpeedX());
+        return MathUtils.clamp(MathUtils.lerp(unit.airMomentumX, inputVelocityX, alpha), -speed, speed);
+    }
+
     private float getDesiredHorizontalVelocity(Unit unit) {
         float inputVelocityX = 0f;
         inputVelocityX += unit.movingLeft ? -toWorldSpeed(unit.getSpeedX()) : 0f;
@@ -898,9 +1131,10 @@ public final class PhysicsHelper {
         }
 
         float airControlVelocity = unit.airMomentumX;
-        if (inputVelocityX != 0f) {
-            airControlVelocity = MathUtils.lerp(airControlVelocity, inputVelocityX, AIR_CONTROL_LERP);
-            airControlVelocity = MathUtils.clamp(airControlVelocity, -toWorldSpeed(unit.getSpeedX()), toWorldSpeed(unit.getSpeedX()));
+        if (inputVelocityX != 0f || unit.isHero) {
+            Body body = unitBodies.get(unit);
+            float delta = body == null ? TIME_STEP : ((PhysicsBodyData)body.getUserData()).movementDelta;
+            airControlVelocity = steerAirVelocity(unit, inputVelocityX, delta);
         }
 
         return airControlVelocity + toWorldSpeed(unit.momentX);
@@ -1024,6 +1258,8 @@ public final class PhysicsHelper {
         private final Object reference;
         private final float halfExtentMeters;
         private final boolean flying;
+        private float movementDelta = TIME_STEP;
+        private float previousX, previousY, currentX, currentY;
 
         private PhysicsBodyData(BodyKind bodyKind, Object reference, float halfExtentMeters, boolean flying) {
             this.bodyKind = bodyKind;

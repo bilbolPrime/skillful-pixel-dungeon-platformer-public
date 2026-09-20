@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 
 public final class DifficultyHelper {
     private static final String PREFS_NAME = "difficulty-progression";
@@ -11,21 +13,26 @@ public final class DifficultyHelper {
     private static final DifficultyHelper INSTANCE = new DifficultyHelper();
 
     public enum Difficulty {
-        NORMAL("Normal", 20, 1f, 1f, "Current game state"),
-        NIGHTMARE("Nightmare", 40, 1.2f, 1f, "+20% enemy health and attack"),
-        HELL("Hell", 60, 1.4f, 1f, "+40% enemy health and attack");
+        NORMAL("Normal", 20, 1f, 1f, 1f, 1f, "Current game state"),
+        NIGHTMARE("Nightmare", 40, 1.30f, 1.25f, 1.05f, 1f, "Enemy health +30%, damage +25%, accuracy +5%"),
+        HELL("Hell", 60, 1.60f, 1.55f, 1.10f, 1f, "Enemy health +60%, damage +55%, accuracy +10%");
 
         private final String displayName;
         private final int championChancePercent;
-        private final float enemyStatMultiplier;
+        private final float enemyHealthMultiplier;
+        private final float enemyDamageMultiplier;
+        private final float enemyAccuracyMultiplier;
         private final float enemyDefenseMultiplier;
         private final String summary;
 
-        Difficulty(String displayName, int championChancePercent, float enemyStatMultiplier,
+        Difficulty(String displayName, int championChancePercent, float enemyHealthMultiplier,
+                   float enemyDamageMultiplier, float enemyAccuracyMultiplier,
                    float enemyDefenseMultiplier, String summary) {
             this.displayName = displayName;
             this.championChancePercent = championChancePercent;
-            this.enemyStatMultiplier = enemyStatMultiplier;
+            this.enemyHealthMultiplier = enemyHealthMultiplier;
+            this.enemyDamageMultiplier = enemyDamageMultiplier;
+            this.enemyAccuracyMultiplier = enemyAccuracyMultiplier;
             this.enemyDefenseMultiplier = enemyDefenseMultiplier;
             this.summary = summary;
         }
@@ -46,8 +53,16 @@ public final class DifficultyHelper {
             return championChancePercent;
         }
 
-        public float getEnemyStatMultiplier() {
-            return enemyStatMultiplier;
+        public float getEnemyHealthMultiplier() {
+            return enemyHealthMultiplier;
+        }
+
+        public float getEnemyDamageMultiplier() {
+            return enemyDamageMultiplier;
+        }
+
+        public float getEnemyAccuracyMultiplier() {
+            return enemyAccuracyMultiplier;
         }
 
         public float getEnemyDefenseMultiplier() {
@@ -102,6 +117,16 @@ public final class DifficultyHelper {
 
     public void setCurrentDifficulty(Difficulty difficulty) {
         currentDifficulty = difficulty == null ? Difficulty.NORMAL : difficulty;
+    }
+
+
+    public float getEnemyDamageMultiplier(Unit source) {
+        return source instanceof Mob && !source.isFriendly ? currentDifficulty.getEnemyDamageMultiplier() : 1f;
+    }
+
+
+    public float scaleEnemyDamage(Unit source, float damage) {
+        return damage * getEnemyDamageMultiplier(source);
     }
 
     public boolean isUnlocked(HeroClass heroClass, Difficulty difficulty) {
@@ -163,6 +188,8 @@ public final class DifficultyHelper {
             case WIZARD:
             case ROGUE:
             case ARCHER:
+            case NECROMANCER:
+            case MERCENARY:
                 return heroClass;
             default:
                 return null;
@@ -174,6 +201,21 @@ public final class DifficultyHelper {
     }
 
     private Preferences prefs() {
-        return Gdx.app.getPreferences(PREFS_NAME);
+        return Gdx.app.getPreferences(PREFS_NAME + accountSuffix);
+    }
+
+    private String accountSuffix = "";
+    public void useSteamAccount(String account) { accountSuffix = "-steam-" + account; }
+    public java.util.Set<String> unlockedKeys() {
+        java.util.Set<String> keys = new java.util.TreeSet<>();
+        for (HeroClass hero : HeroClass.values()) for (Difficulty difficulty : Difficulty.values())
+            if (difficulty != Difficulty.NORMAL && isUnlocked(hero, difficulty)) keys.add(hero.name() + ":" + difficulty.name());
+        return keys;
+    }
+    public void mergeUnlocks(java.util.Set<String> keys) {
+        for (String key : keys) {
+            String[] parts = key.split(":");
+            if (parts.length == 2) unlock(HeroClass.valueOf(parts[0]), Difficulty.valueOf(parts[1]));
+        }
     }
 }

@@ -42,13 +42,22 @@ public class Elemental extends Mob {
                 }
 
                 float horizontalDistance = Math.abs(target.x - getOwner().x);
-                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 2f && castAt <= 0f) {
-                    ((Elemental) getOwner()).castFire();
-                    getOwner().fakeAttack();
-                    castAt = 1.6f;
+                getOwner().facingRight = getOwner().x < target.x;
+                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 2f
+                        && hasHorizontalProjectileLane(target, 650f * 60f / 75f)) {
                     getOwner().movingLeft = false;
                     getOwner().movingRight = false;
-                    getOwner().facingRight = getOwner().x < target.x;
+                    getOwner().fly(false, true);
+                    if (castAt <= 0f && getOwner().canAttack()) {
+                        ((Elemental) getOwner()).castFire();
+                        getOwner().fakeAttack();
+                        castAt = 1.6f;
+                    }
+                    return;
+                }
+                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 2f && horizontalDistance <= 520f
+                        && !hasHorizontalProjectileLane(target, Float.MAX_VALUE)) {
+                    alignFlyingShot(target);
                     return;
                 }
 

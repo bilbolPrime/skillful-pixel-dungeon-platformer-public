@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.sewers;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
@@ -52,7 +53,7 @@ public class Skeleton extends Mob {
                     continue;
                 }
 
-                unit.takeDamage(this, null, weapon.getDamage());
+                unit.takeDamage(this, null, DifficultyHelper.getInstance().scaleEnemyDamage(this, weapon.getDamage()));
             }
         }
 

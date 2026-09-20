@@ -8,12 +8,21 @@ public class LaboratoryRoom extends SingleDoorSpecialRoom {
 
     @Override
     public Room build() {
-        buildSplitPlatforms();
+        resetLayout();
+        width = 18 + 2 * layoutVariant(2);
+        getLayout().describe("laboratory-benches", width / 2, 4);
+        addPlatformSpan(6, 10, 3);
+        addPlatformSpan(12, width - 3, 3);
+        addPlatformSpan(9, 13, 5);
+        return finishLayout();
+    }
 
-        placeItem(SpecialRoomRewards.randomPotionReward(), 4, 5);
-        placeItem(SpecialRoomRewards.randomPotionReward(), 8, 7);
-        placeItem(SpecialRoomRewards.randomPotionReward(), 12, 5);
+    @Override
+    protected void placeContents() {
 
-        return this;
+        placeItem(SpecialRoomRewards.randomPotionReward(), 8, 4);
+        placeItem(SpecialRoomRewards.randomPotionReward(), 12, 6);
+        placeItem(SpecialRoomRewards.randomPotionReward(), width - 5, 4);
+
     }
 }

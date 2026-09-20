@@ -57,11 +57,12 @@ public final class AmuletHelper {
     }
 
     private static void finishRun(BaseScreen nextScreen) {
+        MapHelper.getInstance().clearRoomPresentation();
         WindowHelper.getInstance().hideAll();
 
         if (UnitHelper.getInstance().getHero() != null) {
             DifficultyHelper.getInstance().recordVictory(UnitHelper.getInstance().getHero().getHeroClass());
-            SaveHelper.getInstance().deleteSave(UnitHelper.getInstance().getHero().getHeroClass());
+            SaveHelper.getInstance().deleteCurrentRun();
         }
 
         RatKingSupportHelper.getInstance().setFireworksEnabled(true);

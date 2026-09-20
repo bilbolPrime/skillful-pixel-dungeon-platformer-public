@@ -1,12 +1,16 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.themes.city;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.CityLevel;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.Level;
+import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.themes.Theme;
 
 public class City extends Theme {
+    private CityArchitecture architecture;
     {
         int tile = (int) ConstantsHelper.TILE;
         template = "city";
@@ -35,11 +39,28 @@ public class City extends Theme {
         doorMercenarySign = new GameSprite("images/tiles/" + template + "/door-sign-mercenary-warrior.png", tile / 2, tile / 2);
         wall = new GameSprite("images/tiles/" + template + "/wall.png", tile, tile);
         wallFading = new GameSprite("images/tiles/" + template + "/wall-fading.png", tile, tile);
+        wall.setColor(new Color(0.73f, 0.75f, 0.80f, 1f));
+        wallFading.setColor(new Color(0.73f, 0.75f, 0.80f, 1f));
         floor = new GameSprite("images/tiles/" + template + "/floor.png", tile, tile);
         platform = new GameSprite("images/tiles/" + template + "/platform.png", tile, tile);
         sign = new GameSprite("images/tiles/" + template + "/sign.png", tile, tile);
         fader = new GameSprite("images/tiles/" + template + "/fader.png", tile, tile, 0.65f);
         library = new GameSprite("images/tiles/" + template + "/library.png", tile, tile);
+    }
+
+    private CityArchitecture architecture() {
+        if (architecture == null) architecture = new CityArchitecture();
+        return architecture;
+    }
+
+    @Override
+    public void drawPlatform(Batch batch, Room room, int tileX, int tileY) {
+        architecture().drawPlatform(batch, room, tileX, tileY);
+    }
+
+    @Override
+    public void drawArchitecture(Batch batch, Room room, int depth) {
+        architecture().draw(batch, room, depth);
     }
 
     @Override

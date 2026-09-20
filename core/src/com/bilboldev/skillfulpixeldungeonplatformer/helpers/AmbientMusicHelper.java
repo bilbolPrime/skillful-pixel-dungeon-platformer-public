@@ -43,7 +43,7 @@ public class AmbientMusicHelper {
         intro.stop();
         if(!background.isPlaying()){
             background.setLooping(true);
-            background.setVolume(volume);
+            background.setVolume(volume * 0.5f);
             background.play();
         }
     }
@@ -66,7 +66,7 @@ public class AmbientMusicHelper {
     }
 
     public void setVolume(float volume){
-        background.setVolume(volume);
+        background.setVolume(volume * 0.5f);
         intro.setVolume(volume);
     }
 

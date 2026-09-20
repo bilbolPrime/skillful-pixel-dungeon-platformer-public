@@ -4,6 +4,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpritePose;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameSettingsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 
 public class Interactable extends Unit {
@@ -11,6 +16,32 @@ public class Interactable extends Unit {
     private static final long IDLE_DIALOGUE_FRAME_DURATION_MILLIS = 1000L;
 
     protected GameSprite gs;
+    private SpritePose observedBody;
+    private String observedRoom;
+
+    @Override protected void drawBodyFilm(Batch batch) {
+        super.drawBodyFilm(batch);
+        observeBody(gf.copyDrawnFrame());
+    }
+
+
+    protected final void observeBody(SpritePose pose) {
+        if (pose == null || pose.alpha <= 0f || !isVisible() || isInvisible() || isDead()
+                || !GameSettingsHelper.getInstance().isBackgroundRoomsEnabled()) return;
+        OrthographicCamera camera = GameHelper.GetSingleton().getCamera();
+        if (camera == null || !camera.frustum.boundsInFrustum(pose.x + pose.width / 2f,
+                pose.y + pose.height / 2f, 0f, pose.width / 2f, pose.height / 2f, 0f)
+                || !UnitHelper.getInstance().canSeeTarget(UnitHelper.getInstance().getHero(), this)) return;
+        observedBody = pose;
+        observedRoom = room;
+    }
+
+    public SpritePose copyObservedBody(String outgoingRoom) {
+
+        if (this instanceof DisturbableGraveProp && ((DisturbableGraveProp)this).isDisturbed()) return null;
+        return outgoingRoom != null && outgoingRoom.equals(room) && outgoingRoom.equals(observedRoom)
+                ? observedBody : null;
+    }
 
     public void interact(){
 

@@ -10,6 +10,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.Weapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpriteTrail;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
@@ -136,9 +137,15 @@ public class ThrownProjectile extends Unit {
         return true;
     }
 
+
+    public boolean hitsBothSidesOfPlatforms() { return false; }
+
     public void onTerrainCollision() {
         markUsed();
     }
+
+
+    public void afterPhysicsStep() { }
 
     public void onUnitCollision(Unit target) {
         if (hasHitTarget(target)) {
@@ -199,7 +206,8 @@ public class ThrownProjectile extends Unit {
     public void draw(Batch batch, float alpha){
         if(gs != null && !used){
             gs.setRotation(rotation + rotationOffset + (facingRight ? 0f : 180f));
-            gs.setPosition(x, y);
+            gs.setPosition(getRenderX(), getRenderY());
+            SpriteTrail.draw(batch, gs, speedX * 0.025f, speedY * 0.025f, 24f);
             gs.draw(batch);
         }
     }

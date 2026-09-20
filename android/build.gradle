@@ -27,8 +27,8 @@ android {
         applicationId "com.bilboldev.skillfulpixeldungeonplatformer"
         minSdk 21
         targetSdk 35
-        versionCode 13
-        versionName "1.0.13"
+        versionCode 14
+        versionName "2.0.0"
     }
 
     compileOptions {
@@ -66,9 +66,9 @@ android {
 }
 
 
-// called every time gradle gets executed, takes the native dependencies of
-// the natives configuration, and extracts them to the proper libs/ folders
-// so they get packed with the APK.
+
+
+
 task copyAndroidNatives {
     doFirst {
         file("libs/armeabi-v7a/").mkdirs()

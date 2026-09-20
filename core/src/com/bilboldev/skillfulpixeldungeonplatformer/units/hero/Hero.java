@@ -19,6 +19,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SkillsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SoundHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UIHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.potions.Meat;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.quest.Pickaxe;
@@ -28,7 +29,14 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.rings.Ring;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.wands.Wand;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.ArrowItem;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Bow;
+import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Gun;
+import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.RangedWeapon;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.GunProjectile;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassAssets;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassSkillTree;
+import com.bilboldev.skillfulpixeldungeonplatformer.items.TomeOfMastery;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.AirbornePose;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
@@ -41,9 +49,14 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.UnitState;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.supporter.MercenaryAlly;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.ThrownProjectile;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.NewClassSpellProjectile;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.NecromancerCurse;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.MercenaryFear;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.NecromancerMinion;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skill;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skills;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.ActiveSkill;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.NewClassActiveSkill;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.activeskills.BuffSkill;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.TrapBurst;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.traps.SpikeTrap;
@@ -52,7 +65,31 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Hero extends Unit {
+    public static final float BASE_JUMP_SPEED = 840f;
     public static final int QUICK_SKILL_SLOT_COUNT = 7;
+    private static final float LEDGE_GRACE_SECONDS = 0.1f;
+    private static final float JUMP_BUFFER_SECONDS = 0.12f;
+    private static final float JUMP_RELEASE_SPEED_RATIO = 0.5f;
+    private transient float ledgeGraceRemaining;
+    private transient float jumpBufferRemaining;
+    private transient boolean jumpBufferFresh;
+    private transient boolean jumpHeld;
+    private transient boolean playerJumpRising;
+    private transient boolean levitationAirJumpSpent;
+    private static final float MELEE_CONTACT_CYCLE_FRACTION = 0.12f;
+    private static final float MELEE_MOVEMENT_CYCLE_FRACTION = 0.35f;
+    private transient Weapon pendingMeleeWeapon;
+    private transient String pendingMeleeRoom;
+    private transient float ordinaryMeleeDuration;
+    private transient Weapon ordinaryMeleeWeapon;
+    private static final float COMBAT_BUFFER_SECONDS = 0.12f;
+    private static final int PRIMARY_ACTION = 1, RANGED_ACTION = 2, FIRST_SKILL_ACTION = 3;
+    private transient int pendingCombatAction;
+    private transient float combatBufferRemaining;
+    private transient boolean combatBufferFresh;
+    private transient Weapon queuedMeleeWeapon, queuedRangedWeapon;
+    private transient ActiveSkill queuedSkill;
+    private transient String queuedCombatRoom;
     private static final float EAT_ICON_DURATION_SECONDS = 0.85f;
     private static final float EAT_ICON_SIZE = 24f;
     private static final float EAT_ICON_RISE = 14f;
@@ -106,6 +143,8 @@ public class Hero extends Unit {
     protected float hunger = 100f;
     protected boolean hungerNotified = false;
     protected boolean deathHandled = false;
+    private boolean masterOfDeathUsed;
+    private transient boolean masterOfDeathRecovering;
     protected int experience = 0;
     protected int level = 1;
     protected int bonusStrength = 0;
@@ -129,11 +168,16 @@ public class Hero extends Unit {
     protected int venomAttacksRemaining;
     protected HashMap<Integer, Integer> fletchedArrowsPerDepth = new HashMap<>();
     protected HashMap<Integer, Integer> activeSkillUsageCounts = new HashMap<>();
+    private transient NewClassActionState newClassActions;
+    private transient boolean marshalHealthApplied;
+    private transient int lastRequestedQuickSkillSlot = -1;
+
     protected transient GameSprite eatIcon;
 
     protected ArrayList<Integer> unlockedSkills = new ArrayList<>();
 
     protected ActiveSkill[] activeSkills = new ActiveSkill[QUICK_SKILL_SLOT_COUNT];
+    private final AirbornePose airbornePose = new AirbornePose();
 
     public Hero() {
 
@@ -145,6 +189,7 @@ public class Hero extends Unit {
 
     {
         isHero = true;
+        jumpSpeed = BASE_JUMP_SPEED;
         applyHeroClass(HeroClass.WARRIOR);
 
         skillPoints = 1;
@@ -155,7 +200,9 @@ public class Hero extends Unit {
         hp = mhp = this.heroClass.getHealth(Math.max(1, level));
         mp = mmp = this.heroClass.getMana(Math.max(1, level));
         isFriendly = true;
-        gf = new GameFilm(this.heroClass.getFilm(),256, 128, 1f);
+        gf = this.heroClass == HeroClass.NECROMANCER || this.heroClass == HeroClass.MERCENARY
+                ? NewClassAssets.heroFilm(this.heroClass.getFilm())
+                : new GameFilm(this.heroClass.getFilm(),256, 128, 1f);
         gf.clipSizeX = 12;
         gf.clipSizeY = 15;
         gf.yClipOffset = 1;
@@ -170,6 +217,219 @@ public class Hero extends Unit {
         refreshCombatStats();
     }
 
+    public void updateAirbornePose(float delta) {
+        airbornePose.update(this, delta);
+    }
+
+
+    public void updateJumpSupport(float delta) {
+        if (showOnly() || !PhysicsHelper.getInstance().hasBody(this)) {
+            ledgeGraceRemaining = 0f;
+        } else if (PhysicsHelper.getInstance().isGrounded(this)) {
+            ledgeGraceRemaining = LEDGE_GRACE_SECONDS;
+            playerJumpRising = false;
+            levitationAirJumpSpent = false;
+
+            refreshAirJumps(true);
+        } else {
+            ledgeGraceRemaining = Math.max(0f, ledgeGraceRemaining - PhysicsHelper.boundGameDelta(delta));
+        }
+        if (speedY <= 0f) playerJumpRising = false;
+
+        if (jumpBufferFresh) jumpBufferFresh = false;
+        else jumpBufferRemaining = Math.max(0f, jumpBufferRemaining - PhysicsHelper.boundGameDelta(delta));
+        updateCombatBuffer(delta, tryBufferedJump());
+    }
+
+    public void pressJump() {
+        if (jumpHeld || showOnly()) return;
+        jumpHeld = true;
+        jumpBufferRemaining = JUMP_BUFFER_SECONDS;
+        jumpBufferFresh = true;
+        tryBufferedJump();
+    }
+
+    public void releaseJump() {
+        if (jumpHeld) cutReleasedJump();
+        jumpHeld = false;
+    }
+
+    private void cutReleasedJump() {
+        if (!playerJumpRising) return;
+        playerJumpRising = false;
+        float releaseSpeed = jumpSpeed * JUMP_RELEASE_SPEED_RATIO;
+        if (speedY > releaseSpeed) {
+            if (PhysicsHelper.getInstance().hasBody(this)) PhysicsHelper.getInstance().setVerticalSpeed(this, releaseSpeed);
+            else speedY = releaseSpeed;
+        }
+    }
+
+
+    public void clearControlIntent() {
+        ledgeGraceRemaining = 0f;
+        jumpBufferRemaining = 0f;
+        jumpBufferFresh = false;
+        jumpHeld = false;
+        playerJumpRising = false;
+        pendingMeleeWeapon = null;
+        pendingMeleeRoom = null;
+        ordinaryMeleeDuration = 0f;
+        ordinaryMeleeWeapon = null;
+        clearCombatBuffer();
+    }
+
+    public void requestPrimaryAction() { requestCombatAction(PRIMARY_ACTION); }
+
+    public void requestRangedAction() { requestCombatAction(RANGED_ACTION); }
+
+    public void requestQuickSkill(int slotIndex) {
+        if (slotIndex >= 0 && slotIndex < QUICK_SKILL_SLOT_COUNT) {
+            lastRequestedQuickSkillSlot = slotIndex;
+            requestCombatAction(FIRST_SKILL_ACTION + slotIndex);
+        }
+    }
+
+    public int getLastRequestedQuickSkillSlot() { return lastRequestedQuickSkillSlot; }
+
+    private void requestCombatAction(int action) {
+        clearCombatBuffer();
+        if (showOnly() || WindowHelper.getInstance().windowOpen()) return;
+        if (canExecuteCombatAction(action)) {
+            executeCombatAction(action);
+            return;
+        }
+        float remaining = getCombatWaitSeconds(action);
+        if (remaining <= 0f || remaining > COMBAT_BUFFER_SECONDS) return;
+        if (action == PRIMARY_ACTION && weapon == null || action == RANGED_ACTION && rangedWeapon == null
+                || action >= FIRST_SKILL_ACTION && getQuickSkill(action - FIRST_SKILL_ACTION) == null) return;
+        pendingCombatAction = action;
+        combatBufferRemaining = COMBAT_BUFFER_SECONDS;
+        combatBufferFresh = true;
+        queuedMeleeWeapon = weapon;
+        queuedRangedWeapon = rangedWeapon;
+        queuedSkill = action >= FIRST_SKILL_ACTION ? getQuickSkill(action - FIRST_SKILL_ACTION) : null;
+        queuedCombatRoom = getRoom();
+    }
+
+    private float getCombatWaitSeconds(int action) {
+        float remaining = getAttackCycleRemainingSeconds();
+        if (action == PRIMARY_ACTION && weapon instanceof Wand) {
+            remaining = Math.max(remaining, ((Wand) weapon).getCooldownRemainingSeconds());
+        } else if (action >= FIRST_SKILL_ACTION) {
+            ActiveSkill skill = getQuickSkill(action - FIRST_SKILL_ACTION);
+            if (skill != null) remaining = Math.max(remaining, skill.getCooldownRemainingSeconds());
+        }
+        return remaining;
+    }
+
+    private boolean canExecuteCombatAction(int action) {
+        if (!canAttack()) return false;
+        if (action == PRIMARY_ACTION) return weapon != null && (!(weapon instanceof Wand) || ((Wand) weapon).canCast());
+        if (action == RANGED_ACTION) return rangedWeapon instanceof Gun
+                ? ((Gun)rangedWeapon).canAttemptShot(this) : rangedWeapon != null && rangedWeapon.getAmmo() > 0;
+        ActiveSkill skill = getQuickSkill(action - FIRST_SKILL_ACTION);
+        return skill != null && skill.canUse(this);
+    }
+
+    private void executeCombatAction(int action) {
+
+        if (action == PRIMARY_ACTION) attack();
+        else if (action == RANGED_ACTION) rangedAttack();
+        else useQuickSkillSlot(action - FIRST_SKILL_ACTION);
+    }
+
+    private void updateCombatBuffer(float delta, boolean jumped) {
+        if (pendingCombatAction == 0) return;
+        if (combatBufferFresh) combatBufferFresh = false;
+        else combatBufferRemaining = Math.max(0f, combatBufferRemaining - PhysicsHelper.boundGameDelta(delta));
+        boolean equipmentChanged = pendingCombatAction == PRIMARY_ACTION ? weapon != queuedMeleeWeapon
+                : pendingCombatAction == RANGED_ACTION ? rangedWeapon != queuedRangedWeapon
+                : weapon != queuedMeleeWeapon || rangedWeapon != queuedRangedWeapon
+                || getQuickSkill(pendingCombatAction - FIRST_SKILL_ACTION) != queuedSkill;
+        if (combatBufferRemaining <= 0f || showOnly() || WindowHelper.getInstance().windowOpen() || equipmentChanged
+                || queuedCombatRoom == null || !queuedCombatRoom.equals(getRoom())
+                || !queuedCombatRoom.equals(MapHelper.getInstance().getActiveRoomIdentifier())) {
+            clearCombatBuffer();
+            return;
+        }
+        if (jumped || !canExecuteCombatAction(pendingCombatAction)) return;
+        int action = pendingCombatAction;
+        clearCombatBuffer();
+        executeCombatAction(action);
+    }
+
+    private void clearCombatBuffer() {
+        pendingCombatAction = 0;
+        combatBufferRemaining = 0f;
+        combatBufferFresh = false;
+        queuedMeleeWeapon = null;
+        queuedRangedWeapon = null;
+        queuedSkill = null;
+        queuedCombatRoom = null;
+    }
+
+    @Override
+    public boolean canJumpNow() {
+        return !showOnly() && super.canJumpNow();
+    }
+
+    @Override
+    public void changeState(UnitState state, boolean forced) {
+        super.changeState(state, forced);
+        if (forced && (state == UnitState.DEAD || state == UnitState.SPAWNING)) clearControlIntent();
+    }
+
+    private boolean tryBufferedJump() {
+        if (jumpBufferRemaining <= 0f || showOnly() || !canJumpNow()) return false;
+        if (!tryJump()) return false;
+        jumpBufferRemaining = 0f;
+        jumpBufferFresh = false;
+        playerJumpRising = true;
+        if (!jumpHeld) cutReleasedJump();
+        return true;
+    }
+
+    @Override
+    protected boolean canUseGroundJump(boolean grounded) {
+        return !showOnly() && !isAttacking() && (grounded || ledgeGraceRemaining > 0f);
+    }
+
+    @Override
+    protected void onJumpStarted(boolean groundJump) {
+        ledgeGraceRemaining = 0f;
+        playerJumpRising = false;
+        if (!groundJump) levitationAirJumpSpent = true;
+    }
+
+    @Override
+    protected boolean canGrantAirJump() { return !levitationAirJumpSpent; }
+
+    @Override
+    public void appear(float x, float y) {
+        NewClassSpellProjectile.clearFor(this);
+        GunProjectile.clearFor(this);
+        clearControlIntent();
+        super.appear(x, y);
+    }
+
+    @Override
+    public void setRoom(String room) {
+        if (getRoom() == null || !getRoom().equals(room)) {
+            NecromancerCurse.clearOutside(room);
+            MercenaryFear.clearOutside(room);
+            NewClassSpellProjectile.clearFor(this);
+            GunProjectile.clearFor(this);
+            clearControlIntent();
+        }
+        super.setRoom(room);
+    }
+
+    @Override
+    protected void drawBodyFilm(Batch batch) {
+        float compression = airbornePose.compressionFor(this);
+        gf.drawFrame(batch, airbornePose.frameFor(this, gf.tileX), 1f + compression / 2f, 1f - compression);
+    }
+
     protected void refreshCombatStats() {
         setBaseAttackSkill(heroClass.getBaseAttackSkill() + Math.max(0, level - 1));
         setBaseDefenseSkill(heroClass.getBaseDefenseSkill() + Math.max(0, level - 1));
@@ -178,6 +438,10 @@ public class Hero extends Unit {
     @Override
     public void act(float delta){
         super.act(delta);
+        if (newClassActions != null && !isDead() && !showOnly() && getRoom() != null
+                && getRoom().equals(MapHelper.getInstance().getActiveRoomIdentifier())
+                && !WindowHelper.getInstance().windowOpen()) newClassActions.tick(delta);
+        updateMeleeContact();
 
         if (eatIconTimer > 0f) {
             eatIconTimer = Math.max(0f, eatIconTimer - delta);
@@ -307,6 +571,33 @@ public class Hero extends Unit {
         return count == null ? 0 : count;
     }
 
+    public float getFletchingTimer() {
+        return fletchingTimer;
+    }
+
+    public float getHuntingTimer() {
+        return huntingTimer;
+    }
+
+    public HashMap<Integer, Integer> getFletchedArrowsPerDepth() {
+        return new HashMap<>(fletchedArrowsPerDepth);
+    }
+
+    public void restoreHuntressPassives(float fletching, float hunting, HashMap<Integer, Integer> arrowsPerDepth) {
+        float fletchingInterval = hasSkill(Skills.WARDEN) ? FLETCHING_INTERVAL_SECONDS / 2f : FLETCHING_INTERVAL_SECONDS;
+        fletchingTimer = Float.isNaN(fletching) ? 0f : Math.max(0f, Math.min(fletchingInterval, fletching));
+        huntingTimer = Float.isNaN(hunting) ? 0f : Math.max(0f, Math.min(HUNTING_INTERVAL_SECONDS, hunting));
+        fletchedArrowsPerDepth.clear();
+        if (arrowsPerDepth != null) {
+            for (Integer depth : arrowsPerDepth.keySet()) {
+                Integer count = arrowsPerDepth.get(depth);
+                if (depth != null && depth > 0 && count != null && count > 0) {
+                    fletchedArrowsPerDepth.put(depth, Math.min(MAX_FLETCHED_ARROWS_PER_FLOOR, count));
+                }
+            }
+        }
+    }
+
     private void updateStarvationState(float delta) {
         if (hunger > 0f) {
             starvationDamageTimer = 0f;
@@ -335,6 +626,9 @@ public class Hero extends Unit {
 
     @Override
     public void takeDamage(Unit source, Weapon damagingItem, float damage) {
+
+        if (this == UnitHelper.getInstance().getHero() && !isDead() && getHP() > 0
+                && getMasterOfDeathRecoveryRemaining() > 0f) return;
         int hpBeforeDamage = getHP();
 
         if (!starvationDamagePending) {
@@ -385,6 +679,8 @@ public class Hero extends Unit {
         movingRight = false;
 
         changeState(UnitState.DEAD, true);
+        notifyDeathCommitted();
+        die();
     }
 
     private void updateGladiatorCombo(float delta) {
@@ -447,6 +743,11 @@ public class Hero extends Unit {
         this.skillPoints++;
         refreshCombatStats();
         int hpGain = heroClass.getHealth(this.level) - heroClass.getHealth(this.level - 1);
+        if (heroClass == HeroClass.MERCENARY && marshalHealthApplied && hasSkill(Skills.MARSHAL)) {
+
+            hpGain = Math.round(heroClass.getHealth(this.level) * 1.1f)
+                    - Math.round(heroClass.getHealth(this.level - 1) * 1.1f);
+        }
         this.mhp += hpGain;
         this.hp += hpGain;
 
@@ -571,6 +872,84 @@ public class Hero extends Unit {
     }
 
     @Override
+    protected void beginMeleeContact(boolean forced, float durationSeconds) {
+        pendingMeleeWeapon = null;
+        pendingMeleeRoom = null;
+        ordinaryMeleeDuration = 0f;
+        ordinaryMeleeWeapon = null;
+        if (forced || weapon instanceof Wand) {
+            super.beginMeleeContact(forced, durationSeconds);
+            return;
+        }
+
+        pendingMeleeWeapon = weapon;
+        pendingMeleeRoom = getRoom();
+        ordinaryMeleeDuration = durationSeconds;
+        ordinaryMeleeWeapon = weapon;
+    }
+
+    @Override
+    protected boolean canLeaveAttackForMovement() {
+        return hasMeleeRecoveryPose() && pendingMeleeWeapon == null
+                && getAttackCycleRemainingSeconds() <= ordinaryMeleeDuration * (1f - MELEE_MOVEMENT_CYCLE_FRACTION);
+    }
+
+    @Override
+    protected boolean hasMeleeRecoveryPose() {
+        return !showOnly() && !rangedAttack && ordinaryMeleeDuration > 0f
+                && weapon == ordinaryMeleeWeapon && getAttackCycleRemainingSeconds() > 0f;
+    }
+
+    @Override
+    public void startAttackAnimation(float durationSeconds) {
+        ordinaryMeleeDuration = 0f;
+        pendingMeleeWeapon = null;
+        ordinaryMeleeWeapon = null;
+        pendingMeleeRoom = null;
+        super.startAttackAnimation(durationSeconds);
+    }
+
+    @Override
+    public void startRangedAttackAnimation(float durationSeconds) {
+        ordinaryMeleeDuration = 0f;
+        pendingMeleeWeapon = null;
+        ordinaryMeleeWeapon = null;
+        pendingMeleeRoom = null;
+        super.startRangedAttackAnimation(durationSeconds);
+    }
+
+    private void updateMeleeContact() {
+        if (pendingMeleeWeapon != null) {
+            if (showOnly() || weapon != pendingMeleeWeapon || pendingMeleeRoom == null
+                    || !pendingMeleeRoom.equals(getRoom())
+                    || !pendingMeleeRoom.equals(MapHelper.getInstance().getActiveRoomIdentifier())) {
+                pendingMeleeWeapon = null;
+                pendingMeleeRoom = null;
+                ordinaryMeleeDuration = 0f;
+                ordinaryMeleeWeapon = null;
+            } else if (getAttackCycleRemainingSeconds() <= ordinaryMeleeDuration * (1f - MELEE_CONTACT_CYCLE_FRACTION)) {
+                Weapon contactWeapon = pendingMeleeWeapon;
+                pendingMeleeWeapon = null;
+                pendingMeleeRoom = null;
+                applyMeleeContact(contactWeapon);
+            }
+        }
+        if (getAttackCycleRemainingSeconds() <= 0f || weapon != ordinaryMeleeWeapon) {
+            ordinaryMeleeDuration = 0f;
+            ordinaryMeleeWeapon = null;
+        }
+    }
+
+    @Override
+    protected float getAttackDrawPhase(float normalPhase) {
+        if (ordinaryMeleeDuration <= 0f || rangedAttack) return normalPhase;
+        float phase = Math.max(0f, Math.min(1f, 1f - getAttackCycleRemainingSeconds() / ordinaryMeleeDuration));
+
+        return phase <= MELEE_CONTACT_CYCLE_FRACTION ? 0.5f * phase / MELEE_CONTACT_CYCLE_FRACTION
+                : 0.5f + 0.5f * (phase - MELEE_CONTACT_CYCLE_FRACTION) / (1f - MELEE_CONTACT_CYCLE_FRACTION);
+    }
+
+    @Override
     public void drawHP(Batch batch){
 
     }
@@ -594,9 +973,22 @@ public class Hero extends Unit {
 
     @Override
     public void rangedAttack(){
+        if (rangedWeapon instanceof Gun) {
+            if (canAttack()) {
+                float duration = getAttackAnimationDurationSeconds(true);
+                if (((Gun)rangedWeapon).tryFire(this)) startRangedAttackAnimation(duration);
+            }
+            UIHelper.getInstance().updateRangedButton();
+            return;
+        }
         super.rangedAttack();
 
         UIHelper.getInstance().updateRangedButton();
+    }
+
+    @Override public void setRangedWeapon(RangedWeapon weapon) {
+        if (weapon instanceof Gun && !Gun.supports(this)) return;
+        super.setRangedWeapon(weapon);
     }
 
 
@@ -688,7 +1080,9 @@ public class Hero extends Unit {
 
     public boolean skillLockedOut(int skill){
         for(int skill1 : unlockedSkills){
-            if(SkillsHelper.getInstance().getSkill(skill1).getLocksOut() == skill){
+            Skill learned = SkillsHelper.getInstance().getSkill(skill1);
+            if(NewClassSkillTree.opposite(skill1) == skill
+                    || learned != null && learned.getLocksOut() == skill){
                 return true;
             }
         }
@@ -700,13 +1094,35 @@ public class Hero extends Unit {
         this.skillPoints += modification;
     }
 
-    public void learnSkill(Skill skill){
+    public boolean learnSkill(Skill skill){
+        return grantSkill(skill, false);
+    }
+
+
+    public boolean restoreSkill(Skill skill) {
+        return grantSkill(skill, true);
+    }
+
+    public boolean learnMastery(Skill skill, TomeOfMastery tome) {
+        if (tome == null || !tome.canGrantTo(this, skill) || !grantSkill(skill, true)) return false;
+        InventoryHelper.getInstance().removeItem(tome);
+        return true;
+    }
+
+    private boolean grantSkill(Skill skill, boolean allowNewMastery) {
+        SkillsHelper helper = SkillsHelper.getInstance();
+        if (!helper.isSupported(this, skill) || hasSkill(skill.getId()) || skillLockedOut(skill.getId())) return false;
+        if (NewClassSkillTree.isNewClass(heroClass)) {
+            if (!helper.meetsRequirements(this, skill)) return false;
+            if (NewClassSkillTree.opposite(skill.getId()) != 0 && !allowNewMastery) return false;
+        }
         this.unlockedSkills.add(skill.getId());
         skill.affect(this);
+        return true;
     }
 
     public void assignQuickSkillIfNeeded(ActiveSkill activeSkill) {
-        if (activeSkill == null) {
+        if (activeSkill == null || !canAssignClassSkill(activeSkill)) {
             return;
         }
 
@@ -911,6 +1327,37 @@ public class Hero extends Unit {
         satisfyHunger(WARLOCK_SOUL_HUNGER_RESTORE);
     }
 
+
+    public void applyMarshalHealth() {
+        if (marshalHealthApplied || heroClass != HeroClass.MERCENARY || !hasSkill(Skills.MARSHAL)
+                || hasSkill(Skills.EXECUTIONER) || isDead() || getHP() <= 0) return;
+        int previousMax = getMaxHP();
+        float fraction = getHP() / (float)previousMax;
+        marshalHealthApplied = true;
+        setMaxHP(Math.round(previousMax * 1.1f));
+        setHP(Math.max(1, Math.round(getMaxHP() * fraction)));
+    }
+
+    @Override public float getIncomingDamageModifier() {
+        float modifier = super.getIncomingDamageModifier();
+        if (heroClass == HeroClass.MERCENARY && hasSkill(Skills.MARSHAL) && hasSkill(Skills.I_AM_THE_LAW)
+                && newClassActions != null && newClassActions.duration(Skills.I_AM_THE_LAW) > 0f) {
+            modifier *= .75f;
+        }
+        return modifier;
+    }
+
+
+    public int adjustExecuteDamage(Unit target, int appliedDamage) {
+        if (appliedDamage > 0 && this == UnitHelper.getInstance().getHero() && heroClass == HeroClass.MERCENARY
+                && hasSkill(Skills.EXECUTE) && !isDead() && getHP() > 0 && target instanceof Mob
+                && !((Mob)target).isBoss() && !target.isFriendly && !target.showOnly()
+                && !target.isDead() && target.getHP() > 0 && (long)target.getHP() * 10 <= target.getMaxHP()) {
+            return Math.max(appliedDamage, target.getHP());
+        }
+        return appliedDamage;
+    }
+
     public boolean shouldInstantKill(Unit target, Weapon attackingItem) {
         if (!hasSkill(Skills.SILENT_DEATH) || !(target instanceof Mob)) {
             return false;
@@ -1077,6 +1524,12 @@ public class Hero extends Unit {
 
     public void useQuickSkillSlot(int slotIndex){
         ActiveSkill activeSkill = getQuickSkill(slotIndex);
+        if (activeSkill instanceof NewClassActiveSkill) {
+            if (!((NewClassActiveSkill)activeSkill).tryUse(this, null))
+                EffectsHelper.getInstance().message(this, "I can't", Color.RED, 0);
+            UIHelper.getInstance().setQuickSkillCostCheck(slotIndex, activeSkill.getManaCost() <= mp);
+            return;
+        }
         if(activeSkill != null && activeSkill.canUse(this)){
             boolean usesRangedAttackAnimation = activeSkill.usesRangedAttackAnimation(this);
             float cooldownDuration = getAttackAnimationDurationSeconds(usesRangedAttackAnimation);
@@ -1150,6 +1603,7 @@ public class Hero extends Unit {
     }
 
     public void setQuickSkill(int slotIndex, ActiveSkill activeSkill){
+        if (activeSkill != null && !canAssignClassSkill(activeSkill)) return;
         if (SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled()
                 && slotIndex >= getQuickSkillSlotCount()) {
             return;
@@ -1163,6 +1617,11 @@ public class Hero extends Unit {
         UIHelper.getInstance().setQuickSkill(slotIndex, activeSkill);
     }
 
+    private boolean canAssignClassSkill(ActiveSkill skill) {
+        if (!NewClassSkillTree.isNewClass(heroClass) && !NewClassSkillTree.isReserved(skill.getId())) return true;
+        return SkillsHelper.getInstance().isSupported(this, skill) && hasSkill(skill.getId());
+    }
+
     public void recordActiveSkillUse(ActiveSkill activeSkill) {
         if (activeSkill == null) {
             return;
@@ -1174,6 +1633,15 @@ public class Hero extends Unit {
 
     public HashMap<Integer, Integer> getActiveSkillUsageCounts() {
         return new HashMap<>(activeSkillUsageCounts);
+    }
+
+    public NewClassActionState getNewClassActions() {
+        if (newClassActions == null) newClassActions = new NewClassActionState();
+        return newClassActions;
+    }
+
+    public void suspendNewClassActions(boolean suspended) {
+        if (NewClassSkillTree.isNewClass(heroClass)) getNewClassActions().setSuspended(suspended);
     }
 
     public void setActiveSkillUsageCounts(HashMap<Integer, Integer> activeSkillUsageCounts) {
@@ -1226,7 +1694,7 @@ public class Hero extends Unit {
 
     public void getFriendlies(){
         for(Unit unit : UnitHelper.getInstance().getUnits()){
-            if(unit.isFriendly && !unit.showOnly && !unit.isHero){
+            if(unit.isFriendly && !unit.showOnly && !unit.isHero && !(unit instanceof NecromancerMinion)){
                 unit.setRoom(getRoom());
                 unit.appear(x, y);
                 unit.floorY = floorY;
@@ -1240,7 +1708,50 @@ public class Hero extends Unit {
 
     @Override
     protected boolean preventDeath(Unit source, Weapon damagingItem, float damage) {
-        return false;
+        if (heroClass != HeroClass.NECROMANCER || !hasSkill(Skills.MASTER_OF_DEATH)
+                || this != UnitHelper.getInstance().getHero() || masterOfDeathUsed || masterOfDeathRecovering
+                || deathHandled || isDead() || showOnly() || getHP() > 0 || !Float.isFinite(damage) || damage <= 0f) return false;
+        masterOfDeathRecovering = true;
+        try {
+
+            masterOfDeathUsed = true;
+            getNewClassActions().setDuration(Skills.MASTER_OF_DEATH, 1f);
+            setHP(Math.max(1, Math.round(getMaxHP() * .35f)));
+            clearControlIntent();
+            movingLeft = movingRight = false;
+            momentX = airMomentumX = speedY = 0f;
+            lastDamageSource = null;
+            lastDamagingItem = null;
+            changeState(UnitState.IDLE, true);
+            PhysicsHelper.getInstance().syncBodyToUnit(this);
+            EffectsHelper.getInstance().message(this, SkillsHelper.getInstance().getSkillName(Skills.MASTER_OF_DEATH),
+                    new Color(.55f, 1f, .65f, 1f), 0f);
+            SoundHelper.GetSingleton().play(Sounds.MASTERY, 0f, .65f);
+            if (!SaveHelper.getInstance().saveCurrentRun() && Gdx.app != null)
+                Gdx.app.log("Hero", "Could not save Master of Death recovery; the charge remains spent in this run.");
+            return true;
+        } finally {
+            masterOfDeathRecovering = false;
+        }
+    }
+
+    public boolean hasUsedMasterOfDeath() { return masterOfDeathUsed; }
+
+
+    public float getMasterOfDeathRecoveryRemaining() {
+        float remaining = heroClass == HeroClass.NECROMANCER && hasSkill(Skills.MASTER_OF_DEATH) && masterOfDeathUsed && newClassActions != null
+                ? newClassActions.duration(Skills.MASTER_OF_DEATH) : 0f;
+        return remaining <= .000001f ? 0f : remaining;
+    }
+
+
+    public void restoreMasterOfDeath(Boolean savedUsed) {
+        boolean eligible = heroClass == HeroClass.NECROMANCER && hasSkill(Skills.MASTER_OF_DEATH);
+        masterOfDeathUsed = eligible && (masterOfDeathUsed || Boolean.TRUE.equals(savedUsed));
+        if (newClassActions != null) {
+            float remaining = eligible && Boolean.TRUE.equals(savedUsed) ? Math.min(1f, newClassActions.duration(Skills.MASTER_OF_DEATH)) : 0f;
+            newClassActions.setDuration(Skills.MASTER_OF_DEATH, remaining);
+        }
     }
 
     @Override
@@ -1250,16 +1761,20 @@ public class Hero extends Unit {
         }
 
         deathHandled = true;
+        NecromancerCurse.clearAll();
+        MercenaryFear.clearAll();
+        NewClassSpellProjectile.clearFor(this);
+        GunProjectile.clearFor(this);
+        NecromancerMinion.clearFor(this);
+        MapHelper.getInstance().clearRoomPresentation();
+        MapHelper.getInstance().clearCorpses();
         if (starvationDamagePending) {
             AchievementManager.getInstance().onDeathFromHunger();
         }
         RatKingHelper.getInstance().onHeroDied(this);
-        if (SaveHelper.getInstance().recordDefeatedRun()) {
-            SaveHelper.getInstance().deleteSave(getHeroClass());
-        }
-        else if (Gdx.app != null) {
-            Gdx.app.log("Hero", "Failed to record defeated run; preserving any existing save file.");
-        }
+        if (!SaveHelper.getInstance().recordDefeatedRun() && Gdx.app != null)
+            Gdx.app.log("Hero", "Failed to record ranking; the run has still ended.");
+        SaveHelper.getInstance().deleteCurrentRun();
         SoundHelper.GetSingleton().play(Sounds.DEATH, 0f, 1f);
     }
 
@@ -1267,7 +1782,7 @@ public class Hero extends Unit {
     protected void regenerate(float delta){
         regeneration += mhp * delta * regenerationRate;
         if (hunger > 0f) {
-            regenerationMana += mmp * delta;
+            regenerationMana += mmp * delta * manaRegenerationRate;
         }
 
         if(regeneration > 100f && hp < mhp && hunger > 0){

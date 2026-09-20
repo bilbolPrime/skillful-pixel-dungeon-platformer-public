@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.InventoryHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
@@ -26,6 +27,7 @@ public abstract class SingleDoorSpecialRoom extends Room {
 
     @Override
     public Door getRandomDoor() {
+        requireSupportedPlacement(3, 3, ConstantsHelper.TILE, ConstantsHelper.TILE + 7f);
         Door door = new Door();
         door.x = 3 * ConstantsHelper.TILE;
         door.y = 3 * ConstantsHelper.TILE;
@@ -37,6 +39,17 @@ public abstract class SingleDoorSpecialRoom extends Room {
         platforms.clear();
         waterPlatforms.clear();
         stuff.clear();
+        getLayout().reserveArrival(3, 3);
+    }
+
+    protected int layoutVariant(int count) {
+        return RandomHelper.getInstance().createRoomRandom(0, identifier, 0x5350454349414cL).nextInt(count);
+    }
+
+
+    protected Room finishLayout() {
+        height = Math.max(10, RoomRoutes.minimumRoomHeightForJump(getHighestStandingFloor()));
+        return this;
     }
 
     protected void buildSplitPlatforms() {
@@ -52,14 +65,6 @@ public abstract class SingleDoorSpecialRoom extends Room {
         addPlatformSpan(6, 12, 6);
     }
 
-    protected void addPlatformSpan(int startTileX, int endTileX, int tileY) {
-        int from = Math.min(startTileX, endTileX);
-        int to = Math.max(startTileX, endTileX);
-        for (int tileX = from; tileX <= to; tileX++) {
-            platforms.add(UtilsHelper.platformKey(tileX, tileY));
-        }
-    }
-
     protected void addSpriteProp(String spritePath, float width, float height, int tileX, int tileY) {
         SpriteDecoration prop = new SpriteDecoration(spritePath, width, height);
         prop.x = tileX * ConstantsHelper.TILE;
@@ -72,6 +77,7 @@ public abstract class SingleDoorSpecialRoom extends Room {
             return;
         }
 
+        requireContentPlacement(tileX, floorTileY, ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS);
         float worldX = tileToWorldX(tileX);
         float floorY = floorTileToWorldY(floorTileY);
         item.spawnNaturally(worldX, floorY, floorY, identifier);
@@ -82,12 +88,18 @@ public abstract class SingleDoorSpecialRoom extends Room {
             return;
         }
 
+        requireContentPlacement(tileX, floorTileY, Math.max(width, ConstantsHelper.UNIT_DIMENSIONS),
+                Math.max(height, ConstantsHelper.UNIT_DIMENSIONS));
         SpriteRewardOnScreen rewardOnScreen = new SpriteRewardOnScreen(item, spritePath, width, height);
         rewardOnScreen.x = tileToWorldX(tileX);
         rewardOnScreen.y = floorTileToWorldY(floorTileY);
         rewardOnScreen.floorY = rewardOnScreen.y;
         rewardOnScreen.setRoom(identifier);
         UnitHelper.getInstance().addUnit(rewardOnScreen);
+
+        if (item instanceof com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Gun) {
+            InventoryHelper.getInstance().spawnNaturalCompanionItems(item, rewardOnScreen.x, rewardOnScreen.y, rewardOnScreen.floorY, identifier);
+        }
     }
 
     protected void placeInteractable(Interactable interactable, int tileX, int floorTileY) {
@@ -95,6 +107,7 @@ public abstract class SingleDoorSpecialRoom extends Room {
             return;
         }
 
+        requireContentPlacement(tileX, floorTileY, ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS);
         interactable.x = tileToWorldX(tileX);
         interactable.y = floorTileToWorldY(floorTileY);
         interactable.floorY = interactable.y;
@@ -107,6 +120,7 @@ public abstract class SingleDoorSpecialRoom extends Room {
             return;
         }
 
+        requireContentPlacement(tileX, floorTileY, ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS);
         plant.x = tileToWorldX(tileX);
         plant.y = floorTileToWorldY(floorTileY);
         plant.floorY = plant.y;
@@ -115,6 +129,7 @@ public abstract class SingleDoorSpecialRoom extends Room {
     }
 
     protected void addTrap(int tileX, int floorTileY, TrapType trapType, boolean hidden) {
+        requireContentPlacement(tileX, floorTileY, ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS);
         PlatformTrap trap = new PlatformTrap().setTrapType(trapType).setHidden(hidden);
         trap.x = tileToWorldX(tileX) + (ConstantsHelper.TILE - ConstantsHelper.UNIT_DIMENSIONS) / 2f;
         trap.y = floorTileY * ConstantsHelper.TILE - ConstantsHelper.UNIT_DIMENSIONS / 3f + ConstantsHelper.UNIT_DIMENSIONS * 0.25f;

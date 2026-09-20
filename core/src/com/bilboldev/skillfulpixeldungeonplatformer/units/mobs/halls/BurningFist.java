@@ -42,13 +42,16 @@ public class BurningFist extends YogFist {
                 }
 
                 float horizontalDistance = Math.abs(target.x - getOwner().x);
-                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 1.75f && flameAt <= 0f) {
-                    ((BurningFist) getOwner()).launchFire();
-                    getOwner().fakeAttack();
+                getOwner().facingRight = getOwner().x < target.x;
+                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 1.75f
+                        && hasHorizontalProjectileLane(target, 700f)) {
                     getOwner().movingLeft = false;
                     getOwner().movingRight = false;
-                    getOwner().facingRight = getOwner().x < target.x;
-                    flameAt = 1.75f;
+                    if (flameAt <= 0f && getOwner().canAttack()) {
+                        ((BurningFist) getOwner()).launchFire();
+                        getOwner().fakeAttack();
+                        flameAt = 1.75f;
+                    }
                     return;
                 }
 

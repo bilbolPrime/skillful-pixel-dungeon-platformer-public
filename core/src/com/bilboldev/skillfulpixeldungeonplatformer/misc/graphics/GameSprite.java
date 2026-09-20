@@ -18,6 +18,7 @@ public class GameSprite {
    protected boolean repeatable;
     TextureRegion textureRegion;
     public String spriteString;
+    private float[] featherVertices;
     private boolean pulseTintEnabled;
     private float pulseTintRed = 1f;
     private float pulseTintGreen = 1f;
@@ -66,11 +67,11 @@ public class GameSprite {
     }
 
     public float getX(){
-        return  x;// + (float)Math.cos(rotation / 180f) * width / 2;
+        return  x;
     }
 
     public float getY(){
-        return y;// + (float)Math.sin(rotation / 180f) * width / 2;
+        return y;
     }
 
     public void translate(float x, float y){
@@ -127,6 +128,21 @@ public class GameSprite {
 
     public float getAlpha(){
         return  alpha;
+    }
+
+
+    public SpritePose copyPose() {
+        return copyPoseAt(x, y, alpha);
+    }
+
+
+    public SpritePose copyPoseAt(float observedX, float observedY, float observedAlpha) {
+        if (sprite == null) return null;
+        Color color = sprite.getColor();
+        return new SpritePose(repeatable ? textureRegion : sprite, observedX, observedY,
+                repeatable ? 0f : originX, repeatable ? 0f : originY, width, height,
+                repeatable ? 1f : scaleX, repeatable ? 1f : scaleY, repeatable ? 0f : rotation,
+                color.r, color.g, color.b, color.a * observedAlpha);
     }
 
     public void rotate(float rotation){
@@ -195,8 +211,8 @@ public class GameSprite {
                 previousColor.g * spriteColor.g,
                 previousColor.b * spriteColor.b,
                 previousColor.a * spriteColor.a * alpha);
-        //extureRegion region, float x, float y, float originX, float originY, float width, float height,
-        //		float scaleX, float scaleY, float rotation
+
+
         if(!repeatable)
             batch.draw(sprite, x, y, originX, originY, width, height, scaleX, scaleY, rotation);
         else
@@ -209,6 +225,40 @@ public class GameSprite {
         batch.setColor(previousColor);
     }
 
+
+    public void drawFeatheredEdges(Batch batch, float edgeWidth) {
+        if (rotation != 0f || scaleX != 1f || scaleY != 1f || repeatable || edgeWidth <= 0f) {
+            draw(batch);
+            return;
+        }
+        float edge = Math.min(edgeWidth, Math.min(width, height) / 2f);
+        if (featherVertices == null) featherVertices = new float[20];
+        Color parent = batch.getColor(), tint = sprite.getColor();
+        float r = parent.r * tint.r, g = parent.g * tint.g, b = parent.b * tint.b;
+        float opacity = parent.a * tint.a * alpha;
+
+        for (int row = 0; row < 3; row++) {
+            float bottom = row == 0 ? 0f : row == 1 ? edge : height - edge;
+            float top = row == 0 ? edge : row == 1 ? height - edge : height;
+            for (int column = 0; column < 3; column++) {
+                float left = column == 0 ? 0f : column == 1 ? edge : width - edge;
+                float right = column == 0 ? edge : column == 1 ? width - edge : width;
+                for (int corner = 0; corner < 4; corner++) {
+                    float dx = corner < 2 ? left : right;
+                    float dy = corner == 0 || corner == 3 ? bottom : top;
+                    float fade = dx == 0f || dx == width || dy == 0f || dy == height ? 0f : 1f;
+                    int offset = corner * 5;
+                    featherVertices[offset] = x + dx;
+                    featherVertices[offset + 1] = y + dy;
+                    featherVertices[offset + 2] = Color.toFloatBits(r, g, b, opacity * fade);
+                    featherVertices[offset + 3] = sprite.getU() + (sprite.getU2() - sprite.getU()) * dx / width;
+                    featherVertices[offset + 4] = sprite.getV2() + (sprite.getV() - sprite.getV2()) * dy / height;
+                }
+                batch.draw(sprite.getTexture(), featherVertices, 0, 20);
+            }
+        }
+    }
+
     public void draw(Batch batch, float offsetX, float offsetY){
         sprite.setOrigin(originX, originY);
         sprite.setRotation(rotation);
@@ -218,8 +268,8 @@ public class GameSprite {
             previousColor.g * spriteColor.g,
             previousColor.b * spriteColor.b,
                 previousColor.a * spriteColor.a * alpha);
-        //extureRegion region, float x, float y, float originX, float originY, float width, float height,
-        //		float scaleX, float scaleY, float rotation
+
+
         batch.draw(sprite, x + offsetX, y + offsetY, originX, originY, width, height, scaleX, scaleY, rotation);
 
         if (pulseTintEnabled) {

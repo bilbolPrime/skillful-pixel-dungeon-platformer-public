@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.caves;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.PhysicsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
@@ -35,7 +36,7 @@ public class Spinner extends Mob {
 
     @Override
     public void attack(boolean forced) {
-        if (!unitState.canAttack() && !forced) {
+        if (!canAttack() && !forced) {
             return;
         }
 
@@ -44,7 +45,7 @@ public class Spinner extends Mob {
         Unit target = PhysicsHelper.getInstance().queryFirstHit(this, weapon.getHitArea());
         if (UnitHelper.getInstance().attackTarget(this, target, weapon, weapon.getDamage(), false)) {
             if (RandomHelper.getInstance().randomChance(50)) {
-                new Poisoned().setDuration(4f).setOwner(target);
+                new Poisoned().setDamageMultiplier(DifficultyHelper.getInstance().getEnemyDamageMultiplier(this)).setDuration(4f).setOwner(target);
             }
             playSound(Sounds.HIT, 0.4f);
         }

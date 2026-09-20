@@ -9,5 +9,10 @@ public class ExitRoom extends Room{
     public ExitRoom(String identifier) {
         super(identifier);
     }
+
+    public ExitRoom buildFoyer(int depth) {
+        RoomFoyers.build(this, depth, false);
+        return this;
+    }
 }
 

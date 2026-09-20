@@ -8,13 +8,22 @@ public class StorageRoom extends SingleDoorSpecialRoom {
 
     @Override
     public Room build() {
-        buildSplitPlatforms();
+        resetLayout();
+        width = 20 + 2 * layoutVariant(2);
+        getLayout().describe("storage-stacks", width - 6, 5);
+        addPlatformSpan(6, 9, 3);
+        addPlatformSpan(11, width - 3, 4);
+        addPlatformSpan(width - 8, width - 5, 6);
+        return finishLayout();
+    }
 
-        placeItem(SpecialRoomRewards.randomSupplyReward(), 4, 5);
-        placeItem(SpecialRoomRewards.randomSupplyReward(), 7, 7);
-        placeItem(SpecialRoomRewards.randomSupplyReward(), 11, 5);
-        placeItem(SpecialRoomRewards.randomSupplyReward(), 13, 7);
+    @Override
+    protected void placeContents() {
 
-        return this;
+        placeItem(SpecialRoomRewards.randomSupplyReward(), 7, 4);
+        placeItem(SpecialRoomRewards.randomSupplyReward(), 9, 4);
+        placeItem(SpecialRoomRewards.randomSupplyReward(), width - 6, 5);
+        placeItem(SpecialRoomRewards.randomSupplyReward(), width - 7, 7);
+
     }
 }

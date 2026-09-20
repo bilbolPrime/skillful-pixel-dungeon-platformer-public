@@ -5,6 +5,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.EntryRoom;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.ExitRoom;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.MerchantRoom;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
+import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.RoomRoutes;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.doors.Door;
 
 import java.util.HashMap;
@@ -28,7 +29,7 @@ public class LastShopLevel extends Level {
         setSignMessage(depth);
         entryDoor = entryRoom.getLevelEntryDoor();
 
-        Room hubRoom = new Room(hubIdentifier).build();
+        Room hubRoom = new Room(hubIdentifier).planForFloor(depth, 0).build();
         Room shopRoom = new MerchantRoom(shopIdentifier, true).build();
         exitRoom = new ExitRoom(exitIdentifier).build();
 
@@ -41,6 +42,7 @@ public class LastShopLevel extends Level {
         addRoom(shopRoom);
         addRoom(exitRoom);
         exitRoom.addDoor(exitRoom.getRandomDoor().toExitDoor());
+        for (Room room : rooms) { RoomRoutes.ensureTraversable(room); room.populate(); }
         return this;
     }
 

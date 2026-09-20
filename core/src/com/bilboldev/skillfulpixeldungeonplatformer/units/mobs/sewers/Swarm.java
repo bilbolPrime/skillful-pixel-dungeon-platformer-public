@@ -19,6 +19,15 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.UnitState;
 
 public class Swarm extends Mob {
+    private boolean splitOffshoot;
+
+    public boolean isSplitOffshoot() { return splitOffshoot; }
+
+    public void restoreSplitOffshoot(boolean splitOffshoot) { this.splitOffshoot = splitOffshoot; }
+
+    @Override
+    protected boolean grantsDeathRewards() { return !splitOffshoot; }
+
     {
         canFly = true;
         hp = mhp = 80;
@@ -69,19 +78,22 @@ public class Swarm extends Mob {
         }
 
         Swarm clone = new Swarm();
+        clone.splitOffshoot = true;
         clone.setRoom(room);
         clone.x = candidateX;
         clone.y = y;
         clone.floorY = floorY;
-        clone.setHP(cloneHp);
         clone.changeState(UnitState.IDLE, true);
 
         Poisoned poison = (Poisoned) getBuff(Poisoned.class);
         if (poison != null) {
-            new Poisoned().setDuration(poison.getRemainingDuration()).setOwner(clone);
+            new Poisoned().setDamageMultiplier(poison.getDamageMultiplier()).setDuration(poison.getRemainingDuration()).setOwner(clone);
         }
 
         UnitHelper.getInstance().addUnit(clone);
+
+        cloneHp = Math.min(cloneHp, clone.getMaxHP());
+        clone.setHP(cloneHp);
         setHP(hp - cloneHp);
         clone.alert(source);
         return true;

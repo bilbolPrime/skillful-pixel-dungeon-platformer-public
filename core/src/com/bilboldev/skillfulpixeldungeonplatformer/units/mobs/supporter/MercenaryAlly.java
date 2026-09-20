@@ -89,6 +89,22 @@ public class MercenaryAlly extends Mob {
     }
 
     @Override
+    public void setRoom(String room) {
+        boolean changedRoom = getRoom() == null ? room != null : !getRoom().equals(room);
+        super.setRoom(room);
+        if (changedRoom) {
+
+            if (ai != null) {
+                boolean blind = ai.isBlind();
+                ai.clearTarget();
+                if (blind) ai.blinded();
+                onTargetLost();
+            }
+            stopMercenaryMovement();
+        }
+    }
+
+    @Override
     public void act(float delta) {
         rogueShurikenCooldown = Math.max(0f, rogueShurikenCooldown - delta);
         wizardSlowCooldown = Math.max(0f, wizardSlowCooldown - delta);
@@ -240,6 +256,8 @@ public class MercenaryAlly extends Mob {
     }
 
     public RangedWeapon equipMercenaryRangedWeapon(RangedWeapon rangedWeapon) {
+
+        if (rangedWeapon instanceof com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Gun) return null;
         RangedWeapon previousRangedWeapon = mercenaryRangedWeapon;
         mercenaryRangedWeapon = MercenaryHelper.sanitizeRangedWeapon(mercenaryType, rangedWeapon);
         if (mercenaryRangedWeapon != null) {
@@ -447,6 +465,8 @@ public class MercenaryAlly extends Mob {
     }
 
     private void maybeThrowShuriken() {
+
+        if (ai == null || ai.getOther() == null) return;
         if (rogueShurikenCooldown > 0f || mercenaryRangedWeapon == null || isAttacking()) {
             return;
         }
@@ -498,22 +518,13 @@ public class MercenaryAlly extends Mob {
         }
 
         Unit target = ai.getOther();
-        if (isValidMercenaryAttackTarget(target)) {
+        if (ai.canTarget(target)) {
             return target;
         }
 
         ai.clearTarget();
         stopMercenaryMovement();
         return null;
-    }
-
-    private boolean isValidMercenaryAttackTarget(Unit target) {
-        return target != null
-                && !target.isDead()
-                && target.getHP() > 0
-                && getRoom() != null
-                && target.getRoom() != null
-                && target.getRoom().equals(getRoom());
     }
 
     private void stopMercenaryMovement() {

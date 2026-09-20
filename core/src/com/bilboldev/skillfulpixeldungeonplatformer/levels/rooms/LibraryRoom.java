@@ -12,7 +12,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.Item
 
 import java.util.ArrayList;
 
-public class LibraryRoom extends Room {
+public class LibraryRoom extends SingleDoorSpecialRoom {
     {
         canSpawn = false;
         width = 15;
@@ -23,65 +23,34 @@ public class LibraryRoom extends Room {
     }
 
     @Override
-    public Door getRandomDoor(){
-        int tileX = 0;
-        int tileY = 0;
-        boolean doorExists = false;
-        do {
-            doorExists = false;
-            String platform = "";
-            for(String candidatePlatform : platforms){
-                platform = candidatePlatform;
-                if(RandomHelper.getInstance().randomBoolean()){
-                    break;
-                }
-            }
-
-            tileX = Integer.parseInt(platform.split("_")[0]);
-            tileY = Integer.parseInt(platform.split("_")[1]);
-
-            for(Door door : doors){
-                if(door.x == tileX * ConstantsHelper.TILE && door.y == (tileY + 1) * ConstantsHelper.TILE){
-                    doorExists = true;
-                    break;
-                }
-            }
-        }while(doorExists || tileX < 0 || tileX >= width);
-
-        Door door = new Door();
-        door.x = tileX * ConstantsHelper.TILE;
-        door.y = (tileY + 1)* ConstantsHelper.TILE;
-
-        return door;
+    public Room build(){
+        resetLayout();
+        width = 20 + 2 * layoutVariant(2);
+        getLayout().describe("library-gallery", width / 2, 3);
+        addPlatformSpan(5, 6, 3);
+        addPlatformSpan(7, width - 4, 4);
+        addPlatformSpan(8, width - 5, 6);
+        return finishLayout();
     }
 
     @Override
-    public Room build(){
-        super.build();
-
-        for(int i = 0; i < width; i++){
-            Library library = new Library();
-            library.x = i * ConstantsHelper.TILE;
-            library.y = 3 * ConstantsHelper.TILE;
-
-            stuff.add(library);
-        }
-
+    protected void placeContents() {
         ArrayList<Item> libraryScrolls = InventoryHelper.getInstance().getLibraryScrolls(
                 MapHelper.getInstance().getDepth(),
                 identifier,
                 2);
 
         for(int i = 0; i < libraryScrolls.size(); i++){
+            requireContentPlacement(width / 2 - 1 + i, 5,
+                    ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS);
             ItemOnScreen itemOnScreen = new ItemOnScreen(libraryScrolls.get(i));
             itemOnScreen.x = (width / 2 - 1 + i) * ConstantsHelper.TILE;
-            itemOnScreen.y = 3 * ConstantsHelper.TILE;
-            itemOnScreen.floorY = 3 * ConstantsHelper.TILE;
+            itemOnScreen.y = 5 * ConstantsHelper.TILE;
+            itemOnScreen.floorY = 5 * ConstantsHelper.TILE;
             itemOnScreen.setRoom(identifier);
             UnitHelper.getInstance().addUnit(itemOnScreen);
         }
 
-        return this;
     }
 }
 

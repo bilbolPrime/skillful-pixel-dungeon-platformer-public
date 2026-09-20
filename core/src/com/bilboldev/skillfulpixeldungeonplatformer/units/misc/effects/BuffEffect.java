@@ -73,8 +73,10 @@ public class BuffEffect extends Effect {
     @Override
     public void draw(Batch batch){
         if(gs != null){
+            float drawX = owner == null ? x : owner.getRenderX();
+            float drawY = owner == null ? y : owner.getRenderY();
             for(XY xy : xyArrayList){
-                gs.setPosition(x + xy.x, y + xy.y);
+                gs.setPosition(drawX + xy.x, drawY + xy.y);
                 gs.draw(batch);
             }
         }

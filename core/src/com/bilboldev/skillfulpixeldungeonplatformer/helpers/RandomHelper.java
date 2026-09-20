@@ -10,6 +10,7 @@ public class RandomHelper {
 
     private final RandomXS128 runtimeRandom;
     private RandomXS128 generationRandom;
+    private RandomXS128 previewRandom;
     private long runSeed;
 
     private static final RandomHelper ourInstance = new RandomHelper();
@@ -25,7 +26,16 @@ public class RandomHelper {
     }
 
     private RandomXS128 activeRandom() {
+        if (previewRandom != null) return previewRandom;
         return generationRandom != null ? generationRandom : runtimeRandom;
+    }
+
+
+    public <T> T withPreviewRandom(java.util.function.Supplier<T> factory) {
+        RandomXS128 previous = previewRandom;
+        previewRandom = new RandomXS128(0x4D454E55L);
+        try { return factory.get(); }
+        finally { previewRandom = previous; }
     }
 
     public long newRunSeed() {
@@ -48,6 +58,10 @@ public class RandomHelper {
         generationRandom = null;
     }
 
+    public boolean isGeneratingLevel() {
+        return generationRandom != null;
+    }
+
     public long levelSeed(int depth) {
         return mix(runSeed + SEED_MIXER * depth);
     }
@@ -57,6 +71,14 @@ public class RandomHelper {
         long primarySeed = mix(levelSeed(depth) ^ roomHash ^ salt);
         long secondarySeed = mix(levelSeed(depth + 1000) ^ Long.rotateLeft(roomHash, 19) ^ (salt + SEED_MIXER));
         return new RandomXS128(primarySeed, secondarySeed);
+    }
+
+
+    public <T> T withRoomGenerationRandom(int depth, String identifier, long salt, java.util.function.Supplier<T> action) {
+        RandomXS128 previous = generationRandom;
+        generationRandom = createRoomRandom(depth, identifier, salt);
+        try { return action.get(); }
+        finally { generationRandom = previous; }
     }
 
 
@@ -85,6 +107,9 @@ public class RandomHelper {
     public boolean randomBoolean(){ return activeRandom().nextBoolean(); }
 
     public String uniqueId(){
+        if (previewRandom != null) {
+            return Long.toHexString(previewRandom.nextLong()) + Long.toHexString(previewRandom.nextLong());
+        }
         if (generationRandom != null) {
             return Long.toHexString(generationRandom.nextLong()) + Long.toHexString(generationRandom.nextLong());
         }

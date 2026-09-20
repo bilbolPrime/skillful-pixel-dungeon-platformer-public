@@ -8,6 +8,7 @@ public class GameHelper {
 
 
     private OrthographicCamera camera, uiCamera;
+    private float impactTime, impactStrength, impactDirection;
     private static GameHelper m_instance;
 
 
@@ -73,7 +74,7 @@ public class GameHelper {
 
 
     public void goHome(){
-        //TextureHelper.GetSingleton().dispose();
+
 
 
     }
@@ -84,6 +85,30 @@ public class GameHelper {
 
     public void setCamera(OrthographicCamera c){
         camera = c;
+        clearHitImpulse();
+    }
+
+    public void showHitImpulse(float damageFraction, float direction) {
+        if (GameSettingsHelper.getInstance().isReducedCameraMotion()) return;
+        impactStrength = Math.max(impactStrength, Math.min(5f, 2f + damageFraction * 8f));
+        impactDirection = direction;
+        impactTime = 0.14f;
+    }
+
+    public void updateHitImpulse(float delta) {
+        if (GameSettingsHelper.getInstance().isReducedCameraMotion()) { clearHitImpulse(); return; }
+        impactTime = Math.max(0f, impactTime - delta);
+        if (impactTime == 0f) impactStrength = 0f;
+    }
+
+    public float getHitImpulseX() {
+        if (GameSettingsHelper.getInstance().isReducedCameraMotion() || impactTime <= 0f) return 0f;
+        float remaining = impactTime / 0.14f;
+        return impactDirection * impactStrength * remaining * remaining * (float) Math.cos((1f - remaining) * Math.PI * 3f);
+    }
+
+    public void clearHitImpulse() {
+        impactTime = impactStrength = 0f;
     }
 
     public OrthographicCamera getUICamera(){

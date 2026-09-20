@@ -32,7 +32,7 @@ public class AvalancheProjectile extends FireBolt {
     }
 
     private void explode() {
-        for (Unit unit : UnitHelper.getInstance().getUnits()) {
+        for (Unit unit : UnitHelper.getInstance().getUnitsSnapshot()) {
             if (unit == this || unit.showOnly() || unit.isDead()) {
                 continue;
             }

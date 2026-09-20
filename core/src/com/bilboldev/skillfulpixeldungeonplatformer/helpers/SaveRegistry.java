@@ -3,6 +3,8 @@ package com.bilboldev.skillfulpixeldungeonplatformer.helpers;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.Prefix;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.NecromancerMinion;
 
 import java.util.HashMap;
 
@@ -58,7 +60,21 @@ public final class SaveRegistry {
     }
 
     public static Unit createUnit(String unitId) {
+        if (isOwnedMinionId(unitId)) return null;
         return createInstance(UNIT_CLASSES.get(unitId));
+    }
+
+    public static boolean isOwnedMinionId(String unitId) {
+        Class<? extends Unit> type = UNIT_CLASSES.get(unitId);
+        return type != null && NecromancerMinion.class.isAssignableFrom(type);
+    }
+
+    public static NecromancerMinion createOwnedMinion(String unitId, Hero owner, int createdAtLevel) {
+        if (!isOwnedMinionId(unitId)) return null;
+        try {
+            return (NecromancerMinion)UNIT_CLASSES.get(unitId).getDeclaredConstructor(Hero.class, int.class)
+                    .newInstance(owner, createdAtLevel);
+        } catch (Exception ignored) { return null; }
     }
 
     public static boolean matchesUnitId(String unitId, Class<? extends Unit> unitClass) {
@@ -219,6 +235,12 @@ public final class SaveRegistry {
         registerItem("items/weapons/melee/wands/WandOfTeleportation", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.wands.WandOfTeleportation.class);
 
         registerItem("items/weapons/ranged/ArrowItem", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.ArrowItem.class);
+        registerItem("items/weapons/ranged/BulletItem", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.BulletItem.class);
+        registerItem("items/weapons/ranged/Handgun", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Handgun.class);
+        registerItem("items/weapons/ranged/Pistol", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Pistol.class);
+        registerItem("items/weapons/ranged/Rifle", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Rifle.class);
+        registerItem("items/weapons/ranged/Blunderbuss", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Blunderbuss.class);
+        registerItem("items/weapons/ranged/Mortar", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Mortar.class);
         registerItem("items/weapons/ranged/Bow", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Bow.class);
         registerItem("items/weapons/ranged/CurareDart", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.CurareDart.class);
         registerItem("items/weapons/ranged/FlameBow", com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.FlameBow.class);
@@ -349,6 +371,9 @@ public final class SaveRegistry {
 
         registerUnit("units/mobs/summons/FireElemental", com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.FireElemental.class);
         registerUnit("units/mobs/summons/MirrorImage", com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.MirrorImage.class);
+        registerUnit("units/mobs/summons/RaisedSkeleton", com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.RaisedSkeleton.class);
+        registerUnit("units/mobs/summons/SummonedGhost", com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.SummonedGhost.class);
+        registerUnit("units/mobs/summons/RaisedSkeletonArcher", com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.RaisedSkeletonArcher.class);
 
         registerUnit("units/mobs/supporter/MercenaryAlly", com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.supporter.MercenaryAlly.class);
         registerUnit("units/mobs/supporter/RatKing", com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.supporter.RatKing.class);

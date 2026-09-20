@@ -38,7 +38,7 @@ public class DwarvenUndead extends Mob {
 
     @Override
     public void attack(boolean forced) {
-        if (!unitState.canAttack() && !forced) {
+        if (!canAttack() && !forced) {
             return;
         }
 

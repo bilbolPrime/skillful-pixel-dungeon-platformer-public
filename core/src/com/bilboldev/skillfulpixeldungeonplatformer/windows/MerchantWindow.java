@@ -66,6 +66,9 @@ public class MerchantWindow extends InteractiveWindow {
 
         int counter = 0;
         for(Item item: InventoryHelper.getInstance().getItems()){
+            if (InventoryHelper.getInstance().getSellPrice(item) <= 0) {
+                continue;
+            }
             if((item instanceof EquipableItem) && ((EquipableItem)item).getEquipped()){
                 continue;
             }
@@ -115,6 +118,13 @@ public class MerchantWindow extends InteractiveWindow {
         }
 
         return super.click(x, y);
+    }
+
+    @Override
+    protected ArrayList<ActionButton> getKeyboardChoices() {
+        ArrayList<ActionButton> choices = new ArrayList<ActionButton>();
+        for (ActionButton button : inventoryButtons) if (((InventoryButton) button).item != null) choices.add(button);
+        return choices;
     }
 
     private float getTitleDescriptionWrapWidth() {

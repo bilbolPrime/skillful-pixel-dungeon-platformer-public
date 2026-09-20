@@ -5,6 +5,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.SkillfulPixelDungeonPlatform
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameSettingsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SoundHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.ActionButton;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.PauseMenuRowButton;
 import com.bilboldev.skillfulpixeldungeonplatformer.platform.WindowModeService;
@@ -25,6 +26,7 @@ public class PauseSettingsWindow extends Window {
     private final ArrayList<ActionButton> buttons;
     private final boolean showSaveExit;
     private ActionButton pressedButton;
+    private final WindowChoiceFocus keyboardFocus = new WindowChoiceFocus();
 
     public PauseSettingsWindow() {
         this(true);
@@ -42,7 +44,7 @@ public class PauseSettingsWindow extends Window {
         WindowModeService windowModeService = SkillfulPixelDungeonPlatformer.getPlatformProfile().windowModeService();
         boolean showWindowedModeButton = !showSaveExit && windowModeService.isSupported();
         boolean showBorderlessWindowedModeButton = showWindowedModeButton && windowModeService.supportsBorderlessWindowedMode();
-        int rowCount = 2 + (showWindowedModeButton ? 1 : 0) + (showBorderlessWindowedModeButton ? 1 : 0);
+        int rowCount = 6 + (showWindowedModeButton ? 1 : 0) + (showBorderlessWindowedModeButton ? 1 : 0);
         width = BUTTON_WIDTH + SIDE_PADDING * 2f;
         height = BUTTON_HEIGHT * rowCount + BUTTON_GAP * (rowCount - 1) + TOP_PADDING + BOTTOM_PADDING + titleScreenEdgeGap * 2f;
         super.build();
@@ -74,13 +76,55 @@ public class PauseSettingsWindow extends Window {
             }
         }.setCheckboxRow("Sound FX", GameSettingsHelper.getInstance().isSoundFxEnabled()));
 
+        buttonY -= BUTTON_HEIGHT + BUTTON_GAP;
+        buttons.add(new PauseMenuRowButton(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT) {
+            @Override
+            public void clicked() {
+                GameSettingsHelper settings = GameSettingsHelper.getInstance();
+                settings.setReducedCameraMotion(!settings.isReducedCameraMotion());
+                setChecked(settings.isReducedCameraMotion());
+            }
+        }.setCheckboxRow(Messages.get("custom.presentation.reduced_motion"), GameSettingsHelper.getInstance().isReducedCameraMotion()));
+
+        buttonY -= BUTTON_HEIGHT + BUTTON_GAP;
+        buttons.add(new PauseMenuRowButton(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT) {
+            @Override
+            public void clicked() {
+                GameSettingsHelper settings = GameSettingsHelper.getInstance();
+                settings.setReducedVisualEffects(!settings.isReducedVisualEffects());
+                setChecked(settings.isReducedVisualEffects());
+            }
+        }.setCheckboxRow(Messages.get("custom.presentation.reduced_effects"), GameSettingsHelper.getInstance().isReducedVisualEffects()));
+
+        buttonY -= BUTTON_HEIGHT + BUTTON_GAP;
+        buttons.add(new PauseMenuRowButton(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT) {
+            @Override
+            public void clicked() {
+                GameSettingsHelper settings = GameSettingsHelper.getInstance();
+                settings.setBackgroundRoomsEnabled(!settings.isBackgroundRoomsEnabled());
+                setChecked(settings.isBackgroundRoomsEnabled());
+            }
+        }.setCheckboxRow(Messages.get("custom.presentation.background_rooms"), GameSettingsHelper.getInstance().isBackgroundRoomsEnabled())
+                .setCheckboxHelp(Messages.get("custom.presentation.background_rooms_help")));
+
+        buttonY -= BUTTON_HEIGHT + BUTTON_GAP;
+        buttons.add(new PauseMenuRowButton(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT) {
+            @Override
+            public void clicked() {
+                GameSettingsHelper settings = GameSettingsHelper.getInstance();
+                settings.setPlatformShadowsEnabled(!settings.isPlatformShadowsEnabled());
+                setChecked(settings.isPlatformShadowsEnabled());
+            }
+        }.setCheckboxRow(Messages.get("custom.presentation.platform_shadows"), GameSettingsHelper.getInstance().isPlatformShadowsEnabled())
+                .setCheckboxHelp(Messages.get("custom.presentation.platform_shadows_help")));
+
         if (showWindowedModeButton) {
             buttonY -= BUTTON_HEIGHT + BUTTON_GAP;
             buttons.add(new PauseMenuRowButton(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT) {
                 @Override
                 public void clicked() {
                     windowModeService.setWindowedModeEnabled(!windowModeService.isWindowedModeEnabled());
-                    WindowHelper.getInstance().replaceWindow(new PauseSettingsWindow(showSaveExit).build());
+                    refresh();
                 }
             }.setCheckboxRow("Windowed Mode", windowModeService.isWindowedModeEnabled()));
         }
@@ -91,7 +135,7 @@ public class PauseSettingsWindow extends Window {
                 @Override
                 public void clicked() {
                     windowModeService.setBorderlessWindowedModeEnabled(!windowModeService.isBorderlessWindowedModeEnabled());
-                    WindowHelper.getInstance().replaceWindow(new PauseSettingsWindow(showSaveExit).build());
+                    refresh();
                 }
             }.setCheckboxRow("Borderless Windowed Mode", windowModeService.isBorderlessWindowedModeEnabled()));
         }
@@ -105,10 +149,12 @@ public class PauseSettingsWindow extends Window {
         for (ActionButton button : buttons) {
             button.draw(batch);
         }
+        keyboardFocus.draw(this, batch, buttons);
     }
 
     @Override
     public boolean pointerDown(float x, float y, int button) {
+        keyboardFocus.pointerDown(x, y, buttons);
         clearPressedButton();
         for (ActionButton actionButton : buttons) {
             if (actionButton.isHitProjected(x, y)) {
@@ -137,7 +183,7 @@ public class PauseSettingsWindow extends Window {
         }
 
         if (x < this.x || x > this.x + this.width || y < this.y || y > this.y + this.height) {
-            WindowHelper.getInstance().replaceWindow(new PauseMenuWindow(showSaveExit).build());
+            hide();
         }
 
         return true;
@@ -145,9 +191,12 @@ public class PauseSettingsWindow extends Window {
 
     @Override
     public boolean keyDown(int keycode) {
-        WindowHelper.getInstance().replaceWindow(new PauseMenuWindow(showSaveExit).build());
-        return true;
+        clearPressedButton();
+        return keyboardFocus.keyDown(this, keycode, buttons);
     }
+
+    @Override
+    public void cancelPointerInput() { clearPressedButton(); }
 
     private void clearPressedButton() {
         if (pressedButton != null) {

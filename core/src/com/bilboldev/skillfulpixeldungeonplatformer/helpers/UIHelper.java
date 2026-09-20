@@ -9,21 +9,27 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntMap;
 import com.bilboldev.skillfulpixeldungeonplatformer.SkillfulPixelDungeonPlatformer;
 import com.bilboldev.skillfulpixeldungeonplatformer.achievements.Achievement;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SkillsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
+import com.bilboldev.skillfulpixeldungeonplatformer.items.Treasure;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.Weapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.MeleeWeapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.wands.Wand;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.RangedWeapon;
+import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Gun;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.ActionButton;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.Button;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.PauseMenuRowButton;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.InputGestureListener;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.ControllerButton;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.ControllerInput;
 import com.bilboldev.skillfulpixeldungeonplatformer.screens.TitleScreen;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Aggression;
@@ -51,8 +57,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.windows.MercenaryWindow;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.PauseMenuWindow;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 public class UIHelper {
     private static final int BOSS_SLAIN_BANNER_X = 6;
@@ -61,9 +65,9 @@ public class UIHelper {
     private static final int BOSS_SLAIN_BANNER_HEIGHT = 39;
     private static final float BOSS_SLAIN_BANNER_SCALE = 4.5f;
     private static final float BOSS_SLAIN_BANNER_DURATION = 4f;
-    private static final float ACHIEVEMENT_BANNER_WIDTH = 720f;
-    private static final float ACHIEVEMENT_BANNER_HEIGHT = 130f;
-    private static final float ACHIEVEMENT_BANNER_ICON_SIZE = 96f;
+    private static final float ACHIEVEMENT_BANNER_WIDTH = 560f;
+    private static final float ACHIEVEMENT_BANNER_HEIGHT = 140f;
+    private static final float ACHIEVEMENT_BANNER_ICON_SIZE = 72f;
     private static final float ACHIEVEMENT_BANNER_DURATION = 3f;
     private static final float ACHIEVEMENT_BANNER_Y = ConstantsHelper.SCREEN_HEIGHT - 250f;
     private static final float DEPTH_TRANSITION_BANNER_DURATION = 1.4f;
@@ -102,11 +106,31 @@ public class UIHelper {
     private static final float DESKTOP_CONSUMABLE_SLOT_GAP = 10f;
     private static final float DESKTOP_CONSUMABLE_LABEL_GAP = 18f;
     private static final float DESKTOP_CONSUMABLE_INVENTORY_GAP = 16f;
-    private static final float HUD_BAR_WIDTH = 500f;
-    private static final float HUD_BAR_HEIGHT = 30f;
-    private static final float HUD_BAR_X = 1075f;
-    private static final float HP_BAR_Y = 230f;
-    private static final float MP_BAR_Y = 200f;
+    public static final float HUD_HEIGHT = 190f;
+    private static final float HUD_SLOT_WIDTH = 88f;
+    private static final float HUD_SLOT_HEIGHT = 120f;
+
+    private static final float HUD_ACTION_BOTTOM = 6f;
+    private static final int HUD_STATUS_X = 688;
+    private static final int HUD_STATUS_Y = 140;
+    private static final int HUD_STATUS_SIZE = 36;
+    private static final int HUD_STATUS_STEP = 52;
+    private static final int HUD_STATUSES_PER_ROW = (int) ((ConstantsHelper.SCREEN_WIDTH - HUD_STATUS_X) / HUD_STATUS_STEP);
+    private HudActionButton[] desktopHudActions;
+    private final Vector3 hudPointer = new Vector3();
+    private final ArrayList<PickupNotice> pickupNotices = new ArrayList<PickupNotice>();
+    private static final int MAX_PICKUP_NOTICES = 3;
+    private static final float PICKUP_NOTICE_DURATION = 2.2f;
+    private static final float HUD_BAR_WIDTH = 330f;
+    private static final float HUD_BAR_HEIGHT = 32f;
+    private static final float HUD_BAR_X = 160f;
+    private static final float HP_BAR_Y = 134f;
+    private static final float MP_BAR_Y = 94f;
+    private static final float XP_BAR_Y = 54f;
+    private static final int HUD_PORTRAIT_SIZE = 104;
+    private static final int HUD_BAG_SIZE = 96;
+    private static final float HUD_PLAYER_PANEL_LEFT = 20f;
+    private static final float HUD_PLAYER_PANEL_WIDTH = 636f;
     private static final float HUD_BAR_VALUE_PADDING = 10f;
     private static final float HUD_BAR_VALUE_RIGHT_PADDING = 30f;
     private static final float HUD_BAR_VALUE_MAX_SIZE = 2.1f;
@@ -149,6 +173,7 @@ public class UIHelper {
     private GameSprite achievementBannerBackground;
     private GameSprite achievementBannerIcon;
     private String achievementBannerName;
+    private float achievementBannerNameScale = 1.9f;
     private float achievementBannerTimer;
     private GameSprite depthTransitionBannerBackground;
     private String depthTransitionBannerText;
@@ -162,7 +187,7 @@ public class UIHelper {
     private ArrayList<Button> buttons;
     private ArrayList<ActionButton> mercenaryHudButtons;
 
-    private GameSprite hpBar, mpBar;
+    private GameSprite hpBar, mpBar, xpBar;
     private final ActionButton[] quickSkillButtons;
     private GameSprite desktopFoodIcon;
     private GameSprite desktopHealthPotionIcon;
@@ -207,6 +232,8 @@ public class UIHelper {
 
     public void clearButtons(){
         buttons.clear();
+        desktopHudActions = null;
+        pickupNotices.clear();
         mercenaryHudButtons.clear();
         jumpButton = null;
         meleeButton = null;
@@ -244,7 +271,9 @@ public class UIHelper {
         boolean touchHudEnabled = SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled();
 
         heroPortrait = UnitHelper.getInstance().getHero().getHeroClass().getClassPortrait().clone();
-        heroPortrait.setPosition(800, 75);
+        heroPortrait.setWidth(HUD_PORTRAIT_SIZE);
+        heroPortrait.setHeight(HUD_PORTRAIT_SIZE);
+        heroPortrait.setPosition(32, 54);
         float meleeButtonX = touchHudEnabled ? touchPrimaryCombatButtonX() : 2075f;
         float meleeButtonY = touchHudEnabled ? touchPrimaryCombatButtonY() : 325f;
         float meleeButtonSize = touchHudEnabled ? TOUCH_RIGHT_PRIMARY_BUTTON_SIZE : TOUCH_RIGHT_SECONDARY_BUTTON_SIZE;
@@ -261,7 +290,7 @@ public class UIHelper {
         meleeButton = new ActionButton(meleeButtonX, meleeButtonY, meleeButtonSize, meleeButtonSize, "images/buttons/blank-button.png", "images/buttons/blank-button-pressed.png"){
             @Override
             public void click(){
-                UnitHelper.getInstance().getHero().attack();
+                UnitHelper.getInstance().getHero().requestPrimaryAction();
             }
         };
 
@@ -270,7 +299,7 @@ public class UIHelper {
         rangedButton = new ActionButton(rangedButtonX, rangedButtonY, TOUCH_RIGHT_SECONDARY_BUTTON_SIZE, TOUCH_RIGHT_SECONDARY_BUTTON_SIZE, "images/buttons/blank-button.png", "images/buttons/blank-button-pressed.png"){
             @Override
             public void click(){
-                UnitHelper.getInstance().getHero().rangedAttack();
+                UnitHelper.getInstance().getHero().requestRangedAction();
             }
         };
         rangedButton.setUseItemCountForAvailability(true);
@@ -293,7 +322,7 @@ public class UIHelper {
             quickSkillButtons[slotIndex] = new ActionButton(quickSkillX, quickSkillY, TOUCH_RIGHT_SECONDARY_BUTTON_SIZE, TOUCH_RIGHT_SECONDARY_BUTTON_SIZE, "images/buttons/blank-button.png", "images/buttons/blank-button-pressed.png"){
                 @Override
                 public void click(){
-                    UnitHelper.getInstance().getHero().useQuickSkillSlot(quickSkillSlotIndex);
+                    UnitHelper.getInstance().getHero().requestQuickSkill(quickSkillSlotIndex);
                 }
             };
 
@@ -390,7 +419,8 @@ public class UIHelper {
 
         interactButton.disable();
 
-        backPackButton = new ActionButton(550, 75, 200, 200, "images/buttons/back-pack.png", "images/buttons/back-pack.png"){
+        backPackButton = new ActionButton(548, 54, HUD_BAG_SIZE, HUD_BAG_SIZE, "images/buttons/back-pack.png", "images/buttons/back-pack.png"){
+            { enableUiPressFeedback(); }
             @Override
             public void click(){
                 WindowHelper.getInstance().addWindow(new InventoryWindow(UnitHelper.getInstance().getHero().getHeroClass(),2000, 1000).build());
@@ -410,7 +440,7 @@ public class UIHelper {
 
             @Override
             public void click() {
-                WindowHelper.getInstance().addWindow(new PauseMenuWindow().build());
+                PauseMenuWindow.openGameplay();
             }
         };
 
@@ -432,7 +462,7 @@ public class UIHelper {
             }
         }
 
-        gs = new GameSprite("images/units/" + UnitHelper.getInstance().getHero().getHeroClass().getAssetFolderName() + "/button-jump.png", TOUCH_RIGHT_SECONDARY_ICON_SIZE, TOUCH_RIGHT_SECONDARY_ICON_SIZE);
+        gs = new GameSprite(UnitHelper.getInstance().getHero().getHeroClass().getJumpButtonArt(), TOUCH_RIGHT_SECONDARY_ICON_SIZE, TOUCH_RIGHT_SECONDARY_ICON_SIZE);
         centerButtonSprite(jumpButton, gs, TOUCH_RIGHT_SECONDARY_BUTTON_SIZE, TOUCH_RIGHT_SECONDARY_ICON_SIZE);
 
         gs = new GameSprite("skill.png", touchHudEnabled ? TOUCH_RIGHT_PRIMARY_ICON_SIZE : TOUCH_RIGHT_SECONDARY_ICON_SIZE, touchHudEnabled ? TOUCH_RIGHT_PRIMARY_ICON_SIZE : TOUCH_RIGHT_SECONDARY_ICON_SIZE);
@@ -489,6 +519,8 @@ public class UIHelper {
         hpBar.setPosition(HUD_BAR_X, HP_BAR_Y);
         mpBar = new GameSprite("images/misc/mana_bar.png", 400, 30);
         mpBar.setPosition(HUD_BAR_X, MP_BAR_Y);
+        xpBar = new GameSprite("images/misc/hp_bar.png", HUD_BAR_WIDTH, HUD_BAR_HEIGHT);
+        xpBar.setPosition(HUD_BAR_X, XP_BAR_Y);
         desktopFoodIcon = new GameSprite("images/items/food.png", 45, 45);
         desktopHealthPotionIcon = new GameSprite("images/items/health-potion.png", 45, 45);
         desktopManaPotionIcon = new GameSprite("images/items/mana-potion.png", 45, 45);
@@ -498,7 +530,50 @@ public class UIHelper {
         updateTouchActionButtonAvailability();
     }
 
+    private float hudBottom() {
+        return GameHelper.GetSingleton().getUICamera().position.y
+                - GameHelper.GetSingleton().getUICamera().viewportHeight / 2f;
+    }
+
+    private float hudPlayerOffsetX() {
+        if (!SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled()) return 0f;
+        return GameHelper.GetSingleton().getUICamera().position.x
+                - (HUD_PLAYER_PANEL_LEFT + HUD_PLAYER_PANEL_WIDTH / 2f);
+    }
+
+
+    public void layoutHud() {
+        if (backPackButton == null || hpBar == null) return;
+        float bottom = hudBottom();
+        float offsetX = hudPlayerOffsetX();
+        heroPortrait.setPosition(offsetX + 32f, bottom + 54f);
+        backPackButton.setPosition(offsetX + 548f, bottom + 54f);
+        hpBar.setPosition(offsetX + HUD_BAR_X, bottom + HP_BAR_Y);
+        mpBar.setPosition(offsetX + HUD_BAR_X, bottom + MP_BAR_Y);
+        xpBar.setPosition(offsetX + HUD_BAR_X, bottom + XP_BAR_Y);
+        layoutDesktopActions();
+    }
+
+    private void hudRect(Batch batch, float x, float y, float width, float height, float r, float g, float b, float alpha) {
+        float packed = batch.getPackedColor();
+        batch.setColor(r, g, b, alpha);
+        batch.draw(TextureHelper.GetSingleton().getSolidPixel(), x, y, width, height);
+        batch.setPackedColor(packed);
+    }
+
+    private void drawHudBackdrop(Batch batch) {
+        float bottom = hudBottom();
+        float viewWidth = GameHelper.GetSingleton().getUICamera().viewportWidth;
+        float left = GameHelper.GetSingleton().getUICamera().position.x - viewWidth / 2f;
+        hudRect(batch, left, bottom, viewWidth, HUD_HEIGHT, 0.035f, 0.058f, 0.069f, 0.97f);
+        hudRect(batch, left, bottom + HUD_HEIGHT - 2f, viewWidth, 2f, 0.33f, 0.41f, 0.42f, 0.8f);
+        float offsetX = hudPlayerOffsetX();
+        hudRect(batch, offsetX + HUD_PLAYER_PANEL_LEFT, bottom + 36f, 482f, 140f, 0.09f, 0.14f, 0.16f, 0.9f);
+        hudRect(batch, offsetX + 536f, bottom + 42f, 120f, 120f, 0.09f, 0.14f, 0.16f, 0.9f);
+    }
+
     public void drawButtons(Batch batch){
+        if (!heroDead()) drawPickupNotices(batch);
         if (bossSlainBanner != null && bossSlainBannerTimer > 0f && !heroDead()) {
             bossSlainBanner.draw(batch);
             bossSlainBannerTimer = Math.max(0f, bossSlainBannerTimer - Gdx.graphics.getDeltaTime());
@@ -528,6 +603,8 @@ public class UIHelper {
 
         updateTouchActionButtonAvailability();
 
+        layoutHud();
+        drawHudBackdrop(batch);
         for(Button button : buttons){
             button.draw(batch);
         }
@@ -542,23 +619,34 @@ public class UIHelper {
 
         drawResourceBar(batch,
                 hpBar,
-                HUD_BAR_X,
-                HP_BAR_Y,
+                hpBar.getX(),
+                hpBar.getY(),
                 UnitHelper.getInstance().getHero().getHP(),
                 UnitHelper.getInstance().getHero().getMaxHP(),
-                ACTIVE_HP_FILL_COLOR);
+                ACTIVE_HP_FILL_COLOR,
+                "custom.hud.hp");
         drawResourceBar(batch,
                 mpBar,
-                HUD_BAR_X,
-                MP_BAR_Y,
+                mpBar.getX(),
+                mpBar.getY(),
                 UnitHelper.getInstance().getHero().getMp(),
                 UnitHelper.getInstance().getHero().getMmp(),
-                ACTIVE_MP_FILL_COLOR);
+                ACTIVE_MP_FILL_COLOR,
+                "custom.hud.mp");
+        Hero statusHero = UnitHelper.getInstance().getHero();
+        drawResourceBar(batch, xpBar, xpBar.getX(), xpBar.getY(), statusHero.getExperience(),
+                statusHero.getExperience() + statusHero.getExperienceToNextLevel(), new Color(0.72f, 0.58f, 0.28f, 1f),
+                "custom.hud.xp");
 
-        if (SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled()) {
+        boolean touchHudEnabled = SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled();
+        if (touchHudEnabled) {
             drawTouchStatusBadges(batch);
         }
 
+
+        float statusX = touchHudEnabled ? heroPortrait.getX() : HUD_STATUS_X;
+        float statusY = touchHudEnabled ? HUD_HEIGHT + 8f : HUD_STATUS_Y;
+        int statusesPerRow = touchHudEnabled ? (int) (HUD_PLAYER_PANEL_WIDTH / HUD_STATUS_STEP) : HUD_STATUSES_PER_ROW;
         int offsetX = 0;
         int offsetY = 0;
         for(Buff buff : UnitHelper.getInstance().getHero().getBuffs()){
@@ -567,38 +655,48 @@ public class UIHelper {
             }
 
             GameSprite gs = buff.getGameSprite();
-            gs.setHeight(50);
-            gs.setWidth(50);
-            gs.setPosition(1075 + offsetX, 125 + offsetY);
+            gs.setHeight(HUD_STATUS_SIZE);
+            gs.setWidth(HUD_STATUS_SIZE);
+            gs.setPosition(statusX + offsetX, hudBottom() + statusY + offsetY);
             gs.draw(batch);
 
-            offsetX += 75;
+            offsetX += HUD_STATUS_STEP;
 
-            if(offsetX == 75 * 7){
+            if(offsetX == HUD_STATUS_STEP * statusesPerRow){
                 offsetX = 0;
-                offsetY -= 75;
+                offsetY += HUD_STATUS_STEP;
             }
         }
 
         for (Skill skill : getPersistentHudSkills(UnitHelper.getInstance().getHero())) {
             GameSprite gs = skill.getGameSprite();
-            gs.setHeight(50);
-            gs.setWidth(50);
-            gs.setPosition(1075 + offsetX, 125 + offsetY);
+            gs.setHeight(HUD_STATUS_SIZE);
+            gs.setWidth(HUD_STATUS_SIZE);
+            gs.setPosition(statusX + offsetX, hudBottom() + statusY + offsetY);
             gs.draw(batch);
 
-            offsetX += 75;
-            if(offsetX == 75 * 7){
+            offsetX += HUD_STATUS_STEP;
+            if(offsetX == HUD_STATUS_STEP * statusesPerRow){
                 offsetX = 0;
-                offsetY -= 75;
+                offsetY += HUD_STATUS_STEP;
             }
         }
 
+        String necromancerStatus = NecromancerFeedback.summary(UnitHelper.getInstance().getHero());
+        if (necromancerStatus.isEmpty()) necromancerStatus = MercenaryFeedback.summary(UnitHelper.getInstance().getHero());
+        if (!necromancerStatus.isEmpty()) {
+            float statusTextX = touchHudEnabled ? statusX : Math.max(960f, HUD_STATUS_X + offsetX + 16f);
+            float statusTextWidth = touchHudEnabled ? HUD_PLAYER_PANEL_WIDTH - 24f : ConstantsHelper.SCREEN_WIDTH - 32f - statusTextX;
+            float statusTextY = touchHudEnabled ? statusY + offsetY + HUD_STATUS_SIZE + 30f : HUD_STATUS_Y + 27f;
+            if (statusTextWidth > 0f) hudLabel(batch, necromancerStatus, statusTextX,
+                    hudBottom() + statusTextY, statusTextWidth, 1.9f, Color.LIGHT_GRAY);
+        }
         drawDesktopActionBar(batch);
         drawDesktopConsumables(batch);
 
-        FontHelper.getSingleton().write(Color.WHITE, batch, 3f, 800 + (int)expStringXOffset, 55, expString);
-        FontHelper.getSingleton().write(Color.WHITE, batch, 3f, 545 + (int)inventoryStringXOffset, 55, inventoryString);
+        GlyphLayout inventoryLayout = FontHelper.getSingleton().measure(Color.WHITE, 2.2f, inventoryString);
+        FontHelper.getSingleton().writeWhite(batch, 2.2f,
+                backPackButton.x + (HUD_BAG_SIZE - inventoryLayout.width) / 2f, hudBottom() + 28f, inventoryString);
     }
 
     private void drawResourceBar(Batch batch,
@@ -607,32 +705,33 @@ public class UIHelper {
                                  float y,
                                  int currentValue,
                                  int maxValue,
-                                 Color fillColor) {
+                                 Color fillColor,
+                                 String labelKey) {
         float fillFraction = maxValue <= 0 ? 0f : MathUtils.clamp(currentValue / (float) maxValue, 0f, 1f);
         int filledBarWidth = Math.round(HUD_BAR_WIDTH * fillFraction);
 
-        barSprite.setWidth((int) HUD_BAR_WIDTH);
-        barSprite.setColor(Color.WHITE);
-        barSprite.setAlpha(0.8f);
-        barSprite.draw(batch);
+        hudRect(batch, x - 2f, y - 2f, HUD_BAR_WIDTH + 4f, HUD_BAR_HEIGHT + 4f, 0.24f, 0.31f, 0.33f, 1f);
+        hudRect(batch, x, y, HUD_BAR_WIDTH, HUD_BAR_HEIGHT, 0.025f, 0.035f, 0.045f, 1f);
 
         barSprite.setWidth(filledBarWidth);
+        barSprite.setHeight((int) HUD_BAR_HEIGHT);
         barSprite.setColor(getResourceFillColor(fillColor, fillFraction));
         barSprite.setAlpha(1f);
-        barSprite.draw(batch);
+        if (barSprite == xpBar) {
+
+            hudRect(batch, x, y, filledBarWidth, HUD_BAR_HEIGHT, fillColor.r, fillColor.g, fillColor.b, 1f);
+        } else {
+            barSprite.draw(batch);
+        }
         barSprite.setColor(Color.WHITE);
 
-        drawResourceValue(batch, x, y, filledBarWidth, currentValue);
+        drawResourceValue(batch, x, y, Messages.get(labelKey, Math.max(0, currentValue), Math.max(0, maxValue)));
     }
 
-    private void drawResourceValue(Batch batch, float barX, float barY, int filledBarWidth, int currentValue) {
-        String valueText = Integer.toString(Math.max(0, currentValue));
+    private void drawResourceValue(Batch batch, float barX, float barY, String valueText) {
         float textSize = fitHudBarTextSize(valueText);
         GlyphLayout layout = FontHelper.getSingleton().measure(Color.WHITE, textSize, valueText);
-        float textX = barX + filledBarWidth - layout.width - HUD_BAR_VALUE_RIGHT_PADDING;
-        if (textX < barX + HUD_BAR_VALUE_PADDING) {
-            textX = barX + HUD_BAR_VALUE_PADDING;
-        }
+        float textX = barX + (HUD_BAR_WIDTH - layout.width) / 2f;
 
         float textY = barY + (HUD_BAR_HEIGHT + layout.height) * 0.5f - 2f;
         FontHelper.getSingleton().writeWhite(batch, textSize, textX, textY, valueText);
@@ -748,6 +847,12 @@ public class UIHelper {
     public boolean performSecondaryAction() {
         if (heroDead()) {
             return false;
+        }
+        Hero hero = UnitHelper.getInstance().getHero();
+        if (hero.getRangedWeapon() instanceof Gun) {
+
+            hero.requestRangedAction();
+            return true;
         }
         if (rangedButton != null && rangedButton.canClick()) {
             rangedButton.click();
@@ -1081,6 +1186,10 @@ public class UIHelper {
         return consumed;
     }
 
+    public void cancelPointerInput() {
+        clearPressedButton();
+    }
+
     private void clearPressedButton() {
         if (pressedButton instanceof ActionButton) {
             ((ActionButton) pressedButton).cancelPress();
@@ -1356,6 +1465,75 @@ public class UIHelper {
         }
     }
 
+
+    public void showPickupNotice(String text, GameSprite icon) {
+        if (text == null || text.isEmpty()) return;
+        if (pickupNotices.size() == MAX_PICKUP_NOTICES) pickupNotices.remove(0);
+        pickupNotices.add(new PickupNotice(text, snapshotDesktopActionIcon(icon)));
+    }
+
+    public void showItemReceipt(Item item) {
+
+        if (item == null || item instanceof Treasure) return;
+        showPickupNotice(Messages.get("custom.notice.received", new Object[]{item.getName()}), item.getGameSprite());
+    }
+
+    private static final class PickupNotice {
+        private final String text;
+        private final GameSprite icon;
+        private float remaining = PICKUP_NOTICE_DURATION;
+        private PickupNotice(String text, GameSprite icon) { this.text = text; this.icon = icon; }
+    }
+
+    private float noticeX() {
+        float viewWidth = GameHelper.GetSingleton().getUICamera().viewportWidth;
+        float left = GameHelper.GetSingleton().getUICamera().position.x - viewWidth / 2f;
+        float x = left + viewWidth - ACHIEVEMENT_BANNER_WIDTH - 124f;
+        if (exitButton != null) x = Math.min(x, exitButton.x - ACHIEVEMENT_BANNER_WIDTH - 24f);
+        float top = hudBottom() + GameHelper.GetSingleton().getUICamera().viewportHeight;
+        Rectangle bank = new Rectangle(x, top - 400f, ACHIEVEMENT_BANNER_WIDTH, 376f);
+        MapHelper map = MapHelper.getInstance();
+        for (MapHelper.InteractionPrompt prompt : new MapHelper.InteractionPrompt[]{map.getDoorPrompt(), map.getContextPrompt()}) {
+            if (prompt == null) continue;
+            Vector3 point = GameHelper.GetSingleton().getCamera().project(new Vector3(prompt.x, prompt.y, 0));
+            point.y = Gdx.graphics.getHeight() - point.y;
+            GameHelper.GetSingleton().getUICamera().unproject(point);
+
+            float promptY = MathUtils.clamp(point.y, hudBottom() + HUD_HEIGHT + 12f, top - 52f);
+            if (bank.overlaps(new Rectangle(point.x - 220f, promptY - 80f, 440f, 160f))) return left + 24f;
+        }
+        return x;
+    }
+
+    private void drawNoticePanel(Batch batch, float x, float y, float width, float height, float alpha) {
+        hudRect(batch, x, y, width, height, 0.32f, 0.40f, 0.41f, alpha);
+        hudRect(batch, x + 2f, y + 2f, width - 4f, height - 4f, 0.025f, 0.045f, 0.055f, alpha);
+        hudRect(batch, x + 2f, y + 2f, 3f, height - 4f, 0.73f, 0.61f, 0.32f, alpha);
+    }
+
+    private void drawPickupNotices(Batch batch) {
+        if (pickupNotices.isEmpty()) return;
+        float x = noticeX();
+        float top = hudBottom() + GameHelper.GetSingleton().getUICamera().viewportHeight - 24f;
+        if (achievementBannerTimer > 0f) top -= ACHIEVEMENT_BANNER_HEIGHT + 10f;
+        for (int i = pickupNotices.size() - 1; i >= 0; i--) {
+            PickupNotice notice = pickupNotices.get(i);
+            float y = top - 64f;
+            float alpha = Math.min(1f, notice.remaining / 0.25f);
+            drawNoticePanel(batch, x, y, ACHIEVEMENT_BANNER_WIDTH, 64f, alpha * 0.96f);
+            if (notice.icon != null) {
+                notice.icon.setWidth(40); notice.icon.setHeight(40);
+                notice.icon.setPosition(x + 16f, y + 12f);
+                notice.icon.setAlpha(alpha); notice.icon.draw(batch);
+            }
+            hudLabel(batch, notice.text, x + 68f, y + 41f, ACHIEVEMENT_BANNER_WIDTH - 84f, 1.9f,
+                    new Color(1f, 1f, 1f, alpha));
+            notice.remaining = Math.max(0f, notice.remaining - Gdx.graphics.getDeltaTime());
+            if (notice.remaining == 0f) pickupNotices.remove(i);
+            top = y - 8f;
+        }
+    }
+
     public void showBossSlainBanner() {
         bossSlainBanner = buildBossSlainBanner();
         bossSlainBannerTimer = BOSS_SLAIN_BANNER_DURATION;
@@ -1373,7 +1551,10 @@ public class UIHelper {
         achievementBannerIcon.setPosition(achievementBannerBackground.getX() + 22f,
                 achievementBannerBackground.getY() + (ACHIEVEMENT_BANNER_HEIGHT - ACHIEVEMENT_BANNER_ICON_SIZE) / 2f);
 
-        achievementBannerName = UtilsHelper.multiLine(achievement.getName(), 2, ACHIEVEMENT_BANNER_WIDTH - 180f);
+        FontHelper.FittedTextBlock name = FontHelper.getSingleton().fitOverlayText("achievement-banner",
+                achievement.getName(), achievement.getName(), 1.9f, ACHIEVEMENT_BANNER_WIDTH - 120f, 70f);
+        achievementBannerName = name.text;
+        achievementBannerNameScale = name.size;
         achievementBannerTimer = ACHIEVEMENT_BANNER_DURATION;
     }
 
@@ -1399,22 +1580,14 @@ public class UIHelper {
     }
 
     private void drawAchievementBanner(Batch batch) {
-        float backgroundAlpha = achievementBannerBackground.getAlpha();
-        float iconAlpha = achievementBannerIcon.getAlpha();
-
-        achievementBannerBackground.setAlpha(backgroundAlpha);
-        achievementBannerBackground.draw(batch);
-        achievementBannerIcon.setAlpha(iconAlpha);
+        float x = noticeX();
+        float y = hudBottom() + GameHelper.GetSingleton().getUICamera().viewportHeight - ACHIEVEMENT_BANNER_HEIGHT - 24f;
+        drawNoticePanel(batch, x, y, ACHIEVEMENT_BANNER_WIDTH, ACHIEVEMENT_BANNER_HEIGHT, 0.96f);
+        achievementBannerIcon.setPosition(x + 16f, y + (ACHIEVEMENT_BANNER_HEIGHT - ACHIEVEMENT_BANNER_ICON_SIZE) / 2f);
         achievementBannerIcon.draw(batch);
-
-        float textX = achievementBannerBackground.getX() + 148f;
-        float headerY = achievementBannerBackground.getY() + ACHIEVEMENT_BANNER_HEIGHT - 28f;
-        float nameY = achievementBannerBackground.getY() + 56f;
-        FontHelper.getSingleton().write(Color.GOLDENROD, batch, 2f, textX, headerY, Messages.maybeTranslate("BADGE UNLOCKED"));
-        FontHelper.getSingleton().writeWhiteRaw(batch, 2f, textX, nameY, achievementBannerName);
-
-        achievementBannerBackground.setAlpha(backgroundAlpha);
-        achievementBannerIcon.setAlpha(iconAlpha);
+        hudLabel(batch, Messages.maybeTranslate("BADGE UNLOCKED"), x + 104f, y + 117f,
+                ACHIEVEMENT_BANNER_WIDTH - 120f, 1.7f, Color.GOLDENROD);
+        hudLabel(batch, achievementBannerName, x + 104f, y + 83f, ACHIEVEMENT_BANNER_WIDTH - 120f, achievementBannerNameScale, Color.WHITE);
 
         achievementBannerTimer = Math.max(0f, achievementBannerTimer - Gdx.graphics.getDeltaTime());
         if (achievementBannerTimer == 0f) {
@@ -1429,19 +1602,21 @@ public class UIHelper {
             return;
         }
 
-        depthTransitionBannerBackground.draw(batch);
+        float viewWidth = GameHelper.GetSingleton().getUICamera().viewportWidth;
+        float viewHeight = GameHelper.GetSingleton().getUICamera().viewportHeight;
+        float centerX = GameHelper.GetSingleton().getUICamera().position.x;
+        float centerY = GameHelper.GetSingleton().getUICamera().position.y;
+        hudRect(batch, centerX - viewWidth / 2f, centerY - viewHeight / 2f, viewWidth, viewHeight, 0.015f, 0.025f, 0.03f, 1f);
 
         depthTransitionBannerFrame += Gdx.graphics.getDeltaTime();
 
-        GlyphLayout bannerLayout = new GlyphLayout();
-        bannerLayout.setText(FontHelper.getSingleton().getFont(Color.WHITE, 3f), depthTransitionBannerText);
-        float textX = (ConstantsHelper.SCREEN_WIDTH - bannerLayout.width) / 2f;
-        float textY = (ConstantsHelper.SCREEN_HEIGHT + bannerLayout.height) / 2f;
-        float phase = depthTransitionBannerFrame / DEPTH_TRANSITION_FLASH_PERIOD_SECONDS;
-        float flashAlpha = 0.35f + 0.65f * (0.5f + 0.5f * MathUtils.sin(phase * MathUtils.PI2));
-        Color flashColor = new Color(Color.WHITE);
-        flashColor.a = flashAlpha;
-        FontHelper.getSingleton().write(flashColor, batch, 3f, textX, textY, depthTransitionBannerText);
+        float alpha = GameSettingsHelper.getInstance().isReducedVisualEffects() ? 1f :
+                Math.min(1f, Math.min(depthTransitionBannerFrame / 0.18f, depthTransitionBannerTimer / 0.18f));
+        drawNoticePanel(batch, centerX - 300f, centerY - 70f, 600f, 140f, alpha);
+        hudLabel(batch, Messages.get("custom.notice.depth", MapHelper.getInstance().getDepth()),
+                centerX - 280f, centerY + 39f, 560f, 1.9f, new Color(0.85f, 0.73f, 0.43f, alpha));
+        hudLabel(batch, depthTransitionBannerText, centerX - 280f, centerY - 5f, 560f, 2.6f,
+                new Color(1f, 1f, 1f, alpha));
 
         depthTransitionBannerTimer = Math.max(0f, depthTransitionBannerTimer - Gdx.graphics.getDeltaTime());
         if (depthTransitionBannerTimer == 0f) {
@@ -1460,65 +1635,90 @@ public class UIHelper {
         if (!desktopActionBarEnabled()) {
             return;
         }
-
-        ArrayList<DesktopActionSlot> actions = new ArrayList<DesktopActionSlot>();
-        ArrayList<DesktopActionSlot> unlockedSkillActions = new ArrayList<DesktopActionSlot>();
+        ensureDesktopActions();
         Hero hero = UnitHelper.getInstance().getHero();
         Weapon weapon = hero.getWeapon();
         int attackManaCost = weapon instanceof Wand ? ((Wand) weapon).getManaCost() : 0;
         GameSettingsHelper settings = GameSettingsHelper.getInstance();
-        boolean attackOnCooldown = !hero.canAttack() || (weapon instanceof Wand && ((Wand) weapon).isOnCooldown());
+        boolean recovering = hero.isAttacking() || hero.getAttackCycleRemainingSeconds() > 0f;
+        boolean attackOnCooldown = recovering || (weapon instanceof Wand && ((Wand) weapon).isOnCooldown());
         GameSprite attackIcon = snapshotDesktopActionIcon(weapon.getGameSprite());
         EnhancementVisualHelper.applyWeaponEnhancementPulse(attackIcon, weapon);
-        actions.add(new DesktopActionSlot(attackIcon, attackManaCost, attackManaCost == 0 || hero.getMp() >= attackManaCost, settings.bindingLabel(settings.getAttackBinding()), attackOnCooldown));
+        drawHudAction(batch, 3, attackIcon, weapon.getName(),
+                attackManaCost > 0 ? Messages.get("custom.hud.mana_cost", attackManaCost) : null,
+                settings.hudBindingLabel(settings.getAttackBinding()),
+                hero.canAttack() && hero.getMp() >= attackManaCost && !attackOnCooldown,
+                hero.getMp() < attackManaCost ? "custom.hud.no_mana" : null, attackOnCooldown);
         if (hero.getRangedWeapon() != null) {
             GameSprite rangedIcon = snapshotDesktopActionIcon(hero.getRangedWeapon().getGameSprite());
             EnhancementVisualHelper.applyWeaponEnhancementPulse(rangedIcon, hero.getRangedWeapon());
-            actions.add(new DesktopActionSlot(rangedIcon,
-                    String.valueOf(hero.getRangedWeapon().getAmmo()),
-                    Color.WHITE,
-                    hero.getRangedWeapon().getAmmo() > 0,
-                    settings.bindingLabel(settings.getRangedBinding()),
-                    !hero.canAttack()));
+            boolean gunEquipped = hero.getRangedWeapon() instanceof Gun;
+            boolean gunSpace = !gunEquipped || ((Gun)hero.getRangedWeapon()).hasProjectileSpace();
+            String rangedReason = hero.getRangedWeapon().getAmmo() == 0 ? (gunEquipped ? "custom.guns.empty" : "custom.hud.no_ammo")
+                    : (!gunSpace ? "custom.mercenary.shot_limit" : null);
+            drawHudAction(batch, 4, rangedIcon, hero.getRangedWeapon().getName(),
+                    String.valueOf(hero.getRangedWeapon().getAmmo()), settings.hudBindingLabel(settings.getRangedBinding()),
+                    hero.getRangedWeapon().getAmmo() > 0 && hero.canAttack() && gunSpace,
+                    rangedReason, recovering);
+        } else {
+            drawHudAction(batch, 4, null, Messages.get("custom.hud.ranged"), null,
+                    settings.hudBindingLabel(settings.getRangedBinding()), false, "custom.hud.empty", false);
         }
-
         for (int slotIndex = 0; slotIndex < hero.getQuickSkillSlotCount(); slotIndex++) {
-            addDesktopSkillAction(unlockedSkillActions,
-                    hero.getQuickSkill(slotIndex),
-                    quickSkillBindingLabel(settings, slotIndex));
+            ActiveSkill skill = hero.getQuickSkill(slotIndex);
+            String reason = NecromancerFeedback.unavailableReasonKey(hero, skill);
+            if (reason == null) reason = MercenaryFeedback.unavailableReasonKey(hero, skill);
+            drawHudAction(batch, 5 + slotIndex, skill == null ? null : snapshotDesktopActionIcon(skill.getGameSprite()),
+                    skill == null ? Messages.get("custom.hud.skill", slotIndex + 1) : skill.getName(),
+                    skill == null || skill.getManaCost() == 0 ? null : Messages.get("custom.hud.mana_cost", skill.getManaCost()),
+                    quickSkillBindingLabel(settings, slotIndex), skill != null && skill.canUse(hero),
+                    skill == null ? "custom.hud.empty" : (hero.getMp() < skill.getManaCost() ? "custom.hud.no_mana" : reason),
+                    skill != null && reason == null && (recovering || skill.isOnCooldown()));
         }
+        drawInteractionPrompts(batch);
+    }
 
-        Collections.sort(unlockedSkillActions, new Comparator<DesktopActionSlot>() {
-            @Override
-            public int compare(DesktopActionSlot first, DesktopActionSlot second) {
-                return Integer.compare(first.sortOrder, second.sortOrder);
-            }
-        });
-        actions.addAll(unlockedSkillActions);
+    private void drawInteractionPrompts(Batch batch) {
+        MapHelper map = MapHelper.getInstance();
+        GameSettingsHelper settings = GameSettingsHelper.getInstance();
+        MapHelper.InteractionPrompt door = map.getDoorPrompt();
+        MapHelper.InteractionPrompt context = map.getContextPrompt();
+        Rectangle doorBounds = drawInteractionPrompt(batch, door,
+                settings.hudBindingLabel(settings.getEnterDoorBinding()), null);
+        drawInteractionPrompt(batch, context, settings.hudBindingLabel(settings.getInteractBinding()), doorBounds);
+    }
 
-        if (actions.isEmpty()) {
-            return;
+    private Rectangle drawInteractionPrompt(Batch batch, MapHelper.InteractionPrompt prompt,
+                                            String binding, Rectangle other) {
+        if (prompt == null) return null;
+        String text = Messages.get("custom.prompt.binding", new Object[]{binding, Messages.get(prompt.verbKey)});
+        float scale = 1.9f;
+        GlyphLayout label = FontHelper.getSingleton().measure(Color.WHITE, scale, text);
+        if (label.width > 360f) {
+            scale *= 360f / label.width;
+            label = FontHelper.getSingleton().measure(Color.WHITE, scale, text);
         }
+        Vector3 point = GameHelper.GetSingleton().getCamera().project(new Vector3(prompt.x, prompt.y, 0));
+        point.y = Gdx.graphics.getHeight() - point.y;
+        GameHelper.GetSingleton().getUICamera().unproject(point);
+        float viewWidth = GameHelper.GetSingleton().getUICamera().viewportWidth;
+        float left = GameHelper.GetSingleton().getUICamera().position.x - viewWidth / 2f;
+        float top = hudBottom() + GameHelper.GetSingleton().getUICamera().viewportHeight;
+        float width = label.width + 28f, height = 44f;
+        float x = MathUtils.clamp(point.x - width / 2f, left + 8f, left + viewWidth - width - 8f);
+        float y = MathUtils.clamp(point.y + 10f, hudBottom() + HUD_HEIGHT + 12f, top - height - 8f);
+        Rectangle bounds = new Rectangle(x, y, width, height);
+        if (other != null && bounds.overlaps(other)) {
 
-        float startX = hpBar.getX() + HUD_BAR_WIDTH + ConstantsHelper.TILE;
-        float firstRowY = hpBar.getY() - DESKTOP_ACTION_ROW_OFFSET;
-        float rowStep = DESKTOP_ACTION_SLOT_SIZE + DESKTOP_ACTION_ROW_GAP - DESKTOP_ACTION_ADDITIONAL_ROW_DROP;
-        for (int index = 0; index < actions.size(); index++) {
-            int column = index % DESKTOP_ACTIONS_PER_ROW;
-            int row = index / DESKTOP_ACTIONS_PER_ROW;
-            int visualRow = row;
-            if (row == 0) {
-                visualRow = 1;
-            }
-            else if (row == 1) {
-                visualRow = 0;
-            }
-
-            float slotX = startX + column * (DESKTOP_ACTION_SLOT_SIZE + DESKTOP_ACTION_SLOT_GAP);
-            float slotY = firstRowY + visualRow * rowStep;
-            slotY += visualRow == 0 ? ConstantsHelper.TILE * 0.5f : ConstantsHelper.TILE * 0.75f;
-            drawDesktopActionSlot(batch, actions.get(index), slotX, slotY);
+            y = other.y - height - 8f;
+            bounds.y = y;
         }
+        hudRect(batch, x, y, width, height, 0.38f, 0.46f, 0.46f, 0.96f);
+        hudRect(batch, x + 2f, y + 2f, width - 4f, height - 4f, 0.025f, 0.045f, 0.055f, 0.96f);
+        FontHelper.getSingleton().write(Color.WHITE, batch, scale, x + 14f, y + (height + label.height) / 2f, text);
+
+        hudRect(batch, point.x - 1f, Math.min(point.y, y), 2f, Math.max(2f, Math.abs(y - point.y)), 0.65f, 0.71f, 0.64f, 0.85f);
+        return bounds;
     }
 
     private void drawDesktopConsumables(Batch batch) {
@@ -1531,57 +1731,194 @@ public class UIHelper {
             return;
         }
 
+        ensureDesktopActions();
         GameSettingsHelper settings = GameSettingsHelper.getInstance();
-        DesktopActionSlot[] consumables = new DesktopActionSlot[]{
-                new DesktopActionSlot(desktopFoodIcon,
-                        String.valueOf(InventoryHelper.getInstance().getRationsCount()),
-                        Color.WHITE,
-                        InventoryHelper.getInstance().getRationsCount() > 0,
-                        settings.bindingLabel(settings.getEatFoodBinding()),
-                        false),
-                new DesktopActionSlot(desktopHealthPotionIcon,
-                        String.valueOf(InventoryHelper.getInstance().getHealthPotionCount()),
-                        Color.WHITE,
-                        InventoryHelper.getInstance().getHealthPotionCount() > 0,
-                        settings.bindingLabel(settings.getHealthPotionBinding()),
-                        false),
-                new DesktopActionSlot(desktopManaPotionIcon,
-                        String.valueOf(InventoryHelper.getInstance().getManaPotionCount()),
-                        Color.WHITE,
-                        InventoryHelper.getInstance().getManaPotionCount() > 0,
-                        settings.bindingLabel(settings.getManaPotionBinding()),
-                        false)
-        };
+        InventoryHelper inventory = InventoryHelper.getInstance();
+        int[] counts = {inventory.getRationsCount(), inventory.getHealthPotionCount(), inventory.getManaPotionCount()};
+        GameSprite[] icons = {desktopFoodIcon, desktopHealthPotionIcon, desktopManaPotionIcon};
+        String[] titles = {"custom.hud.food", "custom.hud.health_potion", "custom.hud.mana_potion"};
+        GameSettingsHelper.InputBinding[] bindings = {settings.getEatFoodBinding(), settings.getHealthPotionBinding(), settings.getManaPotionBinding()};
 
-        float inventoryButtonX = backPackButton != null ? backPackButton.x : 550f;
-        float inventoryButtonY = backPackButton != null ? backPackButton.y : 75f;
-        float totalHeight = consumables.length * DESKTOP_ACTION_SLOT_SIZE + (consumables.length - 1) * DESKTOP_CONSUMABLE_SLOT_GAP;
-        float startY = inventoryButtonY + (200f - totalHeight) / 2f;
-        float consumableSlotX = getDesktopConsumableSlotX(inventoryButtonX, consumables);
-
-        drawDesktopStatusBadges(batch,
-                consumableSlotX - DESKTOP_CONSUMABLE_LABEL_GAP - DESKTOP_ACTION_SLOT_SIZE,
-                inventoryButtonY);
-
-        for (int index = 0; index < consumables.length; index++) {
-            float slotY = startY + (consumables.length - 1 - index) * (DESKTOP_ACTION_SLOT_SIZE + DESKTOP_CONSUMABLE_SLOT_GAP);
-            drawDesktopConsumableSlot(batch, consumables[index], inventoryButtonX, slotY);
+        float counterX = ConstantsHelper.SCREEN_WIDTH - 240f;
+        drawHudCounter(batch, desktopDepthIcon, Math.max(1, MapHelper.getInstance().getDepth()), counterX);
+        drawHudCounter(batch, desktopKeyIcon, MapHelper.getInstance().getCurrentDepthKeyCount(), counterX + 108f);
+        for (int index = 0; index < counts.length; index++) {
+            drawHudAction(batch, index, icons[index], Messages.get(titles[index]), String.valueOf(counts[index]),
+                    settings.hudBindingLabel(bindings[index]), counts[index] > 0, counts[index] == 0 ? "custom.hud.empty" : null, false);
         }
     }
 
-    private float getDesktopConsumableSlotX(float inventoryButtonX, DesktopActionSlot[] consumables) {
-        float leftMostSlotX = inventoryButtonX;
+    private void drawHudCounter(Batch batch, GameSprite icon, int value, float x) {
+        icon.setWidth(48);
+        icon.setHeight(48);
+        icon.setPosition(x, hudBottom() + HUD_ACTION_BOTTOM + 60f);
+        icon.draw(batch);
+        hudLabel(batch, String.valueOf(value), x + 50f, hudBottom() + HUD_ACTION_BOTTOM + 88f, 48f, 2f, Color.WHITE);
+    }
 
-        for (DesktopActionSlot consumable : consumables) {
-            GlyphLayout bindingLayout = new GlyphLayout();
-            bindingLayout.setText(FontHelper.getSingleton().getFont(Color.WHITE, 1.8f), consumable.bindingLabel);
-
-            float bindingX = inventoryButtonX - DESKTOP_CONSUMABLE_INVENTORY_GAP - bindingLayout.width;
-            float slotX = bindingX - DESKTOP_CONSUMABLE_LABEL_GAP - DESKTOP_ACTION_SLOT_SIZE;
-            leftMostSlotX = Math.min(leftMostSlotX, slotX);
+    private void ensureDesktopActions() {
+        if (desktopHudActions != null) return;
+        desktopHudActions = new HudActionButton[5 + Hero.QUICK_SKILL_SLOT_COUNT];
+        for (int i = 0; i < desktopHudActions.length; i++) {
+            desktopHudActions[i] = new HudActionButton(i);
+            buttons.add(desktopHudActions[i]);
         }
+        layoutDesktopActions();
+    }
 
-        return leftMostSlotX;
+    private void layoutDesktopActions() {
+        if (desktopHudActions == null) return;
+        for (int i = 0; i < desktopHudActions.length; i++) {
+            float x = i < 3 ? 704f + i * 108f : 1060f + (i - 3) * 108f;
+            desktopHudActions[i].setPosition(x, hudBottom() + HUD_ACTION_BOTTOM);
+        }
+    }
+
+
+
+    private final class HudActionButton extends ActionButton {
+        private final int slot;
+        private HudActionButton(int slot) {
+            super(0, 0, HUD_SLOT_WIDTH, HUD_SLOT_HEIGHT, (Texture) null, (Texture) null);
+            this.slot = slot;
+            enableUiPressFeedback();
+        }
+        @Override public boolean canClick() { return isEnabled(); }
+        @Override public boolean isHitProjected(float px, float py) {
+            return isEnabled() && px >= x && px < x + HUD_SLOT_WIDTH && py >= y && py < y + HUD_SLOT_HEIGHT;
+        }
+        @Override public void draw(Batch batch) {                                              }
+        @Override public void clicked() {
+            switch (slot) {
+                case 0: performEatFoodAction(); break;
+                case 1: performHealthPotionAction(); break;
+                case 2: performManaPotionAction(); break;
+                case 3: performPrimaryAction(); break;
+                case 4: performSecondaryAction(); break;
+                default: performQuickSkillAction(slot - 5); break;
+            }
+        }
+        private boolean pressed() { return isShowingPressFeedback(); }
+    }
+
+
+    public int getHoveredQuickSkillSlot() {
+        if (desktopHudActions == null || WindowHelper.getInstance().windowOpen()) return -1;
+        hudPointer.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+        GameHelper.GetSingleton().getUICamera().unproject(hudPointer);
+        for (int i = 5; i < desktopHudActions.length; i++)
+            if (desktopHudActions[i].isHitProjected(hudPointer.x, hudPointer.y)) return i - 5;
+        return -1;
+    }
+
+    private void drawHudAction(Batch batch, int slot, GameSprite source, String title, String badge,
+                               String binding, boolean available, String reasonKey, boolean cooling) {
+        HudActionButton button = desktopHudActions[slot];
+        hudPointer.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+        GameHelper.GetSingleton().getUICamera().unproject(hudPointer);
+        boolean hover = !WindowHelper.getInstance().windowOpen() && button.isHitProjected(hudPointer.x, hudPointer.y);
+        boolean pressed = !WindowHelper.getInstance().windowOpen() && button.pressed();
+        float x = button.x, y = button.y + 32f;
+        float border = hover ? 3f : 1.5f;
+        hudRect(batch, x, y, HUD_SLOT_WIDTH, HUD_SLOT_WIDTH, hover ? 0.75f : 0.30f, hover ? 0.77f : 0.39f, hover ? 0.68f : 0.40f, 1f);
+        hudRect(batch, x + border, y + border, HUD_SLOT_WIDTH - 2 * border, HUD_SLOT_WIDTH - 2 * border,
+                pressed ? 0.18f : 0.065f, pressed ? 0.24f : 0.10f, pressed ? 0.25f : 0.12f, 1f);
+        if (source != null) {
+            GameSprite icon = source.clone();
+            icon.setWidth(64);
+            icon.setHeight(64);
+            icon.setPosition(x + 12f, y + 12f - (pressed ? 3f : 0f));
+            icon.setAlpha(icon.getAlpha() * (available ? 1f : 0.4f));
+            icon.draw(batch);
+        } else {
+            hudRect(batch, x + 30f, y + 44f, 28f, 3f, 0.5f, 0.57f, 0.57f, 1f);
+        }
+        if (badge != null) {
+            hudRect(batch, x + 21f, y + 66f, 64f, 20f, 0.02f, 0.035f, 0.045f, 0.94f);
+            hudLabel(batch, badge, x + 20f, y + 84f, 64f, 1.25f, Color.WHITE);
+        }
+        String state = cooling ? Messages.get("custom.hud.wait") :
+                (reasonKey != null ? Messages.get(reasonKey) : (available ? null : Messages.get("custom.hud.unavailable")));
+        if (state != null) {
+            hudRect(batch, x + 3f, y + 3f, HUD_SLOT_WIDTH - 6f, 22f, 0.025f, 0.04f, 0.045f, 0.96f);
+
+            hudLabel(batch, state, x + 5f, y + 23f, HUD_SLOT_WIDTH - 10f, 2f, Color.LIGHT_GRAY);
+            if (cooling) {
+                hudRect(batch, x + 6f, y + 51f, 14f, 2f, 0.8f, 0.8f, 0.7f, 1f);
+                hudRect(batch, x + 10f, y + 39f, 6f, 12f, 0.8f, 0.8f, 0.7f, 1f);
+                hudRect(batch, x + 6f, y + 37f, 14f, 2f, 0.8f, 0.8f, 0.7f, 1f);
+            } else if (source != null) {
+                hudRect(batch, x + 6f, y + 44f, 15f, 3f, 0.8f, 0.8f, 0.7f, 1f);
+            }
+        }
+        hudBinding(batch, binding, x, y - 9f);
+        if (hover) {
+            hudRect(batch, x + 33f, button.y, 22f, pressed ? 5f : 2f, 0.8f, 0.8f, 0.7f, 1f);
+            String necromancerHint = NecromancerFeedback.hint(reasonKey);
+            if (necromancerHint == null) necromancerHint = MercenaryFeedback.hint(reasonKey);
+            if (necromancerHint != null) {
+                float tooltipX = MathUtils.clamp(x - 166f, 688f, 1876f);
+                hudRect(batch, tooltipX, hudBottom() + HUD_HEIGHT + 6f, 420f, 112f, 0.035f, 0.058f, 0.069f, 0.97f);
+                hudLabel(batch, title, tooltipX + 8f, hudBottom() + HUD_HEIGHT + 104f, 404f, 1.8f, Color.WHITE);
+                FontHelper.getSingleton().writeRaw(Color.LIGHT_GRAY, batch, 1.8f, tooltipX + 12f,
+                        hudBottom() + HUD_HEIGHT + 66f, UtilsHelper.multiLine(necromancerHint, 2, 396f));
+                return;
+            }
+            float tooltipX = MathUtils.clamp(x - 106f, 688f, 1996f);
+            hudRect(batch, tooltipX, hudBottom() + HUD_HEIGHT + 6f, 300f, 44f, 0.035f, 0.058f, 0.069f, 0.97f);
+            hudLabel(batch, title, tooltipX + 8f, hudBottom() + HUD_HEIGHT + 38f, 284f, 1.8f, Color.WHITE);
+        }
+    }
+
+    private void hudBinding(Batch batch, String binding, float x, float y) {
+
+
+        ControllerInput input = ControllerInput.getInstance();
+        String face = input.usesControllerLabels() && input.layout() == ControllerButton.Layout.PLAYSTATION
+                ? binding.substring(binding.lastIndexOf('+') + 1) : "";
+        if (!face.equals("Cross") && !face.equals("Circle") && !face.equals("Square") && !face.equals("Triangle")) {
+            hudLabel(batch, binding, x, y, HUD_SLOT_WIDTH, 1.7f, Color.WHITE); return;
+        }
+        String prefix = binding.substring(0, binding.length() - face.length());
+        float prefixWidth = prefix.isEmpty() ? 0 : new GlyphLayout(FontHelper.getSingleton().getFont(Color.WHITE, 1.7f), prefix).width + 4f;
+        float size = 22f, left = x + (HUD_SLOT_WIDTH - prefixWidth - size) / 2f, bottom = y - size;
+        if (!prefix.isEmpty()) FontHelper.getSingleton().write(Color.WHITE, batch, 1.7f, left, y, prefix);
+        left += prefixWidth;
+        float packed = batch.getPackedColor(); batch.setColor(Color.WHITE);
+        if (face.equals("Cross")) {
+            hudStroke(batch, left, bottom, left + size, bottom + size);
+            hudStroke(batch, left, bottom + size, left + size, bottom);
+        } else if (face.equals("Triangle")) {
+            hudStroke(batch, left, bottom, left + size, bottom);
+            hudStroke(batch, left, bottom, left + size / 2, bottom + size);
+            hudStroke(batch, left + size, bottom, left + size / 2, bottom + size);
+        } else {
+            int sides = face.equals("Square") ? 4 : 16;
+            float radius = face.equals("Square") ? size * .70710678f : size / 2;
+            float offset = face.equals("Square") ? MathUtils.PI / 4 : 0;
+            for (int i = 0; i < sides; i++) {
+                float a = offset + i * MathUtils.PI2 / sides, b = offset + (i + 1) * MathUtils.PI2 / sides;
+                hudStroke(batch, left + size / 2 + radius * MathUtils.cos(a), bottom + size / 2 + radius * MathUtils.sin(a),
+                        left + size / 2 + radius * MathUtils.cos(b), bottom + size / 2 + radius * MathUtils.sin(b));
+            }
+        }
+        batch.setPackedColor(packed);
+    }
+
+    private void hudStroke(Batch batch, float x1, float y1, float x2, float y2) {
+        float dx = x2 - x1, dy = y2 - y1;
+        batch.draw(TextureHelper.GetSingleton().getSolidPixel(), x1, y1 - 1.5f, 0, 1.5f,
+                (float)Math.sqrt(dx * dx + dy * dy), 3, 1, 1, MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees,
+                0, 0, 1, 1, false, false);
+    }
+
+    private void hudLabel(Batch batch, String text, float x, float y, float width, float scale, Color color) {
+        GlyphLayout label = new GlyphLayout(FontHelper.getSingleton().getFont(color, scale), text);
+        if (label.width > width) {
+            scale *= width / label.width;
+            label.setText(FontHelper.getSingleton().getFont(color, scale), text);
+        }
+        FontHelper.getSingleton().write(color, batch, scale, x + (width - label.width) / 2f, y, text);
     }
 
     private void drawDesktopStatusBadges(Batch batch, float x, float inventoryButtonY) {
@@ -1599,8 +1936,10 @@ public class UIHelper {
             return;
         }
 
-        float badgeX = backPackButton.x - DESKTOP_ACTION_SLOT_SIZE - DESKTOP_CONSUMABLE_LABEL_GAP;
-        drawDesktopStatusBadges(batch, badgeX, backPackButton.y);
+        float badgeX = backPackButton.x + HUD_BAG_SIZE + DESKTOP_CONSUMABLE_LABEL_GAP;
+
+        drawDesktopKeyBadge(batch, badgeX, hudBottom() + 28f);
+        drawDesktopDepthBadge(batch, badgeX, hudBottom() + 100f);
     }
 
     private void drawMercenaryHud(Batch batch) {
@@ -1810,35 +2149,6 @@ public class UIHelper {
                 keyCountText);
     }
 
-    private void drawDesktopConsumableSlot(Batch batch, DesktopActionSlot action, float inventoryButtonX, float y) {
-        GlyphLayout bindingLayout = new GlyphLayout();
-        bindingLayout.setText(FontHelper.getSingleton().getFont(Color.WHITE, 1.8f), action.bindingLabel);
-
-        float bindingX = inventoryButtonX - DESKTOP_CONSUMABLE_INVENTORY_GAP - bindingLayout.width;
-        float slotX = bindingX - DESKTOP_CONSUMABLE_LABEL_GAP - DESKTOP_ACTION_SLOT_SIZE;
-
-        drawDesktopActionSlot(batch, action, slotX, y, false);
-        FontHelper.getSingleton().write(Color.WHITE,
-                batch,
-                1.8f,
-                bindingX,
-                y + DESKTOP_ACTION_SLOT_SIZE / 2f + bindingLayout.height / 2f,
-                action.bindingLabel);
-    }
-
-    private void addDesktopSkillAction(ArrayList<DesktopActionSlot> actions, ActiveSkill activeSkill, String bindingLabel) {
-        if (activeSkill == null) {
-            return;
-        }
-
-        actions.add(new DesktopActionSlot(activeSkill.getGameSprite(),
-                activeSkill.getManaCost(),
-                UnitHelper.getInstance().getHero().getMp() >= activeSkill.getManaCost(),
-                bindingLabel,
-            !UnitHelper.getInstance().getHero().canAttack() || activeSkill.isOnCooldown(),
-                getUnlockOrder(activeSkill)));
-    }
-
     private GameSprite snapshotDesktopActionIcon(GameSprite icon) {
         if (icon == null) {
             return null;
@@ -1856,82 +2166,22 @@ public class UIHelper {
         return snapshot;
     }
 
-    private int getUnlockOrder(ActiveSkill activeSkill) {
-        if (activeSkill == null) {
-            return Integer.MAX_VALUE;
-        }
-
-        ArrayList<Integer> unlockedSkills = UnitHelper.getInstance().getHero().getUnlockedSkills();
-        int unlockOrder = unlockedSkills.indexOf(activeSkill.getId());
-        return unlockOrder < 0 ? Integer.MAX_VALUE : unlockOrder;
-    }
-
-    private void drawDesktopActionSlot(Batch batch, DesktopActionSlot action, float x, float y) {
-        drawDesktopActionSlot(batch, action, x, y, true);
-    }
-
-    private void drawDesktopActionSlot(Batch batch, DesktopActionSlot action, float x, float y, boolean drawBindingBelow) {
-        if (action.icon == null) {
-            return;
-        }
-
-        float imageAlpha = action.cooldownActive || !action.isAvailable ? DESKTOP_ACTION_COOLDOWN_ALPHA : 1f;
-
-        GameSprite icon = action.icon.clone();
-        int iconSize = (int) (DESKTOP_ACTION_SLOT_SIZE * DESKTOP_ACTION_ICON_SCALE);
-        icon.setWidth(iconSize);
-        icon.setHeight(iconSize);
-        icon.setPosition(x + (DESKTOP_ACTION_SLOT_SIZE - iconSize) / 2f, y + (DESKTOP_ACTION_SLOT_SIZE - iconSize) / 2f);
-        icon.setAlpha(icon.getAlpha() * imageAlpha);
-        icon.draw(batch);
-
-        if (action.badgeText != null) {
-            GlyphLayout manaLayout = new GlyphLayout();
-            manaLayout.setText(FontHelper.getSingleton().getFont(action.badgeColor, 1.8f), action.badgeText);
-            float badgeWidth = manaLayout.width + DESKTOP_ACTION_MANA_BADGE_PADDING_X * 2f;
-            float badgeHeight = manaLayout.height + DESKTOP_ACTION_MANA_BADGE_PADDING_Y * 2f;
-            float badgeX = x + DESKTOP_ACTION_SLOT_SIZE - badgeWidth;
-            float badgeY = y + DESKTOP_ACTION_SLOT_SIZE - badgeHeight;
-            Color previousColor = new Color(batch.getColor());
-            batch.setColor(previousColor.r, previousColor.g, previousColor.b, DESKTOP_ACTION_MANA_BADGE_ALPHA);
-            batch.draw(TextureHelper.GetSingleton().getTexture("images/misc/black.png"), badgeX, badgeY, badgeWidth, badgeHeight);
-            batch.setColor(previousColor);
-                FontHelper.getSingleton().write(action.badgeColor,
-                    batch,
-                    1.8f,
-                badgeX + DESKTOP_ACTION_MANA_BADGE_PADDING_X,
-                badgeY + badgeHeight - DESKTOP_ACTION_MANA_BADGE_PADDING_Y,
-                    action.badgeText);
-        }
-
-        if (drawBindingBelow) {
-            GlyphLayout bindingLayout = new GlyphLayout();
-            bindingLayout.setText(FontHelper.getSingleton().getFont(Color.WHITE, 1.8f), action.bindingLabel);
-            FontHelper.getSingleton().write(Color.WHITE,
-                batch,
-                1.8f,
-                x + (DESKTOP_ACTION_SLOT_SIZE - bindingLayout.width) / 2f,
-                y - DESKTOP_ACTION_LABEL_OFFSET,
-                action.bindingLabel);
-        }
-    }
-
     private String quickSkillBindingLabel(GameSettingsHelper settings, int slotIndex) {
         switch (slotIndex) {
             case 0:
-                return settings.bindingLabel(settings.getQuickSkillBinding());
+                return settings.hudBindingLabel(settings.getQuickSkillBinding());
             case 1:
-                return settings.bindingLabel(settings.getQuickSkill2Binding());
+                return settings.hudBindingLabel(settings.getQuickSkill2Binding());
             case 2:
-                return settings.bindingLabel(settings.getQuickSkill3Binding());
+                return settings.hudBindingLabel(settings.getQuickSkill3Binding());
             case 3:
-                return settings.bindingLabel(settings.getQuickSkill4Binding());
+                return settings.hudBindingLabel(settings.getQuickSkill4Binding());
             case 4:
-                return settings.bindingLabel(settings.getQuickSkill5Binding());
+                return settings.hudBindingLabel(settings.getQuickSkill5Binding());
             case 5:
-                return settings.bindingLabel(settings.getQuickSkill6Binding());
+                return settings.hudBindingLabel(settings.getQuickSkill6Binding());
             case 6:
-                return settings.bindingLabel(settings.getQuickSkill7Binding());
+                return settings.hudBindingLabel(settings.getQuickSkill7Binding());
             default:
                 return "?";
         }
@@ -2020,47 +2270,4 @@ public class UIHelper {
         return banner;
     }
 
-    private static final class DesktopActionSlot {
-        private final GameSprite icon;
-        private final String badgeText;
-        private final Color badgeColor;
-        private final boolean isAvailable;
-        private final String bindingLabel;
-        private final boolean cooldownActive;
-        private final int sortOrder;
-
-        private DesktopActionSlot(GameSprite icon, int manaCost, boolean hasEnoughMana, String bindingLabel, boolean cooldownActive) {
-            this(icon,
-                    manaCost > 0 ? String.valueOf(manaCost) : null,
-                    manaCost > 0 ? (hasEnoughMana ? Color.ROYAL : Color.FIREBRICK) : null,
-                    hasEnoughMana,
-                    bindingLabel,
-                    cooldownActive,
-                    Integer.MIN_VALUE);
-        }
-
-        private DesktopActionSlot(GameSprite icon, int manaCost, boolean hasEnoughMana, String bindingLabel, boolean cooldownActive, int sortOrder) {
-            this(icon,
-                    manaCost > 0 ? String.valueOf(manaCost) : null,
-                    manaCost > 0 ? (hasEnoughMana ? Color.ROYAL : Color.FIREBRICK) : null,
-                    hasEnoughMana,
-                    bindingLabel,
-                    cooldownActive,
-                    sortOrder);
-        }
-
-        private DesktopActionSlot(GameSprite icon, String badgeText, Color badgeColor, boolean isAvailable, String bindingLabel, boolean cooldownActive) {
-            this(icon, badgeText, badgeColor, isAvailable, bindingLabel, cooldownActive, Integer.MIN_VALUE);
-        }
-
-        private DesktopActionSlot(GameSprite icon, String badgeText, Color badgeColor, boolean isAvailable, String bindingLabel, boolean cooldownActive, int sortOrder) {
-            this.icon = icon;
-            this.badgeText = badgeText;
-            this.badgeColor = badgeColor != null ? badgeColor : Color.WHITE;
-            this.isAvailable = isAvailable;
-            this.bindingLabel = bindingLabel;
-            this.cooldownActive = cooldownActive;
-            this.sortOrder = sortOrder;
-        }
-    }
 }

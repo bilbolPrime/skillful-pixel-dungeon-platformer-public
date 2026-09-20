@@ -184,6 +184,8 @@ public class Item {
     }
 
     public void spawnNaturally(float x, float y, float floorY, String roomIdentifier) {
+
+        if (InventoryHelper.isClassRestricted(this)) return;
         ItemOnScreen itemOnScreen = new ItemOnScreen(this);
         itemOnScreen.x = x;
         itemOnScreen.y = y;

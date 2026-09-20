@@ -2,61 +2,56 @@
 
 Skillful Pixel Dungeon Platformer is a LibGDX action-platformer built around Pixel Dungeon-inspired enemies, items, achievements, and progression systems.
 
-This public repository contains the game code, assets, and build configuration needed to run the desktop build and assemble the Android app. Store-specific identifiers have been replaced with placeholders so the project can be shared safely.
+This public repository contains the game code, assets, and build configuration needed to run the desktop build and assemble the Android app. Local development builds do not require store credentials.
+
+**Platform support:** Desktop and Android. The HUD is optimized for desktop.
 
 ## Get the game
 
-Use the official store pages to download the game, or visit the website for news and support.
+Buying the game on Steam supports the developer and includes these supporter bonuses:
 
-[![Get it on Google Play](https://img.shields.io/badge/Get%20it%20on-Google%20Play-414141?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.bilboldev.skillfulpixeldungeonplatformer)
-[![Get it on Steam](https://img.shields.io/badge/Get%20it%20on-Steam-171a21?logo=steam&logoColor=white)](https://store.steampowered.com/app/4725620)
+- Steam achievements
+- Steam Cloud saves
+- A supporter badge
+- The option to have Rat King accompany you on your adventure as an entertaining companion, with no gameplay advantage
+
+[![Get it on Steam](https://img.shields.io/badge/Get%20it%20on-Steam-171a21?logo=steam&logoColor=white)](https://store.steampowered.com/app/4725620/Pixel_Dungeon_Platformer/?utm_source=github&utm_medium=repository&utm_campaign=steam_conversion)
 [![Visit the website](https://img.shields.io/badge/Visit-the%20website-0a66c2?logo=googlechrome&logoColor=white)](https://bilbolstack.com)
+
+![Pixel Dungeon Platformer gameplay](game.gif)
 
 ## Project layout
 
 - `core`: shared gameplay code, content logic, and screens
 - `desktop`: desktop launcher and optional Steam integration hooks
-- `android`: Android launcher, Google Play Games integration hooks, and billing integration hooks
+- `android`: Android launcher and app packaging
 - `assets`: runtime textures, audio, fonts, and localization bundles
 
 ## Building
 
 Requirements:
 
-- JDK 17 or newer available through `JAVA_HOME` or on `PATH`
-- Android SDK configured locally if you want Android builds
+- JDK 17 or 21 available through `JAVA_HOME` or on `PATH`; the builds were verified with JDK 21
+- Android SDK Platform 35 and SDK Build-Tools for Android builds, with SDK licenses accepted
+- Set `ANDROID_HOME` to your SDK installation, or set `sdk.dir` in the ignored `local.properties` file
+
+Use the included Gradle 8.7 wrapper from the repository root.
 
 Common commands:
 
 ```bash
-./gradlew :desktop:classes
-./gradlew :desktop:run
+./gradlew :desktop:assemble
 ./gradlew :android:assembleDebug
+./gradlew :android:assembleRelease
 ```
 
 On Windows, use `gradlew.bat` instead of `./gradlew`.
 
-## Platform configuration
+These assembly tasks do not run tests. Desktop ZIP/TAR distributions are written to `desktop/build/distributions/`, and Android APKs are written to `android/build/outputs/apk/`. The release APK is minified and unsigned; debug builds use the locally generated Android debug signing key.
 
-This repository does not include live store credentials or platform IDs.
+For local desktop development, run `./gradlew :desktop:run`. This launches directly from compiled classes without requiring Steam configuration. Set `SKILLFUL_DESKTOP_DEBUG_JAVA_HOME` if the desktop launcher needs a different JDK from Gradle.
 
-Google Play Games:
-
-- Fill `android/res/values/game-ids.xml` with your own Play Games app ID and achievement IDs.
-
-Google Play Billing:
-
-- Fill `android/res/values/store-ids.xml` with your own in-app product IDs.
-
-Steam:
-
-- Set a Steam app ID through `SPD_STEAM_APP_ID`, `-Dspd.steamAppId=...`, or a Gradle property named `steamAppId`.
-- Optional depot properties for packaging can be supplied through Gradle properties:
-  - `steamWindows64DepotId`
-  - `steamLinux64DepotId`
-  - `steamMacArm64DepotId`
-
-Without a configured Steam app ID, the desktop build runs without Steam ownership checks.
+Optional native desktop packaging is available through `./gradlew :desktop:packageSteamFree`. It requires a full JDK containing `jpackage`, configured through `JAVA_HOME` or `SKILLFUL_DESKTOP_DEBUG_JAVA_HOME`; `JPACKAGE` can override the packaging executable. Packages are created for the current host: Windows x64, Linux x64, or macOS arm64.
 
 ## AI and tooling disclosure
 

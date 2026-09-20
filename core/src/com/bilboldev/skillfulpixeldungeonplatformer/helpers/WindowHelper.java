@@ -1,16 +1,21 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.helpers;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector3;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.Button;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.DesktopMenuStyle;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.InputGestureListener;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.TextWindow;
+import com.bilboldev.skillfulpixeldungeonplatformer.windows.PauseMenuWindow;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.Window;
 
 import java.util.ArrayList;
 
 public class WindowHelper {
     protected ArrayList<Window> windows;
+    private Window pointerWindow;
+    private boolean pointerPending;
 
     private static final WindowHelper ourInstance = new WindowHelper();
 
@@ -23,6 +28,13 @@ public class WindowHelper {
     }
 
     public void addWindow(Window window){
+        if (windows.contains(window)) return;
+        if (window instanceof PauseMenuWindow) {
+            for (Window existing : windows) if (existing instanceof PauseMenuWindow) return;
+        }
+
+        cancelPointerInput();
+        if (UnitHelper.getInstance().getHero() != null) UnitHelper.getInstance().getHero().clearControlIntent();
         windows.add(window);
     }
 
@@ -31,15 +43,22 @@ public class WindowHelper {
         addWindow(window);
     }
     public void addWindow(float width, float height){
-        windows.add(new Window(width, height).build());
+        addWindow(new Window(width, height).build());
     }
 
     public void addWindow(float width, float height, String text){
-        windows.add(new TextWindow(width, height, text).build());
+        addWindow(new TextWindow(width, height, text).build());
     }
 
     public boolean windowOpen(){
         return windows != null && windows.size() > 0;
+    }
+
+    public com.bilboldev.skillfulpixeldungeonplatformer.windows.DesktopPauseMenuWindow desktopPause() {
+        for (Window window : windows)
+            if (window instanceof com.bilboldev.skillfulpixeldungeonplatformer.windows.DesktopPauseMenuWindow)
+                return (com.bilboldev.skillfulpixeldungeonplatformer.windows.DesktopPauseMenuWindow) window;
+        return null;
     }
 
     public void closeWindow(){
@@ -47,10 +66,11 @@ public class WindowHelper {
             return;
         }
 
-        windows.remove(windows.size() - 1);
+        closeWindow(topWindow());
     }
 
     public void closeWindow(Window window){
+        window.cancelPointerInput();
         windows.remove(window);
     }
 
@@ -62,14 +82,28 @@ public class WindowHelper {
         return windows.get(windows.size() - 1);
     }
 
+    public boolean isRootWindow(Window window) {
+        return !windows.isEmpty() && windows.get(0) == window;
+    }
+
     public void draw(Batch batch){
         for(Window window : windows){
-            window.draw(batch);
+            DesktopMenuStyle.setTopModal(window == topWindow());
+            try { window.draw(batch); }
+            finally { DesktopMenuStyle.setTopModal(false); }
         }
     }
 
     public void hideAll(){
+        cancelPointerInput();
         windows = new ArrayList<>();
+    }
+
+    public void cancelPointerInput() {
+        if (pointerWindow != null) pointerWindow.cancelPointerInput();
+        if (topWindow() != null) topWindow().cancelPointerInput();
+        pointerWindow = null;
+        pointerPending = true;
     }
 
 
@@ -107,15 +141,26 @@ public class WindowHelper {
         Vector3 t = GameHelper.GetSingleton().getUICamera().unproject(new Vector3(x, y, 0));
 
         if(windows != null && windows.size() > 0){
-            return windows.get(windows.size() - 1).pointerDown(t.x, t.y, button);
+            pointerWindow = topWindow();
+            pointerPending = true;
+            return pointerWindow.pointerDown(t.x, t.y, button);
         }
 
+        pointerWindow = null;
+        pointerPending = false;
         return false;
     }
 
     public boolean tap(float x, float y) {
         Vector3 t = GameHelper.GetSingleton().getUICamera().unproject(new Vector3(x, y, 0));
 
+        if (pointerPending) {
+            Window owner = pointerWindow;
+            pointerWindow = null;
+            pointerPending = false;
+            if (owner == null || owner != topWindow()) return true;
+            return owner.tap(t.x, t.y);
+        }
         if (windows != null && windows.size() > 0) {
             return windows.get(windows.size() - 1).tap(t.x, t.y);
         }
@@ -175,7 +220,11 @@ public class WindowHelper {
             return false;
         }
 
-        return windows.get(windows.size() - 1).keyDown(keycode);
+        Window current = topWindow();
+        boolean handled = current.keyDown(keycode);
+        if (!handled && (keycode == Input.Keys.ESCAPE || keycode == Input.Keys.BACK)) current.hide();
+
+        return true;
     }
 }
 

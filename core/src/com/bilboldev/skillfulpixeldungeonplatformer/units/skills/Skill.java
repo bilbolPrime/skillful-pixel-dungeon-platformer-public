@@ -1,12 +1,15 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.skills;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SkillsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassSkillTree;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
+import com.bilboldev.skillfulpixeldungeonplatformer.messages.Languages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class Skill {
     protected int id;
@@ -53,7 +56,20 @@ public class Skill {
     }
 
     public String getName(){
-        return Messages.capitalizeForDisplay(Messages.maybeTranslate(name));
+        String localized = NewClassSkillTree.isReserved(id)
+                ? Messages.get("custom.newskills." + id + ".name") : Messages.maybeTranslate(name);
+        if (Messages.lang() != Languages.ENGLISH) return Messages.capitalizeForDisplay(localized);
+
+        StringBuilder title = new StringBuilder(localized.toLowerCase(Locale.ENGLISH));
+        boolean wordStart = true;
+        for (int i = 0; i < title.length(); i++) {
+            char letter = title.charAt(i);
+            if (Character.isLetterOrDigit(letter)) {
+                if (wordStart) title.setCharAt(i, Character.toUpperCase(letter));
+                wordStart = false;
+            } else if (Character.isWhitespace(letter) || letter == '-') wordStart = true;
+        }
+        return title.toString();
     }
 
     public String getSourceName(){
@@ -61,10 +77,12 @@ public class Skill {
     }
 
     public String getQuickDescription(){
+        if (NewClassSkillTree.isReserved(id)) return Messages.get("custom.newskills." + id + ".quick");
         return Messages.maybeTranslate(quickDescription);
     }
 
     public String getDescription(){
+        if (NewClassSkillTree.isReserved(id)) return Messages.get("custom.newskills." + id + ".description");
         return Messages.maybeTranslate(description);
     }
 
@@ -77,7 +95,7 @@ public class Skill {
                     "%s\n%s: %s",
                     toReturn,
                     requiresLabel,
-                    SkillsHelper.getInstance().getSkill(requires.get(0)).getName());
+                    SkillsHelper.getInstance().getSkillName(requires.get(0)));
         }
 
         if(requires.size() > 1){
@@ -89,7 +107,7 @@ public class Skill {
                     requiredString = requiresLabel + ": ";
                 }
 
-                requiredString += SkillsHelper.getInstance().getSkill(required).getName();
+                requiredString += SkillsHelper.getInstance().getSkillName(required);
             }
 
             return Messages.maybeTranslate("%s\n%s", toReturn, requiredString);

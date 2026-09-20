@@ -10,6 +10,8 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.Gold;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.Sign;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.doors.Door;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.ItemOnScreen;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.traps.PlatformTrap;
@@ -18,8 +20,10 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.traps.TrapType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 public class Room {
+    public static final int MAX_CORPSES = 12;
     private static final long SCATTERED_ITEM_RANDOM_SALT = 0x53C471A2D91B6EF4L;
     protected String identifier;
     protected int width = 20 + RandomHelper.getInstance().randomInt(10);
@@ -30,12 +34,40 @@ public class Room {
     protected ArrayList<Door> doors;
     protected ArrayList<Unit> stuff;
 
+
+    private ArrayList<CorpseRecord> corpses;
+    private List<CorpseRecord> corpseView;
+    private long nextCorpseOrder;
+    private long corpseRestoreVersion;
+
     protected boolean canSpawn = true;
     protected boolean trapsPlaced;
     protected boolean bossEncounterStarted;
     protected boolean bossDefeated;
 
     protected Sign sign;
+    private RoomLayout layout;
+    private int generationDepth = 1, generationOrdinal;
+    private boolean contentsPlaced;
+
+
+    public final void populate() {
+        if (contentsPlaced) return;
+        placeContents();
+        contentsPlaced = true;
+    }
+
+    protected void placeContents() { }
+
+    public Room planForFloor(int depth, int ordinal) {
+        generationDepth = depth; generationOrdinal = ordinal;
+        return this;
+    }
+
+    public RoomLayout getLayout() {
+        if (layout == null) layout = new RoomLayout(this);
+        return layout;
+    }
 
     public Room(String identifier){
         this.identifier = identifier;
@@ -46,7 +78,13 @@ public class Room {
     }
 
     public Room build(){
-        // Guaranteed platform
+        if (getClass() == Room.class) {
+            RoomFamilies.build(this, generationDepth, generationOrdinal);
+            seedWater();
+            return this;
+        }
+
+
         int tileX = RandomHelper.getInstance().randomInt(width);
         int platformWidth = 3 + RandomHelper.getInstance().randomInt(width / 5);
 
@@ -82,12 +120,14 @@ public class Room {
             }
         }
 
+        RoomGeometry.normalize(this);
         seedWater();
 
         return this;
     }
 
     protected void seedWater() {
+        if (generationDepth >= 1 && generationDepth <= 4) return;
         if (getClass() != Room.class || platforms.isEmpty() || !RandomHelper.getInstance().randomChance(70)) {
             return;
         }
@@ -105,6 +145,7 @@ public class Room {
 
     private void addRandomWaterPlatforms(int platformCount) {
         ArrayList<String> waterCandidates = new ArrayList<String>(platforms);
+        Collections.sort(waterCandidates);
 
         for (int puddle = 0; puddle < platformCount && !waterCandidates.isEmpty(); puddle++) {
             String candidate = waterCandidates.remove(RandomHelper.getInstance().randomInt(waterCandidates.size()));
@@ -150,6 +191,7 @@ public class Room {
         }
 
         int trapCount = Math.min(6, trapCandidates.size());
+        Collections.sort(trapCandidates);
         int hiddenTrapIndex = trapCount > 0 ? RandomHelper.getInstance().randomInt(trapCount) : -1;
         for (int i = 0; i < trapCount; i++) {
             String platform = trapCandidates.remove(RandomHelper.getInstance().randomInt(trapCandidates.size()));
@@ -237,6 +279,10 @@ public class Room {
     }
 
     private boolean trapSpotAvailable(int tileX, int floorTileY) {
+        if (getLayout().arrivalReserved(tileX * ConstantsHelper.TILE, floorTileY * ConstantsHelper.TILE,
+                ConstantsHelper.UNIT_DIMENSIONS)) return false;
+        if (!hasSupportedPlacement(tileX * ConstantsHelper.TILE, floorTileY * ConstantsHelper.TILE,
+                ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS)) return false;
         for (Door door : doors) {
             if ((int) (door.x / ConstantsHelper.TILE) == tileX && (int) (door.y / ConstantsHelper.TILE) == floorTileY) {
                 return false;
@@ -257,6 +303,13 @@ public class Room {
     }
 
     private boolean scatterItemSpotAvailable(int tileX, int floorTileY) {
+        return !getLayout().arrivalReserved(tileX * ConstantsHelper.TILE, floorTileY * ConstantsHelper.TILE,
+                ConstantsHelper.UNIT_DIMENSIONS) && placementSpotAvailable(tileX, floorTileY);
+    }
+
+    private boolean placementSpotAvailable(int tileX, int floorTileY) {
+        if (!hasSupportedPlacement(tileX * ConstantsHelper.TILE, floorTileY * ConstantsHelper.TILE,
+                ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS)) return false;
         if (isSignTile(tileX, floorTileY) || isTrapTile(tileX, floorTileY)) {
             return false;
         }
@@ -290,8 +343,18 @@ public class Room {
         return platforms;
     }
 
+    public int getHighestStandingFloor() {
+        int highest = ConstantsHelper.MIN_FLOOR;
+        for (String cell : platforms) highest = Math.max(highest, Integer.parseInt(cell.substring(cell.indexOf('_') + 1)) + 1);
+        return highest;
+    }
+
     public HashSet<String> getWaterPlatforms() {
         return waterPlatforms;
+    }
+
+    public int getWaterSurfaceThickness() {
+        return getClass() == Room.class && generationDepth >= 1 && generationDepth <= 4 ? 18 : 10;
     }
 
     public void clearWaterPlatforms() {
@@ -301,6 +364,11 @@ public class Room {
     protected void addPlatformSpan(int startTileX, int endTileX, int tileY) {
         int from = Math.min(startTileX, endTileX);
         int to = Math.max(startTileX, endTileX);
+        if (!isBossArena()) {
+            from = Math.max(0, from);
+            to = Math.min(width - 1, to);
+            if (tileY < ConstantsHelper.MIN_FLOOR - 1 || tileY >= height - 1 || from > to) return;
+        }
         for (int tileX = from; tileX <= to; tileX++) {
             platforms.add(UtilsHelper.platformKey(tileX, tileY));
         }
@@ -321,6 +389,7 @@ public class Room {
     }
 
     public Room addWaterPlatform(int tileX, int tileY) {
+        if (!isBossArena() && !RoomGeometry.validPlatform(this, tileX, tileY)) return this;
         String platformKey = UtilsHelper.platformKey(tileX, tileY);
         if (!platforms.contains(platformKey)) {
             return this;
@@ -343,9 +412,21 @@ public class Room {
         return this;
     }
 
+
+    public Room addGroundWater() {
+        for (int x = 0; x < width; x++)
+            waterPlatforms.add(UtilsHelper.platformKey(x, ConstantsHelper.MIN_FLOOR - 1));
+        return this;
+    }
+
     public Room addWaterSpan(int startTileX, int endTileX, int tileY) {
         int from = Math.min(startTileX, endTileX);
         int to = Math.max(startTileX, endTileX);
+        if (!isBossArena()) {
+            from = Math.max(0, from);
+            to = Math.min(width - 1, to);
+            if (tileY < ConstantsHelper.MIN_FLOOR - 1 || tileY >= height - 1 || from > to) return this;
+        }
         for (int tileX = from; tileX <= to; tileX++) {
             addWaterPlatform(tileX, tileY);
         }
@@ -397,13 +478,137 @@ public class Room {
         return identifier;
     }
 
+    public List<CorpseRecord> getCorpses() {
+        return corpseView == null ? Collections.<CorpseRecord>emptyList() : corpseView;
+    }
+
+    public long getNextCorpseOrder() { return nextCorpseOrder; }
+    long getCorpseRestoreVersion() { return corpseRestoreVersion; }
+
+
+    public void clearCorpses() {
+        if (corpses != null) corpses.clear();
+        corpses = null;
+        corpseView = null;
+        nextCorpseOrder = 0L;
+        corpseRestoreVersion++;
+    }
+
+
+    public void restoreCorpses(List<CorpseRecord> saved, Long savedNextOrder) {
+        clearCorpses();
+        Hero hero = UnitHelper.getInstance().getHero();
+        if (hero == null || hero.getHeroClass() != HeroClass.NECROMANCER || hero.isDead()) return;
+        if (saved != null && !saved.isEmpty()) {
+            HashSet<String> seen = new HashSet<>();
+            for (CorpseRecord record : saved) {
+                if (record == null || record.victimId == null || record.victimId.isEmpty()
+                        || !identifier.equals(record.roomId) || record.order < 0L || record.order >= Long.MAX_VALUE - 1
+                        || !Float.isFinite(record.deathX) || !Float.isFinite(record.deathY)
+                        || !Float.isFinite(record.x) || !Float.isFinite(record.y) || record.y > record.deathY
+                        || record.x != record.deathX + ConstantsHelper.UNIT_DIMENSIONS / 2f
+                        || corpseSupportBelow(record.x, record.y) != record.y || !seen.add(record.victimId)) continue;
+                if (corpses == null) {
+                    corpses = new ArrayList<>();
+                    corpseView = Collections.unmodifiableList(corpses);
+                }
+                corpses.add(record);
+                while (corpses.size() > MAX_CORPSES) corpses.remove(oldestCorpseIndex());
+                nextCorpseOrder = Math.max(nextCorpseOrder, record.order + 1L);
+            }
+        }
+        if (savedNextOrder != null && savedNextOrder >= 0L && savedNextOrder < Long.MAX_VALUE)
+            nextCorpseOrder = Math.max(nextCorpseOrder, savedNextOrder);
+    }
+
+    private int oldestCorpseIndex() {
+        int oldest = 0;
+        for (int index = 1; index < corpses.size(); index++) {
+            CorpseRecord candidate = corpses.get(index), current = corpses.get(oldest);
+            if (candidate.order < current.order || (candidate.order == current.order
+                    && candidate.victimId.compareTo(current.victimId) < 0)) oldest = index;
+        }
+        return oldest;
+    }
+
+
+    boolean claimCorpse(String victimId, long order) {
+        if (corpses == null) return false;
+        for (int i = 0; i < corpses.size(); i++) {
+            CorpseRecord record = corpses.get(i);
+            if (record.order == order && record.victimId.equals(victimId)) {
+                corpses.remove(i);
+
+
+                for (Unit unit : UnitHelper.getInstance().getUnitsSnapshot()) {
+                    if (unit.isDead() && identifier.equals(unit.getRoom()) && victimId.equals(unit.getPersistentId()))
+                        UnitHelper.getInstance().removeUnit(unit);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public boolean recordCorpseDeath(String victimId, float deathX, float deathY) {
+        Hero hero = UnitHelper.getInstance().getHero();
+        if (hero == null || hero.getHeroClass() != HeroClass.NECROMANCER || hero.isDead()
+                || victimId == null || victimId.isEmpty() || identifier == null
+                || !Float.isFinite(deathX) || !Float.isFinite(deathY)) {
+            return false;
+        }
+        float centerX = deathX + ConstantsHelper.UNIT_DIMENSIONS / 2f;
+        float supportY = corpseSupportBelow(centerX, deathY);
+        if (Float.isNaN(supportY)) return false;
+        if (corpses != null) {
+            for (CorpseRecord corpse : corpses) {
+                if (corpse.victimId.equals(victimId)) return false;
+            }
+        } else {
+            corpses = new ArrayList<>();
+            corpseView = Collections.unmodifiableList(corpses);
+        }
+        while (corpses.size() >= MAX_CORPSES) {
+            corpses.remove(oldestCorpseIndex());
+        }
+        corpses.add(new CorpseRecord(victimId, identifier, deathX, deathY, centerX, supportY, nextCorpseOrder++));
+        return true;
+    }
+
+
+    public float corpseSupportBelow(float centerX, float deathY) {
+        return corpseSupportBelow(centerX, deathY, CorpseRecord.HALF_WIDTH);
+    }
+
+
+    float corpseSupportBelow(float centerX, float deathY, float halfWidth) {
+        if (!Float.isFinite(centerX) || !Float.isFinite(deathY)
+                || !Float.isFinite(halfWidth) || halfWidth <= 0f
+                || centerX - halfWidth < 4f
+                || centerX + halfWidth > width * ConstantsHelper.TILE - 4f) return Float.NaN;
+
+        int leftTile = (int)Math.floor((centerX - halfWidth) / ConstantsHelper.TILE);
+        int rightTile = (int)Math.floor((centerX + halfWidth - 0.01f) / ConstantsHelper.TILE);
+        int highest = Math.min(height, (int)Math.floor(deathY / ConstantsHelper.TILE));
+        for (int topTile = highest; topTile >= ConstantsHelper.MIN_FLOOR; topTile--) {
+            if (topTile == ConstantsHelper.MIN_FLOOR) return topTile * ConstantsHelper.TILE;
+            boolean supported = true;
+            for (int tile = leftTile; tile <= rightTile; tile++) {
+                if (!platforms.contains(UtilsHelper.platformKey(tile, topTile - 1))) { supported = false; break; }
+            }
+            if (supported) return topTile * ConstantsHelper.TILE;
+        }
+        return Float.NaN;
+    }
+
     public boolean connectedTo(String identifier){
         if(doors == null || doors.size() == 0){
             return false;
         }
 
         for (Door door : doors){
-            if(door.getLeadsTo().equals(identifier)){
+            if(door != null && identifier != null && identifier.equals(door.getLeadsTo())){
                 return true;
             }
         }
@@ -412,52 +617,115 @@ public class Room {
     }
 
     public Door getRandomDoor(){
-
-        int tileX = 0;
-        int tileY = 0;
-        boolean doorExists = false;
-        do {
-            doorExists = false;
-            tileX = 5 + RandomHelper.getInstance().randomInt(width);
-            if (tileX > width - 5) {
-                tileX = width - 5;
-            }
-
-            tileY = calculateDoorFloorY(tileX);
-
-            for(Door door : doors){
-                if(door.x == tileX * ConstantsHelper.TILE){
-                    doorExists = true;
-                    break;
-                }
-            }
-
-            if(isSignTile(tileX, tileY)){
-                doorExists = true;
-            }
-
-            if(isTrapTile(tileX, tileY)){
-                doorExists = true;
-            }
-
-            for(Unit thing : stuff){
-                if(thing.x == tileX * ConstantsHelper.TILE){
-                    if((tileY + 1) * ConstantsHelper.TILE == thing.y){
-                        doorExists = true;
-                        break;
-                    }
-                }
-            }
-        }while(doorExists);
-
+        ArrayList<String> candidates = getDoorCandidates();
+        if (candidates.isEmpty()) throw new IllegalStateException("No supported door slot in room " + identifier);
+        if (getClass() == Room.class) candidates = chooseDoorHeight(candidates);
+        String[] position = candidates.get(RandomHelper.getInstance().randomInt(candidates.size())).split("_");
         Door door = new Door();
-        door.x = tileX * ConstantsHelper.TILE;
-        door.y = tileY * ConstantsHelper.TILE;
-
+        door.x = Integer.parseInt(position[0]) * ConstantsHelper.TILE;
+        door.y = Integer.parseInt(position[1]) * ConstantsHelper.TILE;
         return door;
     }
 
+
+    protected ArrayList<String> getDoorCandidates() {
+        if (getClass() == Room.class) return getLayeredDoorCandidates();
+        ArrayList<String> planned = new ArrayList<>();
+        for (RoomLayout.Anchor anchor : getLayout().plannedArrivals()) {
+            boolean occupied = false;
+            for (Door door : doors) if (Math.abs(door.x - anchor.x) < 2 * ConstantsHelper.TILE) occupied = true;
+            int tile = (int)(anchor.x / ConstantsHelper.TILE), floor = (int)(anchor.y / ConstantsHelper.TILE);
+            if (!occupied && hasSupportedPlacement(anchor.x, anchor.y, ConstantsHelper.TILE, ConstantsHelper.TILE + 7f)
+                    && placementSpotAvailable(tile, floor)) planned.add(UtilsHelper.platformKey(tile, floor));
+        }
+        if (!planned.isEmpty()) return planned;
+        ArrayList<String> interior = new ArrayList<>(), edges = new ArrayList<>();
+        for (int tileX = 1; tileX < width - 1; tileX++) {
+            boolean occupiedColumn = false;
+            for (Door door : doors) if ((int) (door.x / ConstantsHelper.TILE) == tileX) occupiedColumn = true;
+            if (occupiedColumn) continue;
+            for (int floor = ConstantsHelper.MIN_FLOOR; floor < height; floor++) {
+                if (!hasSupportedPlacement(tileX * ConstantsHelper.TILE, floor * ConstantsHelper.TILE,
+                        ConstantsHelper.TILE, ConstantsHelper.TILE + 7f)
+                        || !placementSpotAvailable(tileX, floor)) continue;
+                (tileX >= 5 && tileX <= width - 5 ? interior : edges).add(UtilsHelper.platformKey(tileX, floor));
+            }
+        }
+        return interior.isEmpty() ? edges : interior;
+    }
+
+    private ArrayList<String> getLayeredDoorCandidates() {
+        ArrayList<String> candidates = new ArrayList<>();
+        float tile = ConstantsHelper.TILE;
+        for (int floor = ConstantsHelper.MIN_FLOOR; floor < height; floor++) {
+            for (int column = 2; column < width - 2; column++) {
+                float x = column * tile, y = floor * tile;
+
+                if (!hasSupportedPlacement(x - tile, y, 3 * tile, tile + 7f)
+                        || !placementSpotAvailable(column, floor)) continue;
+                boolean close = false;
+                for (Door door : doors) if (Math.abs(door.x - x) < 3 * tile && Math.abs(door.y - y) < 2 * tile) {
+                    close = true; break;
+                }
+                if (!close) candidates.add(UtilsHelper.platformKey(column, floor));
+            }
+        }
+        return candidates;
+    }
+
+    private ArrayList<String> chooseDoorHeight(ArrayList<String> candidates) {
+        java.util.TreeMap<Integer, ArrayList<String>> tiers = new java.util.TreeMap<>();
+        for (String cell : candidates) {
+            int floor = Integer.parseInt(cell.split("_")[1]);
+            if (!tiers.containsKey(floor)) tiers.put(floor, new ArrayList<String>());
+            tiers.get(floor).add(cell);
+        }
+        int leastUsed = Integer.MAX_VALUE;
+        ArrayList<Integer> preferred = new ArrayList<>();
+        for (int floor : tiers.keySet()) {
+            int count = 0;
+            for (Door door : doors) if (Math.round(door.y / ConstantsHelper.TILE) == floor) count++;
+            if (count < leastUsed) { leastUsed = count; preferred.clear(); }
+            if (count == leastUsed) preferred.add(floor);
+        }
+
+        return tiers.get(preferred.get(RandomHelper.getInstance().randomInt(preferred.size())));
+    }
+
+    public boolean isBossArena() {
+        return this instanceof GooRoom || this instanceof TenguRoom || this instanceof DM300Room
+                || this instanceof KingRoom || this instanceof YogRoom;
+    }
+
+    public boolean hasSupportedPlacement(float x, float floorY, float bodyWidth, float bodyHeight) {
+        return RoomGeometry.supports(this, x, floorY, bodyWidth, bodyHeight);
+    }
+
+    protected void requireSupportedPlacement(int tileX, int floorTileY, float bodyWidth, float bodyHeight) {
+        if (!hasSupportedPlacement(tileX * ConstantsHelper.TILE, floorTileY * ConstantsHelper.TILE,
+                bodyWidth, bodyHeight)) {
+            throw new IllegalStateException("Unsupported placement in " + identifier + " at " + tileX + "," + floorTileY);
+        }
+    }
+
+    protected void requireContentPlacement(int tileX, int floorTileY, float bodyWidth, float bodyHeight) {
+        requireSupportedPlacement(tileX, floorTileY, bodyWidth, bodyHeight);
+        if (getLayout().arrivalReserved(tileX * ConstantsHelper.TILE, floorTileY * ConstantsHelper.TILE, bodyWidth))
+            throw new IllegalStateException("Content overlaps arrival in " + identifier + " at " + tileX + "," + floorTileY);
+    }
+
     public Door getRandomSpawn(){
+        ArrayList<String> spawnCandidates = getSpawnCandidates();
+        if (spawnCandidates.isEmpty()) return null;
+        String[] position = spawnCandidates.get(RandomHelper.getInstance().randomInt(spawnCandidates.size())).split("_");
+        Door spawn = new Door();
+        spawn.x = Integer.parseInt(position[0]) * ConstantsHelper.TILE;
+        spawn.y = Integer.parseInt(position[1]) * ConstantsHelper.TILE;
+        return spawn;
+    }
+
+
+    public ArrayList<String> getSpawnCandidates() {
         ArrayList<String> spawnCandidates = new ArrayList<String>();
         for (String platform : platforms) {
             int tileX = Integer.parseInt(platform.split("_")[0]);
@@ -466,22 +734,14 @@ public class Room {
                 continue;
             }
 
-            spawnCandidates.add(platform);
+            spawnCandidates.add(UtilsHelper.platformKey(tileX, floorTileY));
         }
 
-        if (spawnCandidates.isEmpty()) {
-            return null;
-        }
-
+        if (spawnCandidates.isEmpty()) for (int column = 1; column < width - 1; column++)
+            if (spawnSpotAvailable(column, ConstantsHelper.MIN_FLOOR))
+                spawnCandidates.add(UtilsHelper.platformKey(column, ConstantsHelper.MIN_FLOOR));
         Collections.sort(spawnCandidates);
-        String platform = spawnCandidates.get(RandomHelper.getInstance().randomInt(spawnCandidates.size()));
-        int tileX = Integer.parseInt(platform.split("_")[0]);
-        int floorTileY = Integer.parseInt(platform.split("_")[1]) + 1;
-
-        Door spawn = new Door();
-        spawn.x = tileX * ConstantsHelper.TILE;
-        spawn.y = floorTileY * ConstantsHelper.TILE;
-        return spawn;
+        return spawnCandidates;
     }
 
     private boolean spawnSpotAvailable(int tileX, int floorTileY) {
@@ -524,7 +784,7 @@ public class Room {
             return false;
         }
 
-        return calculateDoorFloorY(tileX) == tileY;
+        return hasSupportedPlacement(x, y, ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS);
     }
 
     public int calculateDoorFloorY(int doorX){
@@ -642,7 +902,8 @@ public class Room {
             }
         }
 
-        return !isTrapTile(tileX, tileY) && calculateDoorFloorY(tileX) == tileY;
+        return !isTrapTile(tileX, tileY) && hasSupportedPlacement(tileX * ConstantsHelper.TILE,
+                tileY * ConstantsHelper.TILE, ConstantsHelper.TILE, ConstantsHelper.TILE);
     }
 
     public Sign getSign(){

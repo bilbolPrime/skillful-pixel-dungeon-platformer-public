@@ -26,9 +26,11 @@ public class ManaArmor extends Buff {
     public float absorbDamage(float damage){
         float absorbUpTo = (float) Math.ceil(0.9f * damage);
         if(absorbs < absorbUpTo){
+            float remainingAbsorption = absorbs;
+            absorbs = 0f;
             permanent = false;
             EffectsHelper.getInstance().message(owner, "Mana armor broke!", Color.RED, 0f);
-            return  damage - absorbs;
+            return damage - remainingAbsorption;
         }
         absorbs -= absorbUpTo;
         return damage - absorbUpTo;

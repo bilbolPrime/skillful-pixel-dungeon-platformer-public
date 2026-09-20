@@ -1,5 +1,6 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.screens;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -18,8 +19,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.UnitState;
 
 
@@ -52,6 +56,7 @@ public abstract class BaseScreen extends ScreenAdapter {
     public static OrthographicCamera camera;
     public static OrthographicCamera cameraPar;
     protected OrthographicCamera uiCamera;
+    protected Viewport uiViewport;
 
     public String template = "kingdom";
 
@@ -69,7 +74,7 @@ public abstract class BaseScreen extends ScreenAdapter {
 
 
 
-    //protected UX ux;
+
 
 
     public float getMaxRight(){
@@ -108,6 +113,18 @@ public abstract class BaseScreen extends ScreenAdapter {
         return initialized;
     }
 
+    @Override
+    public void pause() {
+        WindowHelper.getInstance().cancelPointerInput();
+        com.bilboldev.skillfulpixeldungeonplatformer.helpers.UIHelper.getInstance().cancelPointerInput();
+    }
+
+    @Override
+    public void resume() {
+        WindowHelper.getInstance().cancelPointerInput();
+        com.bilboldev.skillfulpixeldungeonplatformer.helpers.UIHelper.getInstance().cancelPointerInput();
+    }
+
     public abstract void create();
 
     public abstract void init();
@@ -119,6 +136,22 @@ public abstract class BaseScreen extends ScreenAdapter {
     public abstract void dispose();
 
     public abstract void resize(int width, int height);
+
+
+    protected void createUiViewport() {
+        uiViewport = new ExtendViewport(width, height, uiCamera);
+        resizeUiViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+    }
+
+    protected void resizeUiViewport(int screenWidth, int screenHeight) {
+        if (uiViewport == null || screenWidth <= 0 || screenHeight <= 0) {
+            return;
+        }
+        WindowHelper.getInstance().cancelPointerInput();
+        uiViewport.update(screenWidth, screenHeight, false);
+        uiCamera.position.set(width / 2f, height / 2f, 0f);
+        uiCamera.update();
+    }
 
     public Stage addTouchPad(final UnitHelper unitHelper, float width, float height){
         disposeTouchPad();

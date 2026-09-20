@@ -27,8 +27,8 @@ public class Spear extends MeleeWeapon {
 
         drawAttackSprite(batch,
                 sprite,
-                owner.x + (owner.facingRight ? 2 * ConstantsHelper.UNIT_DIMENSIONS * frameAt / totalFrames: ConstantsHelper.UNIT_DIMENSIONS / 3 - 2 * ConstantsHelper.UNIT_DIMENSIONS * frameAt / totalFrames),
-                owner.y + ConstantsHelper.UNIT_DIMENSIONS / 4,
+                owner.getVisualAttackX(2f * frameAt / totalFrames),
+                owner.getVisualAttackY(),
             owner.facingRight);
     }
 }

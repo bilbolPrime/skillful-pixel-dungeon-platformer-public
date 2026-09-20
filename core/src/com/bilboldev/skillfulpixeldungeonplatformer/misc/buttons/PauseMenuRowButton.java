@@ -9,6 +9,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.FontHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.TextureHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.DesktopMenuStyle;
 
 import java.util.ArrayList;
 
@@ -27,6 +28,10 @@ public class PauseMenuRowButton extends ActionButton {
     private boolean highlightRightLabel;
     private float checkboxVerticalOffsetRatio;
     private Color centeredLabelColor = Color.WHITE;
+    private String fittedBindingKey;
+    private FontHelper.FittedTextBlock fittedBindingName, fittedBindingValue;
+    private String checkboxLabel, checkboxHelp;
+    private float checkboxLabelSize, checkboxHelpSize;
 
     public PauseMenuRowButton(float x, float y, float width, float height) {
         super(x, y, width, height, "images/misc/transparent.png", "images/misc/transparent.png");
@@ -108,6 +113,17 @@ public class PauseMenuRowButton extends ActionButton {
         this.checked = checked;
     }
 
+
+    public PauseMenuRowButton setCheckboxHelp(String help) {
+        FontHelper fonts = FontHelper.getSingleton();
+        checkboxLabel = Messages.maybeTranslate(leftLabel);
+        checkboxHelp = Messages.maybeTranslate(help);
+
+        checkboxLabelSize = fonts.fitSize(checkboxLabel, 3f, width - 164f, 32f);
+        checkboxHelpSize = fonts.fitSize(checkboxHelp, 2f, width - 164f, 24f);
+        return this;
+    }
+
     public PauseMenuRowButton setCheckboxVerticalOffsetRatio(float checkboxVerticalOffsetRatio) {
         this.checkboxVerticalOffsetRatio = checkboxVerticalOffsetRatio;
         return this;
@@ -119,7 +135,10 @@ public class PauseMenuRowButton extends ActionButton {
         if (isShowingPressFeedback()) {
             batch.setColor(previousColor.r * 1.2f, previousColor.g * 1.2f, previousColor.b * 1.2f, previousColor.a);
         }
-        for (GameSprite sprite : rowSprites) {
+        if (DesktopMenuStyle.active()) {
+            DesktopMenuStyle.card(batch, x, y, width, height, DesktopMenuStyle.EDGE, isShowingPressFeedback());
+            DesktopMenuStyle.hover(batch, this, DesktopMenuStyle.GOLD);
+        } else for (GameSprite sprite : rowSprites) {
             sprite.draw(batch);
         }
         batch.setColor(previousColor);
@@ -132,17 +151,44 @@ public class PauseMenuRowButton extends ActionButton {
         }
 
         String localizedLeftLabel = Messages.maybeTranslate(leftLabel);
-        FontHelper.getSingleton().writeWhite(batch, 3f, x + 40f, y + 60f, localizedLeftLabel);
+        String localizedRightLabel = Messages.maybeTranslate(rightLabel);
+        if (!showCheckbox && !rightLabel.isEmpty()) {
+            FontHelper fonts = FontHelper.getSingleton();
+            GlyphLayout leftLayout = new GlyphLayout(fonts.getFont(Color.WHITE, 3f), localizedLeftLabel);
+            GlyphLayout rightLayout = new GlyphLayout(fonts.getFont(Color.WHITE, 3f), localizedRightLabel);
+            if (leftLayout.width + rightLayout.width + 24f > width - 80f) {
+                String key = localizedLeftLabel + "\n" + localizedRightLabel;
+                if (!key.equals(fittedBindingKey)) {
+                    fittedBindingKey = key;
+                    fittedBindingName = fonts.fitOverlayText("binding-name", leftLabel, localizedLeftLabel, 2.6f, width - 80f, height / 2f - 12f);
+                    fittedBindingValue = fonts.fitOverlayText("binding-value", rightLabel, localizedRightLabel, 2.6f, width - 80f, height / 2f - 12f);
+                }
+                fonts.writeRaw(Color.WHITE, batch, fittedBindingName.size, x + 40f, y + height - 12f, fittedBindingName.text);
+                fonts.writeRaw(highlightRightLabel ? Color.GOLD : Color.WHITE, batch, fittedBindingValue.size,
+                        x + 40f, y + height / 2f - 6f, fittedBindingValue.text);
+                return;
+            }
+        }
+        if (showCheckbox && checkboxHelp != null) {
+            FontHelper fonts = FontHelper.getSingleton();
+            fonts.writeRaw(Color.WHITE, batch, checkboxLabelSize, x + 40f, y + height - 20f, checkboxLabel);
+            fonts.writeRaw(Color.LIGHT_GRAY, batch, checkboxHelpSize, x + 40f, y + 36f, checkboxHelp);
+        } else {
+            FontHelper.getSingleton().writeWhite(batch, 3f, x + 40f, y + 60f, localizedLeftLabel);
+        }
 
         if (showCheckbox) {
-            TextureRegion region = checked ? checkedIcon : uncheckedIcon;
-            batch.draw(region, x + width - 100f, y + 24f - height * checkboxVerticalOffsetRatio, 52f, 52f);
+            if (DesktopMenuStyle.active()) {
+                DesktopMenuStyle.checkbox(batch, x + width - 100f, y + 24f - height * checkboxVerticalOffsetRatio, checked);
+            } else {
+                TextureRegion region = checked ? checkedIcon : uncheckedIcon;
+                batch.draw(region, x + width - 100f, y + 24f - height * checkboxVerticalOffsetRatio, 52f, 52f);
+            }
             return;
         }
 
         if (!rightLabel.isEmpty()) {
             Color labelColor = highlightRightLabel ? Color.GOLD : Color.WHITE;
-            String localizedRightLabel = Messages.maybeTranslate(rightLabel);
             GlyphLayout layout = new GlyphLayout(FontHelper.getSingleton().getFont(labelColor, 3f), localizedRightLabel);
             FontHelper.getSingleton().write(labelColor, batch, 3f, x + width - 40f - layout.width, y + 60f, localizedRightLabel);
         }

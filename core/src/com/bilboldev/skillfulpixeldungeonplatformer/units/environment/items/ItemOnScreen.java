@@ -10,15 +10,21 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RatKingHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SoundHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UIHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Gold;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.AmuletOfYendor;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpritePose;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.ContactShadow;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 
 public class ItemOnScreen extends Unit {
+    private transient SpritePose lastDisplayedItem;
+    private transient String lastDisplayedRoom;
     protected Item item;
     protected float yFloat;
     protected boolean floatingUp;
@@ -90,9 +96,27 @@ public class ItemOnScreen extends Unit {
             return;
         }
 
+        drawContactShadow(batch, alpha, ConstantsHelper.UNIT_DIMENSIONS / 2 + yFloat);
         item.getGameSprite().setPosition(x, y + ConstantsHelper.UNIT_DIMENSIONS / 2 + yFloat);
         item.getGameSprite().setAlpha(alpha);
         item.draw(batch);
+        rememberDisplayedItem(item.getGameSprite());
+    }
+
+
+    protected void rememberDisplayedItem(GameSprite displayed) {
+        lastDisplayedItem = displayed == null ? null : displayed.copyPose();
+        lastDisplayedRoom = room;
+    }
+
+    public SpritePose getLastDisplayedItem(String outgoingRoom) {
+        return outgoingRoom != null && outgoingRoom.equals(room) && outgoingRoom.equals(lastDisplayedRoom)
+                ? lastDisplayedItem : null;
+    }
+
+    protected void drawContactShadow(Batch batch, float alpha, float hoverHeight) {
+        float width = getInteractionWidth();
+        ContactShadow.draw(batch, x + width / 2f, y + hoverHeight, width * 0.85f, alpha, hoverHeight > 0f);
     }
 
     public void pickedUp(){
@@ -100,11 +124,12 @@ public class ItemOnScreen extends Unit {
     }
 
     public void pickedUp(boolean refreshEnvironment){
+        if (isDead() || !UnitHelper.getInstance().getUnits().contains(this)) return;
         if(item instanceof Gold){
             Hero hero = UnitHelper.getInstance().getHero();
             int goldAmount = hero == null ? item.getQuantity() : hero.adjustGoldPickup(item.getQuantity());
             InventoryHelper.getInstance().modifyGold(goldAmount);
-            EffectsHelper.getInstance().message(this, "+" + goldAmount + " gold", Color.GOLD, 0f);
+            UIHelper.getInstance().showPickupNotice(Messages.get("custom.notice.gold", goldAmount), item.getGameSprite());
             SoundHelper.GetSingleton().play(Sounds.GOLD, 0f, 1f);
             RatKingHelper.getInstance().onHeroPickedUpItem(item);
         }

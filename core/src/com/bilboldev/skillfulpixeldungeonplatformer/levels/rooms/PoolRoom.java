@@ -1,7 +1,6 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
-import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
@@ -12,47 +11,49 @@ import java.util.ArrayList;
 
 public class PoolRoom extends SingleDoorSpecialRoom {
     private static final int PIRANHA_COUNT = 3;
-    private static final String CHEST_TILE = UtilsHelper.platformKey(9, 6);
-    private static final String POTION_TILE = UtilsHelper.platformKey(14, 4);
 
     public PoolRoom(String identifier) {
         super(identifier);
     }
 
+    @Override public int getWaterSurfaceThickness() { return 30; }
+
     @Override
     public Room build() {
-        buildWidePlatforms();
-        waterPlatforms.addAll(platforms);
-        placeRewardContainer(SpecialRoomRewards.randomWeaponOrArmorReward(), "images/misc/extracted items/CHEST.png", 96, 96, 9, 7);
-        placeItem(new PotionOfInvisibility(), 14, 5);
-        spawnPiranhas();
+        resetLayout();
+        width = 22 + 2 * layoutVariant(2);
+        getLayout().describe("flooded-basin", width / 2, 3);
 
-        return this;
+        addGroundWater();
+        addPlatformSpan(6, 8, 3);
+        addPlatformSpan(width / 2, width / 2 + 1, 3);
+        addPlatformSpan(width - 7, width - 3, 4);
+        return finishLayout();
     }
 
     @Override
-    public boolean hasWaterAt(float worldX, float floorY) {
-        int tileY = Math.max(0, (int) (floorY / ConstantsHelper.TILE) - 1);
-        if (tileY == MapHelper.getInstance().MIN_FLOOR - 1) {
-            return true;
-        }
+    protected void placeContents() {
+        placeRewardContainer(SpecialRoomRewards.randomWeaponOrArmorReward(), "images/misc/extracted items/CHEST.png", 96, 96, width - 4, 5);
+        placeItem(new PotionOfInvisibility(), 5, 3);
+        spawnPiranhas();
 
-        return super.hasWaterAt(worldX, floorY);
     }
 
     private void spawnPiranhas() {
         ArrayList<String> candidates = new ArrayList<String>(waterPlatforms);
-        candidates.remove(CHEST_TILE);
-        candidates.remove(POTION_TILE);
+        java.util.Collections.sort(candidates);
 
-        for (int spawned = 0; spawned < PIRANHA_COUNT && !candidates.isEmpty(); ) {
+        int spawned = 0;
+        while (spawned < PIRANHA_COUNT && !candidates.isEmpty()) {
             String platform = candidates.remove(RandomHelper.getInstance().randomInt(candidates.size()));
             int tileX = Integer.parseInt(platform.split("_")[0]);
             int tileY = Integer.parseInt(platform.split("_")[1]);
             float spawnX = tileToWorldX(tileX);
             float floorY = floorTileToWorldY(tileY + 1);
 
-            if (!UnitHelper.getInstance().freeSpace((int) spawnX, (int) floorY, identifier)) {
+            if (!hasSupportedPlacement(spawnX, floorY, ConstantsHelper.UNIT_DIMENSIONS, ConstantsHelper.UNIT_DIMENSIONS)
+                    || getLayout().arrivalReserved(spawnX, floorY, ConstantsHelper.UNIT_DIMENSIONS)
+                    || !UnitHelper.getInstance().freeSpace((int) spawnX, (int) floorY, identifier)) {
                 continue;
             }
 
@@ -66,5 +67,6 @@ public class PoolRoom extends SingleDoorSpecialRoom {
             UnitHelper.getInstance().addUnit(piranha);
             spawned++;
         }
+        if (spawned != PIRANHA_COUNT) throw new IllegalStateException("Insufficient wet piranha slots in " + identifier);
     }
 }

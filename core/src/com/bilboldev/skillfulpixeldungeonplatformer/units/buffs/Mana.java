@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.buffs;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 
 public class Mana extends Buff {
@@ -17,7 +18,13 @@ public class Mana extends Buff {
             return this;
         }
 
-        manaBonus = (int) ( 0.2f * (this.owner).getMmp());
+        int manaBase = this.owner.getMmp();
+        if (this.owner instanceof Hero && ((Hero) this.owner).getHeroClass() == HeroClass.WIZARD) {
+            Hero hero = (Hero) this.owner;
+
+            manaBase = hero.getHeroClass().getMana(hero.getLevel());
+        }
+        manaBonus = (int) (0.2f * manaBase);
         (this.owner).setMaxMP((this.owner).getMmp() + manaBonus);
         ( this.owner).modifyMana(manaBonus);
         return this;

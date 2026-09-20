@@ -3,8 +3,11 @@ package com.bilboldev.skillfulpixeldungeonplatformer.units.ai;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.UnitState;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 
 public class AI {
     protected States state;
@@ -21,6 +24,12 @@ public class AI {
 
     public void act(float delta)
     {
+        if (state == States.ATTACKED && !canTarget(other)) {
+            clearTarget();
+            if (owner instanceof Mob) ((Mob) owner).onTargetLost();
+            return;
+        }
+
         if(state == States.IDLE){
             wander(delta);
         }
@@ -82,6 +91,31 @@ public class AI {
     public void clearTarget() {
         other = null;
         state = States.IDLE;
+        designationX = owner.x;
+        owner.movingLeft = false;
+        owner.movingRight = false;
+        if (owner.isCanFly()) owner.fly(false, true);
+    }
+
+
+    public boolean canTarget(Unit target) {
+        if (target == null || target == owner || target.isDead() || target.getHP() < 1 || target.showOnly()
+                || target.getStage() == null || target.getStage() != owner.getStage()
+                || owner.getRoom() == null || !owner.getRoom().equals(target.getRoom())
+
+                || !owner.getRoom().equals(MapHelper.getInstance().getActiveRoomIdentifier())
+                || (!canTargetSameSide() && owner.isFriendly == target.isFriendly)) return false;
+        boolean bossAggro = owner instanceof Mob && ((Mob) owner).shouldForceBossRoomAggro();
+        return bossAggro || (!target.isInvisible() && UnitHelper.getInstance().canSeeTarget(owner, target));
+    }
+
+    protected boolean canTargetSameSide() { return false; }
+
+
+    public boolean isBetterTarget(Unit candidate) {
+        return candidate != other && canTarget(candidate)
+                && (!canTarget(other) || UtilsHelper.distance(owner, candidate) + ConstantsHelper.TILE * .25f
+                < UtilsHelper.distance(owner, other));
     }
 
     public Unit getOther(){

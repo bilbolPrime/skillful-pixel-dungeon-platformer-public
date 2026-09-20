@@ -177,7 +177,7 @@ public class BuffProjectile extends ThrownProjectile {
 
         if(gs != null){
             for(XY xy : xyArrayList){
-                gs.setPosition(x + xy.x, y + xy.y);
+                gs.setPosition(getRenderX() + xy.x, getRenderY() + xy.y);
                 gs.draw(batch);
             }
         }

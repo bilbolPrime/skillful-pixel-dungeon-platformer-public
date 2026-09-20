@@ -3,6 +3,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.caves;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.PhysicsHelper;
@@ -12,7 +13,9 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.AI;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.AgressiveAI;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Buff;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.doors.Door;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.TrapBurst;
@@ -39,6 +42,12 @@ public class DM300 extends Mob {
     private float flickerAt;
     private boolean drawVisible = true;
     private int chargeDirection = 1;
+    private AI chargeAI;
+    private Unit chargeTarget;
+    private boolean chargeFriendly;
+    private Unit ascentTarget;
+    private float ascentX = Float.NaN;
+    private float ascentY;
 
     {
         boss = true;
@@ -78,13 +87,16 @@ public class DM300 extends Mob {
                 }
 
                 dm300.facingRight = dm300.x < target.x;
-                if (dm300.chargeAt <= 0f && dm300.canStartChargeAt(target)) {
+                if (dm300.canAttack() && dm300.chargeAt <= 0f && dm300.canStartChargeAt(target)) {
                     dm300.startCharge(target);
                     dm300.fakeAttack();
                     dm300.chargeAt = CHARGE_INTERVAL + RandomHelper.getInstance().randomFloat(0.75f);
                     return;
                 }
 
+                if (dm300.canAttack() && dm300.pursueRaisedTarget(target)) {
+                    return;
+                }
                 super.attacked(delta);
             }
         };
@@ -97,6 +109,7 @@ public class DM300 extends Mob {
 
     @Override
     public void act(float delta) {
+        if (chargeState != ChargeState.IDLE && !canContinueCharge()) cancelCharge();
         if (chargeState == ChargeState.IDLE) {
             chargeAt -= delta;
         } else {
@@ -107,10 +120,64 @@ public class DM300 extends Mob {
     }
 
     private boolean canStartChargeAt(Unit target) {
-        return Math.abs(target.floorY - floorY) <= ConstantsHelper.TILE * 0.5f;
+        return PhysicsHelper.getInstance().isGrounded(this)
+                && Math.abs(target.floorY - floorY) <= ConstantsHelper.TILE * 0.5f
+                && hasChargeSupportAt(x + (target.x >= x ? 1f : -1f) * ConstantsHelper.TILE * 0.25f);
+    }
+
+
+    private boolean pursueRaisedTarget(Unit target) {
+        boolean grounded = PhysicsHelper.getInstance().isGrounded(this);
+        if (target != ascentTarget || grounded && target.y <= y + ConstantsHelper.TILE * 0.5f) {
+            ascentX = Float.NaN;
+            ascentTarget = target;
+        }
+        if (grounded && target.y <= y + ConstantsHelper.TILE * 0.5f) return false;
+
+        if (grounded && !Float.isNaN(ascentX) && y >= ascentY - 8f) ascentX = Float.NaN;
+        if (Float.isNaN(ascentX)) {
+            if (!grounded) return false;
+            Room currentRoom = MapHelper.getInstance().getRoom(room);
+            if (currentRoom == null) return false;
+            float best = Float.MAX_VALUE;
+            for (String platform : currentRoom.getPlatforms()) {
+                String[] tile = platform.split("_");
+                float px = Integer.parseInt(tile[0]) * ConstantsHelper.TILE;
+                float py = (Integer.parseInt(tile[1]) + 1) * ConstantsHelper.TILE;
+                if (py <= y + ConstantsHelper.TILE * 0.5f || py > y + ConstantsHelper.TILE + 8f
+                        || py > target.floorY + 8f || px < 1f
+                        || px + ConstantsHelper.UNIT_DIMENSIONS >= currentRoom.getWidth() * ConstantsHelper.TILE
+                        || Math.abs(MapHelper.getInstance().calculateFloorY(px, py) - py) > 1f
+                        || !UnitHelper.getInstance().freeSpace(this, (int) px, (int) py, room)) continue;
+                float score = Math.abs(px - x) + Math.abs(px - target.x) * 0.25f;
+                if (score < best || score == best && px < ascentX) {
+                    best = score;
+                    ascentX = px;
+                    ascentY = py;
+                }
+            }
+            if (Float.isNaN(ascentX)) return false;
+        }
+        movingLeft = x > ascentX + 12f;
+        movingRight = x < ascentX - 12f;
+        if (movingLeft || movingRight) facingRight = movingRight;
+        if (grounded && Math.abs(x - ascentX) < ConstantsHelper.UNIT_DIMENSIONS) jump();
+        return true;
+    }
+
+    private boolean hasChargeSupportAt(float nextX) {
+        Room currentRoom = MapHelper.getInstance().getRoom(room);
+        return currentRoom != null && nextX >= 0f
+                && nextX <= currentRoom.getWidth() * ConstantsHelper.TILE - ConstantsHelper.UNIT_DIMENSIONS
+                && Math.abs(MapHelper.getInstance().calculateFloorY(nextX, y) - y) <= 8f;
     }
 
     private void startCharge(Unit target) {
+        ascentTarget = null;
+        ascentX = Float.NaN;
+        chargeAI = ai;
+        chargeTarget = target;
+        chargeFriendly = isFriendly;
         chargeDirection = target.x >= x ? 1 : -1;
         chargeState = ChargeState.WINDUP;
         chargeStateTimer = WINDUP_DURATION;
@@ -119,6 +186,23 @@ public class DM300 extends Mob {
         movingLeft = false;
         movingRight = false;
         momentX = 0f;
+    }
+
+    private boolean canContinueCharge() {
+        if (isDead() || getHP() < 1 || room == null || !room.equals(MapHelper.getInstance().getActiveRoomIdentifier())
+                || ai == null || ai != chargeAI || isFriendly != chargeFriendly
+                || ai.isBlind() || !ai.canTarget(chargeTarget)) return false;
+        for (Buff buff : buffs) if (buff.preventsAttacks()) return false;
+        return true;
+    }
+
+    private void cancelCharge() {
+        chargeState = ChargeState.IDLE;
+        chargeStateTimer = 0f;
+        chargeAI = null;
+        chargeTarget = null;
+        movingLeft = movingRight = false;
+        drawVisible = true;
     }
 
     private void advanceChargeState(float delta) {
@@ -159,6 +243,16 @@ public class DM300 extends Mob {
 
     private void advanceCharge(float delta) {
         float nextX = x + chargeDirection * speedX * CHARGE_SPEED_MULTIPLIER * delta;
+
+
+
+
+        float supportedEndX = nextX + chargeDirection
+                * (getSpeedX() * delta + ConstantsHelper.TILE * 0.25f);
+        if (!hasChargeSupportAt(nextX) || !hasChargeSupportAt(supportedEndX)) {
+            beginRecovery();
+            return;
+        }
         Hero hero = getHeroInLane(nextX);
         if (hero != null) {
             x = nextX;
@@ -234,7 +328,7 @@ public class DM300 extends Mob {
     }
 
     private void ramHero(Hero hero) {
-        hero.takeDamage(this, weapon, weapon.getDamage() * IMPACT_DAMAGE_MULTIPLIER);
+        hero.takeDamage(this, weapon, DifficultyHelper.getInstance().scaleEnemyDamage(this, weapon.getDamage() * IMPACT_DAMAGE_MULTIPLIER));
         hero.momentX += chargeDirection * HERO_THROW_FORCE;
         EffectsHelper.getInstance().spark(this);
         EffectsHelper.getInstance().spark(hero);
@@ -317,6 +411,7 @@ public class DM300 extends Mob {
 
     @Override
     public void die() {
+        cancelCharge();
         super.die();
         Room currentRoom = MapHelper.getInstance().getRoom(room);
         if (currentRoom == null) {

@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.weapons.enchantments;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.EnhancementHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.Weapon;
@@ -27,11 +28,11 @@ public class FireEnchantment extends WeaponEnhancement {
 
         int upgradeLevel = EnhancementHelper.getUpgradeLevel(weapon);
         int bonusDamage = EnhancementHelper.randomInclusive(1, 3 + Math.min(2, upgradeLevel));
-        target.takeDamage(attacker, weapon, bonusDamage);
+        target.takeDamage(attacker, weapon, DifficultyHelper.getInstance().scaleEnemyDamage(attacker, bonusDamage));
         EffectsHelper.getInstance().spark(target);
 
         if (RandomHelper.getInstance().randomChance(50)) {
-            EnhancementHelper.applyOrRefresh(target, new Burning(), 4f + upgradeLevel);
+            EnhancementHelper.applyOrRefresh(target, new Burning().setDamageMultiplier(DifficultyHelper.getInstance().getEnemyDamageMultiplier(attacker)), 4f + upgradeLevel);
         }
     }
 }

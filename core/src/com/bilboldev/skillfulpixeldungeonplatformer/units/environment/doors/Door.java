@@ -7,11 +7,15 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UIHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpritePose;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameSettingsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 
 public class Door extends Unit {
     GameSprite door;
     GameSprite sign;
+    private transient String observedRoom;
+    private transient int observedState = -1;
 
     public Door otherDoor;
 
@@ -40,12 +44,29 @@ public class Door extends Unit {
         float doorY = y + 7;
 
         door.setPosition(doorX, doorY);
-        door.draw(batch);
+        door.drawFeatheredEdges(batch, ConstantsHelper.TILE * 0.1875f);
         if(sign != null){
             sign.setPosition(x + ConstantsHelper.TILE / 4  , y + ConstantsHelper.TILE + 12);
             sign.draw(batch);
         }
+        if (GameSettingsHelper.getInstance().isBackgroundRoomsEnabled()) {
+            observedRoom = MapHelper.getInstance().getActiveRoomIdentifier();
+            observedState = appearanceState();
+        }
     }
+
+
+    public SpritePose copyObservedDoor(String outgoingRoom) {
+        return isVisible() && outgoingRoom != null && outgoingRoom.equals(observedRoom) && observedState == appearanceState()
+                ? door.copyPose() : null;
+    }
+
+    public SpritePose copyObservedSign(String outgoingRoom) {
+        return isVisible() && sign != null && outgoingRoom != null && outgoingRoom.equals(observedRoom)
+                ? sign.copyPose() : null;
+    }
+
+    private int appearanceState() { return caged ? 3 : isLocked ? 2 : opened ? 1 : 0; }
 
     public void setLeadsTo(String leadsTo){
         this.leadsTo = leadsTo;
@@ -54,6 +75,9 @@ public class Door extends Unit {
     public String getLeadsTo(){
         return leadsTo;
     }
+
+    public float getDisplayWidth() { return door.getWidth(); }
+    public float getDisplayHeight() { return door.getHeight(); }
 
     public void showOption(){
         UIHelper.getInstance().showDoorButton();

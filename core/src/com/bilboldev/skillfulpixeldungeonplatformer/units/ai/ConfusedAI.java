@@ -14,12 +14,14 @@ public class ConfusedAI extends AgressiveAI{
     }
 
     @Override
-    public void act(float delta){
-        super.act(delta);
+    protected boolean canTargetSameSide() { return true; }
 
+    @Override
+    public void attacked(float delta){
         if(other != null){
             this.owner.isFriendly = !other.isFriendly;
         }
+        super.attacked(delta);
     }
 
     @Override

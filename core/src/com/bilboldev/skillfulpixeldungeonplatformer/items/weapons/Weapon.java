@@ -15,6 +15,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.MeleeWea
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.RangedWeapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpriteTrail;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 
@@ -45,8 +46,8 @@ public class Weapon extends EquipableItem {
 
         drawAttackSprite(batch,
                 sprite,
-                owner.x + (owner.facingRight ? ConstantsHelper.UNIT_DIMENSIONS * frameAt / totalFrames: ConstantsHelper.UNIT_DIMENSIONS / 3 -ConstantsHelper.UNIT_DIMENSIONS * frameAt / totalFrames),
-                owner.y + ConstantsHelper.UNIT_DIMENSIONS / 4,
+                owner.getVisualAttackX(frameAt / totalFrames),
+                owner.getVisualAttackY(),
                 owner.facingRight);
     }
 
@@ -77,6 +78,7 @@ public class Weapon extends EquipableItem {
         sprite.setRotation(facingRight ? -45f : 45f);
         sprite.setScale(facingRight ? Math.abs(previousScaleX) : -Math.abs(previousScaleX), sprite.getScaleY());
         EnhancementVisualHelper.applyWeaponEnhancementPulse(sprite, this);
+        SpriteTrail.draw(batch, sprite, drawX - owner.getVisualAttackX(0f), 0f, 20f);
         sprite.draw(batch);
         sprite.setPosition(previousX, previousY);
         sprite.setRotation(previousRotation);
@@ -186,7 +188,7 @@ public class Weapon extends EquipableItem {
         return info.toString();
     }
 
-    private float applyStrengthDamage(float value) {
+    protected float applyStrengthDamage(float value) {
         float adjustedValue = value;
         int shortfall = getStrengthShortfall();
         if (shortfall > 0) {

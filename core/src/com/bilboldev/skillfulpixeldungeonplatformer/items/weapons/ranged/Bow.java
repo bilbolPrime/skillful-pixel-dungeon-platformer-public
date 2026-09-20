@@ -25,7 +25,7 @@ public class Bow extends RangedWeapon {
         name = "Bow";
         description = "A simple bow tuned for the ranged slot, firing a steady stream of arrows.";
         tier = 2;
-        damage = 4f;
+        damage = 5f;
         speed = 1.1f;
         goldCost = 35;
         ammo = 1;

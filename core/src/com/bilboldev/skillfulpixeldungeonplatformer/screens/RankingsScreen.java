@@ -14,6 +14,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.ActionButton;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.DesktopMenuStyle;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.InventoryWindow;
 
@@ -21,20 +22,20 @@ import java.util.ArrayList;
 
 public class RankingsScreen extends MenuScreenBase {
 
-    private static final float CARD_WIDTH = 108f;
-    private static final float CARD_HEIGHT = 108f;
-    private static final float CARD_HORIZONTAL_GAP = 26f;
-    private static final float CARD_VERTICAL_GAP = 22f;
+    private static final float CARD_WIDTH = 180f;
+    private static final float CARD_HEIGHT = 200f;
+    private static final float CARD_HORIZONTAL_GAP = 28f;
+    private static final float CARD_VERTICAL_GAP = 32f;
     private static final float CARD_PLATFORM_WIDTH = 96f;
     private static final float CARD_PLATFORM_HEIGHT = 40f;
     private static final float CARD_PLATFORM_Y = 6f;
     private static final float CARD_PREVIEW_SCALE = 0.8f;
     private static final float CARD_PREVIEW_STAND_OFFSET = 12f;
-    private static final float CARD_PREVIEW_X_OFFSET = -10f;
+    private static final float CARD_PREVIEW_X_OFFSET = 0f;
     private static final float DEPTH_LABEL_RAISE_FACTOR = 0.6f;
     private static final float DEPTH_BADGE_ICON_SIZE = 38f;
     private static final float DEPTH_BADGE_GAP = 8f;
-    private static final float DEPTH_BADGE_X_NUDGE = 10f;
+    private static final float DEPTH_BADGE_X_NUDGE = 0f;
     private static final int COLUMNS = 8;
     private static final int ROWS = 3;
     private static final int PAGE_SIZE = COLUMNS * ROWS;
@@ -43,29 +44,36 @@ public class RankingsScreen extends MenuScreenBase {
     private String title = "Rankings";
     private float titleX;
     private float titleY;
+    private FontHelper.FittedTextBlock emptyMessage;
 
     @Override
     protected void createMenuContent() {
         rankingRuns.clear();
         rankingRuns.addAll(SaveHelper.getInstance().loadRankings());
+        if (hostedContent) emptyMessage = FontHelper.getSingleton().fitLabelToBounds(
+                Messages.get("scenes.rankingsscene.no_games"), 3f, 2112, 160);
         rebuildPage();
     }
 
     private void rebuildPage() {
         buttons.clear();
-        WindowHelper.getInstance().hideAll();
+        if (!hostedContent) WindowHelper.getInstance().hideAll();
         addTitleBackButton();
 
         String localizedTitle = Messages.maybeTranslate(title);
         GlyphLayout glyphLayout = new GlyphLayout();
         glyphLayout.setText(FontHelper.getSingleton().getFont(Color.WHITE, 4), localizedTitle);
         titleX = (ConstantsHelper.SCREEN_WIDTH - glyphLayout.width) / 2f;
-        titleY = ConstantsHelper.SCREEN_HEIGHT - 120f;
+        titleY = hostedContent ? 1175f : ConstantsHelper.SCREEN_HEIGHT - 120f;
 
-        float gridWidth = COLUMNS * CARD_WIDTH + (COLUMNS - 1) * CARD_HORIZONTAL_GAP;
-        float gridHeight = ROWS * CARD_HEIGHT + (ROWS - 1) * CARD_VERTICAL_GAP;
+        float cardWidth = hostedContent ? 236f : CARD_WIDTH;
+        float cardHeight = hostedContent ? 280f : CARD_HEIGHT;
+        float horizontalGap = hostedContent ? 32f : CARD_HORIZONTAL_GAP;
+        float verticalGap = hostedContent ? 40f : CARD_VERTICAL_GAP;
+        float gridWidth = COLUMNS * cardWidth + (COLUMNS - 1) * horizontalGap;
+        float gridHeight = ROWS * cardHeight + (ROWS - 1) * verticalGap;
         float startX = (ConstantsHelper.SCREEN_WIDTH - gridWidth) / 2f;
-        float startY = (ConstantsHelper.SCREEN_HEIGHT + gridHeight) / 2f - CARD_HEIGHT;
+        float startY = (ConstantsHelper.SCREEN_HEIGHT + gridHeight) / 2f - cardHeight - (hostedContent ? 40f : 0f);
 
         for (int cardIndex = 0; cardIndex < PAGE_SIZE; cardIndex++) {
             int column = cardIndex % COLUMNS;
@@ -73,8 +81,8 @@ public class RankingsScreen extends MenuScreenBase {
             int rankingIndex = cardIndex;
             RankingCardButton button = new RankingCardButton(
                     rankingIndex < rankingRuns.size() ? rankingRuns.get(rankingIndex) : null,
-                    startX + column * (CARD_WIDTH + CARD_HORIZONTAL_GAP),
-                    startY - row * (CARD_HEIGHT + CARD_VERTICAL_GAP) + getRowYOffset(row));
+                    startX + column * (cardWidth + horizontalGap),
+                    startY - row * (cardHeight + verticalGap), cardWidth, cardHeight);
             buttons.add(button);
         }
     }
@@ -94,7 +102,13 @@ public class RankingsScreen extends MenuScreenBase {
 
     @Override
     protected void drawMenu(Batch batch) {
-        FontHelper.getSingleton().writeWhite(batch, 4f, titleX, titleY, Messages.maybeTranslate(title));
+        drawMenuHeading(batch, title, titleY);
+        if (hostedContent && rankingRuns.isEmpty()) {
+            DesktopMenuStyle.shade(batch, 162, 480, 2176, 240, 80, .72f);
+            FontHelper.getSingleton().writeRaw(DesktopMenuStyle.INK, batch, emptyMessage.size,
+                    (ConstantsHelper.SCREEN_WIDTH - emptyMessage.width) / 2f, 640, emptyMessage.text);
+            return;
+        }
         drawButtons(batch);
     }
 
@@ -113,16 +127,18 @@ public class RankingsScreen extends MenuScreenBase {
         private final GameSprite depthIcon;
         private final String depthLabel;
         private final GlyphLayout depthLayout = new GlyphLayout();
+        private final float contentScale;
 
-        private RankingCardButton(SaveHelper.RankingRunData rankingRunData, float x, float y) {
-            super(x, y, CARD_WIDTH, CARD_HEIGHT, "images/misc/black.png", "images/misc/black.png");
+        private RankingCardButton(SaveHelper.RankingRunData rankingRunData, float x, float y, float width, float height) {
+            super(x, y, width, height, "images/misc/black.png", "images/misc/black.png");
             this.rankingRunData = rankingRunData;
+            contentScale = hostedContent ? 1.3f : 1f;
             if (rankingRunData != null) {
                 enableUiPressFeedback();
             }
 
-            platform = new GameSprite("images/tiles/kingdom/platform.png", CARD_PLATFORM_WIDTH, CARD_PLATFORM_HEIGHT);
-            platform.setPosition(x + (CARD_WIDTH - CARD_PLATFORM_WIDTH) / 2f, y + CARD_PLATFORM_Y);
+            platform = new GameSprite("images/tiles/kingdom/platform.png", CARD_PLATFORM_WIDTH * contentScale, CARD_PLATFORM_HEIGHT * contentScale);
+            platform.setPosition(x + (width - platform.getWidth()) / 2f, y + CARD_PLATFORM_Y * contentScale);
 
             if (rankingRunData == null) {
                 depthLabel = null;
@@ -132,7 +148,7 @@ public class RankingsScreen extends MenuScreenBase {
             }
 
             depthLabel = Integer.toString(rankingRunData.depthReached);
-            depthIcon = new GameSprite("images/misc/depth.png", DEPTH_BADGE_ICON_SIZE, DEPTH_BADGE_ICON_SIZE);
+            depthIcon = new GameSprite("images/misc/depth.png", DEPTH_BADGE_ICON_SIZE * contentScale, DEPTH_BADGE_ICON_SIZE * contentScale);
             HeroClass heroClass = SaveHelper.getInstance().resolveRankingHeroClass(rankingRunData);
             heroPreview = new GameFilm(heroClass.getFilm(), ConstantsHelper.TILE, ConstantsHelper.TILE, 1f);
             heroPreview.clipSizeX = 12;
@@ -140,21 +156,31 @@ public class RankingsScreen extends MenuScreenBase {
             heroPreview.yClipOffset = 1;
             heroPreview.tileX = 0;
                 heroPreview.tileY = resolveArmorFilmRow(rankingRunData);
-            heroPreview.setScale(CARD_PREVIEW_SCALE, CARD_PREVIEW_SCALE);
+            heroPreview.setScale(CARD_PREVIEW_SCALE * contentScale, CARD_PREVIEW_SCALE * contentScale);
 
             float heroWidth = ConstantsHelper.UNIT_DIMENSIONS * heroPreview.getScaleX();
             heroPreview.setPosition(
-                    platform.getX() + (CARD_PLATFORM_WIDTH - heroWidth) / 2f + CARD_PREVIEW_X_OFFSET,
-                    platform.getY() + CARD_PLATFORM_HEIGHT - CARD_PREVIEW_STAND_OFFSET);
+                    platform.getX() + (platform.getWidth() - heroWidth) / 2f + CARD_PREVIEW_X_OFFSET,
+                    platform.getY() + platform.getHeight() - CARD_PREVIEW_STAND_OFFSET * contentScale);
         }
 
         @Override
         public void draw(Batch batch) {
+            if (hostedContent) {
+                if (rankingRunData == null) {
+
+                    DesktopMenuStyle.fill(batch, x + 52, y + 20, getWidth() - 104, 3, DesktopMenuStyle.EDGE, .35f);
+                    return;
+                }
+                DesktopMenuStyle.card(batch, x, y, getWidth(), getHeight(), DesktopMenuStyle.GOLD,
+                        selectedMenuButton() == this || isShowingPressFeedback());
+                DesktopMenuStyle.hover(batch, this, DesktopMenuStyle.GOLD);
+            } else drawMenuPanel(batch, x, y, getWidth(), getHeight());
             drawSprite(batch, platform, 1f);
             if (heroPreview != null) {
                 drawSprite(batch, heroPreview, 1f);
 
-                depthLayout.setText(FontHelper.getSingleton().getFont(Color.WHITE, 2), depthLabel);
+                depthLayout.setText(FontHelper.getSingleton().getFont(Color.WHITE, 2 * contentScale), depthLabel);
                 float heroWidth = ConstantsHelper.UNIT_DIMENSIONS * heroPreview.getScaleX();
                 float heroHeight = ConstantsHelper.UNIT_DIMENSIONS * heroPreview.getScaleY();
                 float heroCenterX = heroPreview.getX() + heroWidth / 2f;
@@ -168,7 +194,7 @@ public class RankingsScreen extends MenuScreenBase {
 
                 depthIcon.setPosition(iconX, iconY);
                 drawSprite(batch, depthIcon, 1f);
-                FontHelper.getSingleton().write(Color.WHITE, batch, 2f, textX, textY, depthLabel);
+                FontHelper.getSingleton().write(Color.WHITE, batch, 2f * contentScale, textX, textY, depthLabel);
             }
         }
 
@@ -180,7 +206,12 @@ public class RankingsScreen extends MenuScreenBase {
         @Override
         public void clicked() {
             WindowHelper.getInstance().hideAll();
-            WindowHelper.getInstance().addWindow(new InventoryWindow(rankingRunData, 2000f, 1000f).build());
+            WindowHelper.getInstance().addWindow(new InventoryWindow(rankingRunData, hostedContent ? 1900f : 2000f, 1000f) {
+                @Override protected float horizontalOffset() {
+
+                    return hostedContent ? (ConstantsHelper.SCREEN_WIDTH - width) / 2f - 20f : super.horizontalOffset();
+                }
+            }.build());
         }
 
         private void drawSprite(Batch batch, GameSprite sprite, float alphaMultiplier) {

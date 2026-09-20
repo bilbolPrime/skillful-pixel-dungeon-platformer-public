@@ -32,6 +32,7 @@ public class SmokeBomb extends BuffSkill {
             new Invisible().setPermanent(false).setDuration(INVISIBILITY_DURATION_SECONDS).setOwner(owner);
         } else {
             invisible.setPermanent(false).setDuration(INVISIBILITY_DURATION_SECONDS);
+            owner.setInvisible(true);
         }
 
         float centerX = owner.x + ConstantsHelper.UNIT_DIMENSIONS / 2f;

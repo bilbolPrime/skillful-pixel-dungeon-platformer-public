@@ -8,13 +8,23 @@ public class MagicWellRoom extends SingleDoorSpecialRoom {
 
     @Override
     public Room build() {
-        buildWidePlatforms();
-        addWaterSpan(5, 13, 4);
+        resetLayout();
+        width = 20 + 2 * layoutVariant(2);
+        int center = width / 2;
+        getLayout().describe("well-basin", center, 3);
+        addGroundWater();
+        addPlatformSpan(center - 5, center - 3, 3);
+        addPlatformSpan(center + 3, center + 5, 3);
+        return finishLayout();
+    }
 
-        placeItem(SpecialRoomRewards.randomWellReward(), 9, 7);
-        placeItem(SpecialRoomRewards.randomPotionReward(), 6, 5);
-        placeItem(SpecialRoomRewards.randomPotionReward(), 12, 5);
+    @Override
+    protected void placeContents() {
 
-        return this;
+
+        placeItem(SpecialRoomRewards.randomWellReward(), width / 2, 3);
+        placeItem(SpecialRoomRewards.randomPotionReward(), width / 2 - 4, 4);
+        placeItem(SpecialRoomRewards.randomPotionReward(), width / 2 + 4, 4);
+
     }
 }

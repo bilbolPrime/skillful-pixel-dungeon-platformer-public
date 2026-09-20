@@ -19,6 +19,14 @@ public class FriendlyAI extends AgressiveAI{
         super(unit);
     }
 
+
+    public void startFollowingAtCurrentPosition() {
+        clearTarget();
+        designationX = owner.x;
+        lastAction = 0f;
+        owner.movingLeft = owner.movingRight = false;
+    }
+
     @Override
     public void wander(float delta){
         if(other == null){

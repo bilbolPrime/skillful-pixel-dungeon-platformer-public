@@ -1,6 +1,9 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.levels;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameSettingsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpritePose;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.TrapBurst;
@@ -15,11 +18,24 @@ public class Sign {
     protected boolean burnOnDismiss;
     protected boolean burningOut;
     protected boolean expired;
+    private transient String observedRoom;
+    private transient float observedX, observedY, observedAlpha;
 
     public Sign(String message, float x, float y){
         this.message = message;
         this.x = x;
         this.y = y;
+    }
+
+    public void rememberDisplayed(String roomIdentifier) {
+        if (!GameSettingsHelper.getInstance().isBackgroundRoomsEnabled()) return;
+        observedRoom = roomIdentifier;
+        observedX = x; observedY = y; observedAlpha = visualAlpha;
+    }
+
+    public SpritePose copyObserved(String outgoingRoom, GameSprite sharedSignArt) {
+        return !expired && outgoingRoom != null && outgoingRoom.equals(observedRoom) && observedAlpha > 0f
+                ? sharedSignArt.copyPoseAt(observedX, observedY, observedAlpha) : null;
     }
 
     public String getMessage(){

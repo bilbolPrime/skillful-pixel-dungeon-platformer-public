@@ -12,7 +12,7 @@ public class FlameBow extends Bow {
         gs = new GameSprite("images/misc/extracted items/FlameBow.png", 45, 45);
         name = "Flame Bow";
         description = "A magically heated bow whose arrows explode with extra impact on a clean hit.";
-        damage = 5f;
+        damage = 6f;
         goldCost = 55;
     }
 
@@ -29,7 +29,7 @@ public class FlameBow extends Bow {
                     return;
                 }
 
-                if (owner != null && UnitHelper.getInstance().attackTarget(owner, target, attackingItem, damage, false)) {
+                if (owner != null && UnitHelper.getInstance().attackTarget(owner, target, attackingItem, damage, false, accuracyMultiplier)) {
                     target.takeDamage(owner, attackingItem, 2f);
                     EffectsHelper.getInstance().spark(this);
                     playSound(Sounds.BLAST, 0.6f);

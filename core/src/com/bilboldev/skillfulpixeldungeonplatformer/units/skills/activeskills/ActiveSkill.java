@@ -49,5 +49,9 @@ public class ActiveSkill extends Skill {
     public boolean isOnCooldown() {
         return TimeUtils.millis() < cooldownUntilMillis;
     }
+
+    public float getCooldownRemainingSeconds() {
+        return Math.max(0L, cooldownUntilMillis - TimeUtils.millis()) / 1000f;
+    }
 }
 

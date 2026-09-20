@@ -7,6 +7,16 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.TrapBurst
 public class Bleeding extends Buff {
     private float tickAt = 0.75f;
 
+
+    private float damageMultiplier = 1f;
+
+    public Bleeding setDamageMultiplier(float multiplier) {
+        damageMultiplier = multiplier;
+        return this;
+    }
+
+    public float getDamageMultiplier() { return damageMultiplier; }
+
     public Bleeding() {
         super("Bleeding", "Losing blood over time", "images/buffs/bleeding.png");
     }
@@ -19,7 +29,7 @@ public class Bleeding extends Buff {
             return;
         }
 
-        owner.takeDamage(owner, null, 1f);
+        owner.takeDamage(owner, null, damageMultiplier);
         EffectsHelper.getInstance().add(new TrapBurst().init(
                 owner.x + ConstantsHelper.UNIT_DIMENSIONS / 2f,
                 owner.y + ConstantsHelper.UNIT_DIMENSIONS / 2f,

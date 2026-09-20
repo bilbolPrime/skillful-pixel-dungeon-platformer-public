@@ -36,6 +36,13 @@ public class InteractiveTabbedWindow extends InteractiveWindow {
     }
 
     @Override
+    public boolean contains(float x, float y) {
+        if (super.contains(x, y)) return true;
+        for (Tab tab : tabs) if (tab.isHitProjected(x, y)) return true;
+        return false;
+    }
+
+    @Override
     public boolean click(float x, float y){
         for(Tab tab : tabs){
             if(tab.isHitProjected(x, y)){

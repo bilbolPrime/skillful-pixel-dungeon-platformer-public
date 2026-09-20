@@ -2,6 +2,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.items.scrolls;
 
 import com.badlogic.gdx.graphics.Color;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
@@ -26,6 +27,9 @@ public class ScrollOfMagicMapping extends Scroll {
             }
 
             PlatformTrap trap = (PlatformTrap) unit;
+            if (MapHelper.getInstance().getRoom(trap.getRoom()) == null) {
+                continue;
+            }
             if (!trap.isHidden()) {
                 continue;
             }

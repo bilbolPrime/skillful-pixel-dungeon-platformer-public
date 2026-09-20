@@ -98,6 +98,10 @@ public class Wand extends MeleeWeapon {
         return TimeUtils.millis() < cooldownUntilMillis;
     }
 
+    public float getCooldownRemainingSeconds() {
+        return Math.max(0L, cooldownUntilMillis - TimeUtils.millis()) / 1000f;
+    }
+
     protected float getWandPowerMultiplier() {
         if (owner instanceof Hero) {
             return ((Hero) owner).getWandPowerModifier();

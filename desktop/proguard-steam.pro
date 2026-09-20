@@ -7,9 +7,12 @@
 
 -keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,Exceptions,SourceFile,LineNumberTable,StackMapTable,StackMap
 
-# Save data and runtime systems resolve classes by stable ids and enum names, so
-# class names must remain unchanged across Steam builds.
+
+
 -keepnames class **
+
+
+-keepclassmembers class * implements java.io.Serializable { *; }
 
 -keep class com.bilboldev.skillfulpixeldungeonplatformer.desktop.DesktopLauncher { *; }
 

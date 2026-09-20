@@ -21,16 +21,11 @@ public class MercenaryRangedAI extends FriendlyAI {
 
     @Override
     public void attacked(float delta) {
-        if (other == null || other.getHP() < 1 || other.isInvisible() || other.getRoom() == null
-            || owner.getRoom() == null || !other.getRoom().equals(owner.getRoom())
-            || !UnitHelper.getInstance().canSeeTarget(owner, other)) {
-            other = null;
-            state = States.IDLE;
+        if (!canTarget(other)) {
+            clearTarget();
             if (owner instanceof Mob) {
                 ((Mob) owner).onTargetLost();
             }
-            owner.movingRight = false;
-            owner.movingLeft = false;
             return;
         }
 
@@ -71,9 +66,9 @@ public class MercenaryRangedAI extends FriendlyAI {
             }
         }
 
-        if (Math.abs(other.x - owner.x) > 5 * ConstantsHelper.UNIT_DIMENSIONS) {
+        if (other != null && Math.abs(other.x - owner.x) > 5 * ConstantsHelper.UNIT_DIMENSIONS) {
             Unit candidateTarget = findTarget();
-            if (candidateTarget != null && Math.abs(other.x - owner.x) > Math.abs(candidateTarget.x - owner.x)) {
+            if (isBetterTarget(candidateTarget)) {
                 other = candidateTarget;
             }
         }

@@ -19,6 +19,7 @@ public class DarkGoldVein extends Decoration {
         if (gs != null && room != null && room.equals(MapHelper.getInstance().getActiveRoomIdentifier())) {
             gs.setPosition(x + DRAW_OFFSET_X, y + DRAW_OFFSET_Y);
             gs.draw(batch);
+            rememberDisplayedDecoration();
         }
     }
 }

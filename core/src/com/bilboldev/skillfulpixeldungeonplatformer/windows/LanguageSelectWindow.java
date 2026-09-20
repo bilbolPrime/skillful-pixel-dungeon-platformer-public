@@ -236,7 +236,9 @@ public class LanguageSelectWindow extends Window {
         }
 
         WindowHelper.getInstance().hideAll();
-        SkillfulPixelDungeonPlatformer.transition(new TitleScreen(), true);
+        if (!(SkillfulPixelDungeonPlatformer.getActiveScreen() instanceof TitleScreen)
+                || !((TitleScreen) SkillfulPixelDungeonPlatformer.getActiveScreen()).usesDesktopMenuScenes())
+            SkillfulPixelDungeonPlatformer.transition(new TitleScreen(), true);
         WindowHelper.getInstance().addWindow(new PauseMenuWindow(false).build());
     }
 

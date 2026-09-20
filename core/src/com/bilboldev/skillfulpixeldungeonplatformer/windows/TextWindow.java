@@ -1,10 +1,12 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.windows;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.FontHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameSettingsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
@@ -65,6 +67,17 @@ public class TextWindow extends Window{
         super.build();
 
         return this;
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        if (keycode == Input.Keys.ESCAPE || keycode == Input.Keys.BACK || keycode == Input.Keys.ENTER ||
+                keycode == Input.Keys.NUMPAD_ENTER || keycode == Input.Keys.SPACE ||
+                GameSettingsHelper.getInstance().getInteractBinding().matchesKey(keycode)) {
+            hide();
+            return true;
+        }
+        return false;
     }
 
     @Override

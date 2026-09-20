@@ -10,6 +10,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.PhysicsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.RandomHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpriteTrail;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 
@@ -108,7 +109,8 @@ public class SludgeBomb extends ThrownProjectile {
     public void draw(Batch batch, float alpha){
         if(gs != null && !used){
             gs.setRotation(rotation + (facingRight  ? - 45 : 135));
-            gs.setPosition(x, y);
+            gs.setPosition(getRenderX(), getRenderY());
+            SpriteTrail.draw(batch, gs, speedX * 0.025f, speedY * 0.025f, 24f);
             gs.draw(batch);
         }
     }

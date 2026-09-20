@@ -1,17 +1,23 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.windows;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.math.Vector3;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.AmuletHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EnhancementVisualHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.FontHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.InventoryHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MercenaryHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.SoundHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.TextureHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UIHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UtilsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.AmuletOfYendor;
@@ -45,11 +51,13 @@ public class ItemWindow extends DescriptionWindow {
 
     ArrayList<ActionButton> actionButtons;
     Item item;
+    private final Vector3 pointer = new Vector3();
 
     public ItemWindow(Item item) {
         super(buildDescriptionSprite(item), item.getName() + "\n" + item.getBigDescription(), 1500, MIN_ITEM_WINDOW_HEIGHT);
         this.item = item;
         actionButtons = new ArrayList<>();
+        setDescriptionSpriteYOffset(72f);
         setReservedBottomHeight(ITEM_DESCRIPTION_PADDING);
         height = calculateBaseHeight(item.getName() + "\n" + item.getBigDescription());
         y = ConstantsHelper.SCREEN_HEIGHT / 2 - height / 2;
@@ -77,8 +85,8 @@ public class ItemWindow extends DescriptionWindow {
         GameSprite descriptionSprite = itemSprite != null
                 ? itemSprite.clone()
                 : new GameSprite("images/misc/transparent.png", 200, 200);
-        descriptionSprite.setWidth(200);
-        descriptionSprite.setHeight(200);
+        descriptionSprite.setWidth(128);
+        descriptionSprite.setHeight(128);
         descriptionSprite.setRotation(0f);
         EnhancementVisualHelper.applyItemEnhancementPulse(descriptionSprite, item);
         return descriptionSprite;
@@ -86,7 +94,16 @@ public class ItemWindow extends DescriptionWindow {
 
     @Override
     public Window build(){
+        setReservedBottomHeight(actionButtons.isEmpty() ? 80f : 200f);
         super.build();
+        float rowWidth = Math.max(0, actionButtons.size() - 1) * 40f;
+        for (ActionButton button : actionButtons) rowWidth += button.getWidth();
+        float buttonX = x + (width - rowWidth) / 2f;
+        for (ActionButton button : actionButtons) {
+            button.setPosition(buttonX, y + 80f);
+            if (button instanceof RedButton) ((RedButton) button).setBackgroundTint(new Color(0.72f, 0.82f, 0.84f, 1f));
+            buttonX += button.getWidth() + 40f;
+        }
         return this;
     }
 
@@ -130,6 +147,10 @@ public class ItemWindow extends DescriptionWindow {
             actionButtons.add(new RedButton(x + width - 1000,y + 100,400,100){
                 @Override
                 public void click(){
+                    if (InventoryHelper.isClassRestricted(item)) {
+                        InventoryHelper.showClassRestriction();
+                        return;
+                    }
                     if(item instanceof Ring && !((Ring)item).canEquip()){
                         WindowHelper.getInstance().addWindow(900f, 120f, ((Ring)item).getEquipFailureMessage());
                         return;
@@ -182,6 +203,7 @@ public class ItemWindow extends DescriptionWindow {
             @Override
             public void click() {
                 if (itemOnScreen != null) {
+                    if (!canConfirmWorldItem(itemOnScreen)) { hide(); return; }
                     AmuletHelper.claimVictory(itemOnScreen);
                     return;
                 }
@@ -194,6 +216,7 @@ public class ItemWindow extends DescriptionWindow {
             @Override
             public void click() {
                 if (itemOnScreen != null) {
+                    if (!canConfirmWorldItem(itemOnScreen)) { hide(); return; }
                     if (AmuletHelper.takeToSurface(itemOnScreen)) {
                         hide();
                     }
@@ -218,8 +241,10 @@ public class ItemWindow extends DescriptionWindow {
         actionButtons.add(new RedButton(x + width - 500 - (!(itemOnScreen instanceof MerchantRoom.ItemForPurchase) ? 500 : 0),y + 100,400,100){
             @Override
             public void click(){
+                if (!canConfirmWorldItem(itemOnScreen)) { hide(); return; }
                 if(!(itemOnScreen instanceof MerchantRoom.ItemForPurchase)
                 && InventoryHelper.getInstance().addItem(item)){
+                    UIHelper.getInstance().showItemReceipt(item);
                     itemOnScreen.pickedUp();
                 }
 
@@ -238,12 +263,18 @@ public class ItemWindow extends DescriptionWindow {
         actionButtons.add(new RedButton(x + width - 500,y + 100,400,100){
             @Override
             public void click(){
+                if (!canConfirmWorldItem(itemOnScreen)) { hide(); return; }
                 itemOnScreen.pickedUp();
                 hide();
             }
         }.setText(Messages.get("custom.ui.destroy")));
 
         return this;
+    }
+
+    private boolean canConfirmWorldItem(ItemOnScreen itemOnScreen) {
+        return WindowHelper.getInstance().topWindow() == this
+                && MapHelper.getInstance().canInteractWithItem(itemOnScreen);
     }
 
     public Window addConsume(final ConsumableItem item){
@@ -475,6 +506,7 @@ public class ItemWindow extends DescriptionWindow {
     }
 
     public Window addSell(){
+        if (InventoryHelper.getInstance().getSellPrice(item) <= 0) return this;
         height += actionButtons.size() == 0 ? ITEM_ACTION_AREA_HEIGHT : 0;
         y = ConstantsHelper.SCREEN_HEIGHT / 2 - height / 2;
         final int sellPrice = InventoryHelper.getInstance().getSellPrice(item);
@@ -493,11 +525,22 @@ public class ItemWindow extends DescriptionWindow {
     }
 
     @Override
+    protected ArrayList<ActionButton> getKeyboardChoices() { return actionButtons; }
+
+    @Override
     public void draw(Batch batch){
         super.draw(batch);
 
+        pointer.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+        GameHelper.GetSingleton().getUICamera().unproject(pointer);
         for (ActionButton actionButton : actionButtons){
             actionButton.draw(batch);
+            if (WindowHelper.getInstance().topWindow() == this && actionButton.isHitProjected(pointer.x, pointer.y)) {
+                Color previous = new Color(batch.getColor());
+                batch.setColor(Color.GOLDENROD);
+                batch.draw(TextureHelper.GetSingleton().getSolidPixel(), actionButton.x + 4f, actionButton.y + 4f, actionButton.getWidth() - 8f, 4f);
+                batch.setColor(previous);
+            }
         }
     }
 

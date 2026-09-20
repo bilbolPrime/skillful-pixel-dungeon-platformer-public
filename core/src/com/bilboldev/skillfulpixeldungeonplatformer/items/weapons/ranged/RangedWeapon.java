@@ -55,7 +55,7 @@ public class RangedWeapon extends Weapon {
             return;
         }
 
-        getGameSprite().setPosition(owner.x + (owner.facingRight ? ConstantsHelper.UNIT_DIMENSIONS * frameAt / totalFrames: ConstantsHelper.UNIT_DIMENSIONS / 3 -ConstantsHelper.UNIT_DIMENSIONS * frameAt / totalFrames), owner.y + ConstantsHelper.UNIT_DIMENSIONS / 4);
+        getGameSprite().setPosition(owner.getVisualAttackX(frameAt / totalFrames), owner.getVisualAttackY());
         getGameSprite().setRotation(owner.facingRight ? -45 : 135);
         getGameSprite().draw(batch);
     }
@@ -167,11 +167,13 @@ public class RangedWeapon extends Weapon {
 
         info.append(getStrengthRequirementText());
 
-        info.append("\n\n").append(Messages.maybeTranslate(
-                "This ranged weapon has %d ammo left.",
-                ammo));
+        info.append("\n\n").append(getAmmoDescription());
 
         return info.toString();
+    }
+
+    protected String getAmmoDescription() {
+        return Messages.maybeTranslate("This ranged weapon has %d ammo left.", getAmmo());
     }
 
     @Override

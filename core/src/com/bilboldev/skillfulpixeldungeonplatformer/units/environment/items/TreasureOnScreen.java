@@ -46,9 +46,11 @@ public class TreasureOnScreen extends ItemOnScreen {
             return;
         }
 
+        drawContactShadow(batch, alpha, 0f);
         gameSprite.setPosition(x, y);
         gameSprite.setAlpha(alpha);
         gameSprite.draw(batch);
+        rememberDisplayedItem(gameSprite);
     }
 
     @Override

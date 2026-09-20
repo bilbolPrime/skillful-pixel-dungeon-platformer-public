@@ -2,6 +2,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.halls;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.MeleeAttack;
@@ -50,13 +51,23 @@ public class EvilEye extends Mob {
                 }
 
                 float horizontalDistance = Math.abs(target.x - getOwner().x);
-                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 2f && beamAt <= 0f) {
-                    ((EvilEye) getOwner()).fireBeam();
-                    getOwner().fakeAttack();
+                getOwner().facingRight = getOwner().x < target.x;
+                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 2f
+                        && ((EvilEye) getOwner()).hasBeamLane(target)) {
                     getOwner().movingLeft = false;
                     getOwner().movingRight = false;
-                    getOwner().facingRight = getOwner().x < target.x;
-                    beamAt = 1.9f;
+                    getOwner().fly(false, true);
+                    if (beamAt <= 0f && getOwner().canAttack()) {
+                        ((EvilEye) getOwner()).fireBeam();
+                        getOwner().fakeAttack();
+                        beamAt = 1.9f;
+                    }
+                    return;
+                }
+                if (horizontalDistance > ConstantsHelper.UNIT_DIMENSIONS * 2f
+                        && horizontalDistance <= ConstantsHelper.TILE * BEAM_RANGE_TILES
+                        && Math.abs(target.y - getOwner().y) > 15f) {
+                    alignFlyingShot(target);
                     return;
                 }
 
@@ -68,6 +79,15 @@ public class EvilEye extends Mob {
         attackSpeed = 1.875f;
         weapon = new MeleeAttack().setDamageRange(14f, 20f);
         weapon.setOwner(this);
+    }
+
+    private boolean hasBeamLane(Unit target) {
+        float length = ConstantsHelper.TILE * BEAM_RANGE_TILES;
+        float left = facingRight ? x + ConstantsHelper.UNIT_DIMENSIONS : x - length;
+        float bottom = y + ConstantsHelper.UNIT_DIMENSIONS / 2f - BEAM_HEIGHT / 2f;
+        Rectangle targetBox = target.getHitBox();
+        return targetBox.x < left + length && targetBox.x + targetBox.width > left
+                && targetBox.y < bottom + BEAM_HEIGHT && targetBox.y + targetBox.height > bottom;
     }
 
     private void fireBeam() {
@@ -88,7 +108,7 @@ public class EvilEye extends Mob {
                 continue;
             }
 
-            unit.takeDamage(this, null, weapon.getDamage());
+            unit.takeDamage(this, null, DifficultyHelper.getInstance().scaleEnemyDamage(this, weapon.getDamage()));
         }
     }
 

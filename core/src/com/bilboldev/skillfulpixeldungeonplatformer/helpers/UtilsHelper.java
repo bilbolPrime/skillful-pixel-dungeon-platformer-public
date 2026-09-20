@@ -179,20 +179,16 @@ public class UtilsHelper {
                                                           boolean englishFontMetrics) {
         ArrayList<String> segments = new ArrayList<String>();
         StringBuilder segment = new StringBuilder();
-        float segmentWidth = 0f;
 
         for (int i = 0; i < text.length(); i++) {
             char glyph = text.charAt(i);
-            String token = String.valueOf(glyph);
-            float tokenWidth = measureTextWidth(token, size, glyphLayout, englishFontMetrics);
-            if (segment.length() > 0 && segmentWidth + tokenWidth > width) {
+
+            if (segment.length() > 0 && measureTextWidth(segment.toString() + glyph, size, glyphLayout, englishFontMetrics) > width) {
                 segments.add(segment.toString());
                 segment.setLength(0);
-                segmentWidth = 0f;
             }
 
             segment.append(glyph);
-            segmentWidth += tokenWidth;
         }
 
         if (segment.length() > 0 || segments.isEmpty()) {

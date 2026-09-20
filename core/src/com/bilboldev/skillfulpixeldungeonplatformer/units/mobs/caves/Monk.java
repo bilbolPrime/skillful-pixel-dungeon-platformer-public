@@ -41,7 +41,7 @@ public class Monk extends Mob {
 
     @Override
     public void attack(boolean forced) {
-        if (!unitState.canAttack() && !forced) {
+        if (!canAttack() && !forced) {
             return;
         }
 
@@ -52,6 +52,7 @@ public class Monk extends Mob {
             if (target != null && target.isHero && RandomHelper.getInstance().randomInt(6) == 0) {
                 Weapon equippedWeapon = target.getWeapon();
                 if (equippedWeapon instanceof MeleeWeapon
+                        && !(equippedWeapon instanceof MeleeAttack)
                         && !(equippedWeapon instanceof Knuckles)) {
                     ((MeleeWeapon) equippedWeapon).setEquipped(false);
                     InventoryHelper.getInstance().removeItem(equippedWeapon);

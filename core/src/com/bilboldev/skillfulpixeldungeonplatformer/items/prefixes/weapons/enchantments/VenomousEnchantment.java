@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.weapons.enchantments;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.EnhancementHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.Weapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Poisoned;
@@ -24,6 +25,6 @@ public class VenomousEnchantment extends WeaponEnhancement {
         }
 
         float duration = 4f + EnhancementHelper.getUpgradeLevel(weapon) * 1.5f;
-        EnhancementHelper.applyOrRefresh(target, new Poisoned(), duration);
+        EnhancementHelper.applyOrRefresh(target, new Poisoned().setDamageMultiplier(DifficultyHelper.getInstance().getEnemyDamageMultiplier(attacker)), duration);
     }
 }

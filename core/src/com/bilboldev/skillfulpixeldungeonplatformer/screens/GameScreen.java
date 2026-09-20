@@ -13,11 +13,12 @@ import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.bilboldev.skillfulpixeldungeonplatformer.SkillfulPixelDungeonPlatformer;
 import com.bilboldev.skillfulpixeldungeonplatformer.achievements.AchievementManager;
-import com.bilboldev.skillfulpixeldungeonplatformer.items.TomeOfMastery;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameSettingsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.InventoryHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ItemIdentityHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
@@ -33,9 +34,13 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UIHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.RoomTransition;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.DesktopInputProcessor;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.NecromancerMinion;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.NecromancerCurse;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Wizard;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.AmbientSound;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.Effects;
@@ -44,6 +49,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.windows.InventoryWindow;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.PauseMenuWindow;
 
 public class GameScreen extends BaseScreen {
+    private static final float WORLD_VIEW_HEIGHT = com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.RoomFraming.ORIGINAL_VIEW_HEIGHT;
     float darknessAlpha;
 
     {
@@ -64,6 +70,16 @@ public class GameScreen extends BaseScreen {
 Stage stage;
 
     private DesktopInputProcessor desktopInputProcessor;
+    public DesktopInputProcessor desktopInput() { return desktopInputProcessor; }
+    private final com.badlogic.gdx.utils.IntSet closeKeysHeld = new com.badlogic.gdx.utils.IntSet();
+    private boolean cameraTrackingReady;
+    private Hero cameraHero;
+    private Room cameraRoom;
+    private Room jumpFramingRoom;
+    private float jumpFramingTop;
+    private int cameraDepth, cameraPlacementVersion;
+    private float cameraTrackX, baseCameraX, cameraLookAhead;
+    private float cameraLastHeroX, cameraLastHeroY;
 
 
 
@@ -77,6 +93,22 @@ Stage stage;
     UnitHelper unitHelper;
     private final boolean loadSavedRun;
     private final DifficultyHelper.Difficulty startingDifficulty;
+    private int runSlot = -1;
+    private SaveHelper.RunSaveData slotSave;
+
+    public GameScreen(HeroClass heroClass, DifficultyHelper.Difficulty difficulty, int slot) {
+        this(heroClass, false, difficulty);
+        if (slot < 0 || slot >= SaveHelper.RUN_SLOT_COUNT || SaveHelper.getInstance().slotOccupied(slot))
+            throw new IllegalArgumentException("New runs require an empty slot");
+        runSlot = slot;
+    }
+
+    public GameScreen(int slot, SaveHelper.RunSaveData saved) {
+        this(HeroClass.valueOf(saved.heroClassName), true, DifficultyHelper.Difficulty.fromName(saved.difficultyName));
+        if (slot < 0 || slot >= SaveHelper.RUN_SLOT_COUNT) throw new IllegalArgumentException("Invalid run slot");
+        runSlot = slot;
+        slotSave = saved;
+    }
 
     public GameScreen(HeroClass heroClass){
         this(heroClass, false, DifficultyHelper.Difficulty.NORMAL);
@@ -99,7 +131,9 @@ Stage stage;
 
     @Override
     public void create() {
-        SaveHelper.RunSaveData saveData = loadSavedRun ? SaveHelper.getInstance().load(hero2.getHeroClass()) : null;
+        SaveHelper.getInstance().detachRun();
+        SaveHelper.RunSaveData saveData = slotSave != null ? slotSave
+                : loadSavedRun ? SaveHelper.getInstance().load(hero2.getHeroClass()) : null;
         DifficultyHelper.Difficulty runDifficulty = loadSavedRun
                 ? DifficultyHelper.Difficulty.fromName(saveData != null ? saveData.difficultyName : null)
                 : startingDifficulty;
@@ -113,9 +147,12 @@ Stage stage;
 
         float ratio = 1000f / Gdx.graphics.getWidth();
         MapHelper.getInstance().reset();
+        SaveHelper.getInstance().prepareRoomRestore(saveData);
         MapHelper.getInstance().setRestoringGeneratedLevels(saveData != null);
         GameHelper.GetSingleton().setCamera(new OrthographicCamera(width, height));
-        stageUnits =  new Stage(new StretchViewport(width,  height, GameHelper.GetSingleton().getCamera()));
+
+        stageUnits = new Stage(new ExtendViewport(WORLD_VIEW_HEIGHT * 16f / 9f, WORLD_VIEW_HEIGHT,
+                GameHelper.GetSingleton().getCamera()));
         unitHelper = UnitHelper.getInstance();
         unitHelper.reset();
         unitHelper.setStage(stageUnits);
@@ -147,9 +184,10 @@ Stage stage;
         uiCamera = new OrthographicCamera();
         uiCamera.setToOrtho(false, width, height);
         GameHelper.GetSingleton().setUICamera(uiCamera);
+        createUiViewport();
 
 
-        stage = new Stage(new StretchViewport(width,  height, GameHelper.GetSingleton().getCamera()));
+        stage = new Stage(stageUnits.getViewport());
 
         if (touchControlsEnabled) {
             dpadStage = addTouchPad(unitHelper, width, height);
@@ -163,6 +201,8 @@ Stage stage;
         Effects effects = new Effects();
         stageUnits.addActor(effects);
 
+        EffectsHelper.getInstance().addEffects(effects);
+
         if (saveData == null) {
             hero2.setRoom(MapHelper.getInstance().getActiveRoomIdentifier());
         }
@@ -175,7 +215,6 @@ Stage stage;
         AchievementManager.getInstance().onGameStarted(!loadSavedRun);
 
         effects.setZIndex(50);
-        EffectsHelper.getInstance().addEffects(effects);
         RatKingHelper.getInstance().resetRunState();
         RatKingHelper.getInstance().ensureCompanionPresent();
         if (NightModeHelper.isNightModeActive()) {
@@ -188,21 +227,24 @@ Stage stage;
 
 
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
+        inputMultiplexer.addProcessor(new InputAdapter() {
+            @Override public boolean keyDown(int key) { return com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsInput(); }
+            @Override public boolean keyUp(int key) { return com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsInput(); }
+            @Override public boolean touchDown(int x, int y, int pointer, int button) { return com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsInput(); }
+            @Override public boolean touchUp(int x, int y, int pointer, int button) { return com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsInput(); }
+        });
         Gdx.input.setCatchKey(Input.Keys.BACK, true);
         Gdx.input.setCatchKey(Input.Keys.ESCAPE, true);
         inputMultiplexer.addProcessor(new InputAdapter() {
             @Override
             public boolean keyDown(int keycode) {
+                if (keyboardControlsEnabled) com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.ControllerInput.getInstance().keyboardUsed();
                 if (keycode != Input.Keys.BACK && keycode != Input.Keys.ESCAPE) {
                     return false;
                 }
+                if (!closeKeysHeld.add(keycode)) return true;
 
                 if (unitHelper.getHero() != null && unitHelper.getHero().isDead()) {
-                    return true;
-                }
-
-                if (WindowHelper.getInstance().topWindow() instanceof InventoryWindow) {
-                    WindowHelper.getInstance().addWindow(new PauseMenuWindow().build());
                     return true;
                 }
 
@@ -210,8 +252,15 @@ Stage stage;
                     return true;
                 }
 
-                WindowHelper.getInstance().addWindow(new PauseMenuWindow().build());
+                PauseMenuWindow.openGameplay();
                 return true;
+            }
+
+            @Override
+            public boolean keyUp(int keycode) { return closeKeysHeld.remove(keycode); }
+            @Override public boolean touchDown(int x, int y, int pointer, int button) {
+                if (keyboardControlsEnabled) com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.ControllerInput.getInstance().keyboardUsed();
+                return false;
             }
         });
         inputMultiplexer.addProcessor(new GestureDetector(WindowHelper.getInstance().inputGestureListener()));
@@ -229,11 +278,40 @@ Stage stage;
         inputMultiplexer.addProcessor(stage);
 
         Gdx.input.setInputProcessor(inputMultiplexer);
+        SaveHelper.getInstance().attachRun(hero2, runSlot, saveData);
+        if (runSlot >= 0 && saveData == null && !SaveHelper.getInstance().saveCurrentRun()) {
+            WindowHelper.getInstance().addWindow(new com.bilboldev.skillfulpixeldungeonplatformer.windows.TextWindow(
+                    1100, 220, com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages.get("desktop.runs.save_failed")).build());
+        }
     }
 
     @Override
     public void init() {
 
+    }
+
+    @Override
+    public void pause() {
+        super.pause();
+        if (desktopInputProcessor != null) com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.ControllerInput.getInstance().setFocused(false);
+        MapHelper.getInstance().getRoomTransition().stopSound();
+        if (unitHelper.getHero() != null) unitHelper.getHero().suspendNewClassActions(true);
+        clearPresentationPresses();
+    }
+
+    @Override
+    public void resume() {
+        super.resume();
+        if (desktopInputProcessor != null) com.bilboldev.skillfulpixeldungeonplatformer.misc.inputprocessing.ControllerInput.getInstance().setFocused(true);
+        if (unitHelper.getHero() != null) unitHelper.getHero().suspendNewClassActions(false);
+        clearPresentationPresses();
+    }
+
+    private void clearPresentationPresses() {
+        closeKeysHeld.clear();
+        if (unitHelper.getHero() != null) unitHelper.getHero().clearControlIntent();
+        if (desktopInputProcessor != null) desktopInputProcessor.clearModalKeyPresses();
+        resetCameraTracking();
     }
 
     private void applyStartingGold(DifficultyHelper.Difficulty difficulty, boolean isNewRun) {
@@ -259,34 +337,57 @@ Stage stage;
 
     @Override
     public void act(float delta) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsGameplay()) {
+            clearPresentationPresses();
+            return;
+        }
+        com.bilboldev.skillfulpixeldungeonplatformer.windows.DesktopPauseMenuWindow pause = WindowHelper.getInstance().desktopPause();
+        if (pause != null) {
+            pause.act(delta);
+            if (desktopInputProcessor != null) desktopInputProcessor.refreshMovementState();
+            MapHelper.getInstance().getRoomTransition().stopSound();
+            return;
+        }
+        delta = PhysicsHelper.boundGameDelta(delta);
         if(darknessAlpha > 0){
             darknessAlpha -= 0.25f * Math.min(0.1f, delta);
 
             if(darknessAlpha < 0){
                 darknessAlpha = 0;
             }
-          //  darkness.setAlpha(darknessAlpha);
+
         }
 
         MapHelper.getInstance().act(delta);
 
+        if (desktopInputProcessor != null) desktopInputProcessor.refreshMovementState();
         if(!WindowHelper.getInstance().windowOpen()){
-            if (desktopInputProcessor != null) {
-                desktopInputProcessor.refreshMovementState();
-            }
-            stageUnits.act();
+            SaveHelper.getInstance().advancePlayTime(delta);
+            stageUnits.act(delta);
             unitHelper.act(delta);
-        }
+            unitHelper.getHero().updateJumpSupport(delta);
+            unitHelper.getHero().updateAirbornePose(delta);
+            GameHelper.GetSingleton().updateHitImpulse(delta);
+            MapHelper.getInstance().getRoomTransition().update(delta);
+            com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.gameplayAdvanced(delta);
+        } else MapHelper.getInstance().getRoomTransition().stopSound();
 
         welcome();
     }
 
     @Override
     public void render() {
+        act(Gdx.graphics.getDeltaTime());
         Gdx.gl.glClearColor(0f, 0f, 0f, 0.5f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         OrthographicCamera worldCamera = GameHelper.GetSingleton().getCamera();
+        RoomTransition transition = MapHelper.getInstance().getRoomTransition();
+        Hero cameraSubject = unitHelper.getHero();
+        transition.validate(MapHelper.getInstance().getActiveRoomIdentifier(), MapHelper.getInstance().getDepth(),
+                cameraSubject.getPresentationPlacementVersion(), cameraSubject.isDead());
+        if (WindowHelper.getInstance().desktopPause() == null) updateCameraTracking(Gdx.graphics.getDeltaTime());
+        worldCamera.zoom = getBaseRoomZoom() * transition.getZoom();
         worldCamera.position.set(getCameraX(), getCameraY(), worldCamera.position.z);
         worldCamera.update();
 
@@ -308,14 +409,15 @@ Stage stage;
         if (dpadStage != null) {
             dpadStage.getViewport().apply(false);
         }
+        uiViewport.apply(false);
         uiCamera.update();
         batchUI.setProjectionMatrix(uiCamera.combined);
         batchUI.begin();
 
-        if(!WindowHelper.getInstance().windowOpen()){
+        if(!WindowHelper.getInstance().windowOpen() || WindowHelper.getInstance().desktopPause() != null){
             UIHelper.getInstance().drawButtons(batchUI);
         }
-        else {
+        if (WindowHelper.getInstance().windowOpen()) {
             WindowHelper.getInstance().draw(batchUI);
         }
 
@@ -330,19 +432,35 @@ Stage stage;
 
         batchUI.end();
 
-        act(Gdx.graphics.getDeltaTime());
+    }
+
+    @Override
+    public void hide() {
+        super.hide();
+        MapHelper.getInstance().getRoomTransition().stopSound();
     }
 
     @Override
     public void dispose() {
+        MapHelper.getInstance().clearRoomPresentation();
+        if (stageUnits != null) {
+
+            for (Unit unit : UnitHelper.getInstance().getUnitsSnapshot()) if (unit.getStage() == stageUnits) {
+                NecromancerCurse.clear(unit);
+                if (unit instanceof NecromancerMinion) UnitHelper.getInstance().removeUnit(unit);
+            }
+        }
                 disposeTouchPad();
         batch.dispose();
-      //  UnitHelper.GetSingleton().getHero().Dispose();
-        //TextureHelper.GetSingleton().dispose();
+
+
     }
 
     @Override
     public void resize(int width, int height) {
+        if (width <= 0 || height <= 0) {
+            return;
+        }
         if (stageUnits != null) {
             stageUnits.getViewport().update(width, height, true);
         }
@@ -354,6 +472,9 @@ Stage stage;
         if (dpadStage != null) {
             dpadStage.getViewport().update(width, height, true);
         }
+        resizeUiViewport(width, height);
+        UIHelper.getInstance().layoutHud();
+        resetCameraTracking();
 
         float ratio = width <= 0 ? 1f : 1000f / width;
         if (stageParalex != null) {
@@ -373,23 +494,99 @@ Stage stage;
         }
 
         welcomed = true;
-      //  EffectsHelper.GetSingleton().AddNews("Dying Forest");
+
+    }
+
+
+    public void resetCameraTracking() {
+        cameraTrackingReady = false;
+        GameHelper.GetSingleton().clearHitImpulse();
+        MapHelper.getInstance().getRoomTransition().clear();
+    }
+
+    private void updateCameraTracking(float delta) {
+        Hero hero = unitHelper.getHero();
+        Room room = MapHelper.getInstance().getActiveRoom();
+        int depth = MapHelper.getInstance().getDepth();
+        float focusX = hero.getRenderX() + ConstantsHelper.UNIT_DIMENSIONS / 2f;
+        float horizontalSpeed = PhysicsHelper.toPixelSpeed(PhysicsHelper.getInstance().getHorizontalSpeed(hero));
+        float motion = Math.min(1f, Math.abs(horizontalSpeed) / 300f);
+        float lookAhead = (hero.facingRight ? 1f : -1f) * ConstantsHelper.TILE * (0.5f + 0.25f * motion);
+        if (GameSettingsHelper.getInstance().isReducedCameraMotion()) lookAhead = 0f;
+        boolean reset = !cameraTrackingReady || cameraHero != hero || cameraRoom != room || cameraDepth != depth
+                || cameraPlacementVersion != hero.getPresentationPlacementVersion()
+                || Math.abs(hero.x - cameraLastHeroX) > 2f * ConstantsHelper.TILE
+                || Math.abs(hero.y - cameraLastHeroY) > 2f * ConstantsHelper.TILE;
+        float baseVisibleWidth = GameHelper.GetSingleton().getCamera().viewportWidth * getBaseRoomZoom();
+        if (reset) {
+            GameHelper.GetSingleton().clearHitImpulse();
+            cameraLookAhead = lookAhead;
+            cameraTrackX = clampCameraX(focusX + lookAhead, baseVisibleWidth);
+            baseCameraX = cameraTrackX;
+        } else {
+            float elapsed = Math.max(0f, Math.min(delta, 0.1f));
+            cameraLookAhead += (lookAhead - cameraLookAhead) * (1f - (float) Math.exp(-elapsed / 0.15f));
+            float desired = focusX + cameraLookAhead;
+            float deadZone = ConstantsHelper.TILE * 0.25f;
+            if (desired > cameraTrackX + deadZone) cameraTrackX = desired - deadZone;
+            else if (desired < cameraTrackX - deadZone) cameraTrackX = desired + deadZone;
+            cameraTrackX = clampCameraX(cameraTrackX, baseVisibleWidth);
+            baseCameraX += (cameraTrackX - baseCameraX) * (1f - (float) Math.exp(-elapsed / 0.12f));
+            baseCameraX = clampCameraX(baseCameraX, baseVisibleWidth);
+        }
+        cameraHero = hero;
+        cameraRoom = room;
+        cameraDepth = depth;
+        cameraPlacementVersion = hero.getPresentationPlacementVersion();
+        cameraLastHeroX = hero.x;
+        cameraLastHeroY = hero.y;
+        cameraTrackingReady = true;
+    }
+
+    private float clampCameraX(float target, float visibleWidth) {
+        float roomWidth = MapHelper.getInstance().getWidth() * ConstantsHelper.TILE;
+        return roomWidth <= visibleWidth ? roomWidth / 2f
+                : Math.min(Math.max(visibleWidth / 2f, target), roomWidth - visibleWidth / 2f);
     }
 
     float getCameraX(){
-        if(MapHelper.getInstance().getWidth() < 20){
-            return width / 2 - ConstantsHelper.TILE * (20 - MapHelper.getInstance().getWidth()) / 2;
+        OrthographicCamera worldCamera = GameHelper.GetSingleton().getCamera();
+        return clampCameraX(baseCameraX + GameHelper.GetSingleton().getHitImpulseX(), worldCamera.viewportWidth * worldCamera.zoom);
+    }
+
+    private float getBaseRoomZoom() {
+        MapHelper map = MapHelper.getInstance();
+        float zoom = com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.RoomFraming.baseZoom(
+                !SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled(),
+                map.isBossLevelActive() || map.getDepth() >= 26,
+                Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        Room room = map.getActiveRoom();
+        boolean fitSpecial = room != null
+                && com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpecialRoomFocalPoint.supports(room)
+                && !(room instanceof com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.TreasureRoom);
+        if (room != null && (room.getClass() == Room.class || fitSpecial) && !map.isBossLevelActive() && map.getDepth() < 26) {
+            if (jumpFramingRoom != room) {
+                jumpFramingRoom = room;
+                jumpFramingTop = com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.RoomRoutes
+                        .jumpTopWithClearance(room.getHighestStandingFloor());
+            }
+            zoom = com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.RoomFraming.fitJump(zoom,
+                    jumpFramingTop, GameHelper.GetSingleton().getUICamera().viewportHeight, UIHelper.HUD_HEIGHT + 24f);
         }
-        return Math.min(Math.max(width / 2, unitHelper.getHeroX()), MapHelper.getInstance().getWidth() * ConstantsHelper.TILE - width / 2);
+        return zoom;
     }
 
     float getCameraY() {
+        OrthographicCamera worldCamera = GameHelper.GetSingleton().getCamera();
+        float visibleHeight = worldCamera.viewportHeight * worldCamera.zoom;
         Room activeRoom = MapHelper.getInstance().getActiveRoom();
         if (activeRoom == null) {
-            return height / 2f;
+            return visibleHeight / 2f;
         }
 
         float roomHeight = activeRoom.getHeight() * ConstantsHelper.TILE;
-        return roomHeight < height ? roomHeight / 2f : height / 2f;
+        float uiHeight = GameHelper.GetSingleton().getUICamera().viewportHeight;
+        return com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.RoomFraming.centerY(
+                visibleHeight, roomHeight, uiHeight, UIHelper.HUD_HEIGHT + 24f, getBaseRoomZoom() > 1f);
     }
 }

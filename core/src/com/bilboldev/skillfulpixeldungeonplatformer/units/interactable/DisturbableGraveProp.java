@@ -5,6 +5,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.ContactShadow;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.other.Wraith;
 
@@ -61,11 +62,14 @@ public abstract class DisturbableGraveProp extends Interactable {
 
         float animationProgress = collapsing ? collapseProgress : 0f;
         float scale = 1f - animationProgress * 0.2f;
+        ContactShadow.draw(batch, x + gs.getWidth() / 2f, y + animationProgress * COLLAPSE_RISE,
+                gs.getWidth() * 0.85f * scale, alpha * (1f - animationProgress), false);
         gs.setPosition(x, y + animationProgress * COLLAPSE_RISE);
         gs.setRotation(previousRotation + animationProgress * COLLAPSE_ROTATION * collapseDirection);
         gs.setScale(previousScaleX * scale, previousScaleY * scale);
         gs.setAlpha(alpha * (1f - animationProgress));
         gs.draw(batch);
+        if (!disturbed) observeBody(gs.copyPose());
 
         gs.setAlpha(previousAlpha);
         gs.setRotation(previousRotation);

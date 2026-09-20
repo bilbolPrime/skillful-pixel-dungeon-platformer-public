@@ -11,20 +11,28 @@ public class GraveyardRoom extends SingleDoorSpecialRoom {
 
     @Override
     public Room build() {
-        buildWidePlatforms();
+        resetLayout();
+        width = 22 + 2 * layoutVariant(2);
+        getLayout().describe("graveyard-court", width / 2, 3);
+        addPlatformSpan(6, 9, 3);
+        addPlatformSpan(width - 9, width - 6, 3);
+        return finishLayout();
+    }
+
+    @Override
+    protected void placeContents() {
 
         GraveRemains leftRemains = new GraveRemains();
         leftRemains.setRewardItem(SpecialRoomRewards.goldStack(2, 4));
-        placeInteractable(leftRemains, 6, 5);
+        placeInteractable(leftRemains, 7, 4);
 
         GraveRemains rightRemains = new GraveRemains();
         rightRemains.setRewardItem(SpecialRoomRewards.randomSupplyReward());
-        placeInteractable(rightRemains, 12, 5);
+        placeInteractable(rightRemains, width - 7, 4);
 
         DisturbableTomb tomb = new DisturbableTomb();
         tomb.setRewardItem(SpecialRoomRewards.randomArmorReward());
-        placeInteractable(tomb, 9, 7);
+        placeInteractable(tomb, width / 2, 3);
 
-        return this;
     }
 }

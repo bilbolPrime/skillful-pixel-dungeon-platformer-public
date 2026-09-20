@@ -3,6 +3,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.wands;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.MirrorImage;
 
@@ -16,6 +17,13 @@ public class WandOfFlock extends Wand {
 
     @Override
     public void addProjectile(float variance) {
+
+        for (Unit unit : UnitHelper.getInstance().getUnits()) {
+            if (unit instanceof MirrorImage && unit.isFriendly == owner.isFriendly && unit.isSummoned && !unit.showOnly()) {
+                unit.unSummon();
+            }
+        }
+
         int summons = getWandPowerMultiplier() >= 1.5f ? 3 : 2;
         float[] offsets = new float[]{-ConstantsHelper.TILE, ConstantsHelper.TILE, ConstantsHelper.TILE * 2f};
         int spawned = 0;

@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.mobs;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
@@ -8,6 +9,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.achievements.AchievementMana
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.DifficultyHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EffectsHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.GameHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.InventoryHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MapHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.PhysicsHelper;
@@ -29,24 +31,31 @@ import com.bilboldev.skillfulpixeldungeonplatformer.library.LibraryEntry;
 import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.Room;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameFilm;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.SpritePose;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.AI;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.AgressiveAI;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.ConfusedAI;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.ai.FriendlyAI;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Buff;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.MercenaryFear;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Poisoned;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Weaken;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.ItemOnScreen;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.UnitState;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.supporter.MercenaryAlly;
+import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skills;
 
 import java.util.Locale;
 
 public class Mob extends Unit implements LibraryEntry {
+    private transient SpritePose lastObservedBody;
+    private transient String lastObservedRoom;
+    private transient boolean lastObservedIdle;
     private static final float MIN_AI_ACTION_DELAY_SECONDS = 0.04f;
     private static final float AI_ACTION_DELAY_VARIANCE_SECONDS = 0.04f;
     private static final float ALERT_ICON_DURATION_SECONDS = 1f;
@@ -56,6 +65,7 @@ public class Mob extends Unit implements LibraryEntry {
     private static final float ALERT_ICON_SCALE_BOOST = 0.18f;
     private static final float CHAMPION_BONUS_EXP_MULTIPLIER = 1.5f;
     private static final float CHAMPION_DEBUFF_DURATION = 5f;
+    private static final float CHAMPION_LIFESTEAL_MULTIPLIER = 0.25f;
     private static final float CHAMPION_AURA_ALPHA = 0.5f;
     private static final float CHAMPION_AURA_SIZE = ConstantsHelper.UNIT_DIMENSIONS * 1.72f;
     private static final float CHAMPION_AURA_PULSE_SECONDS = 1.15f;
@@ -127,6 +137,9 @@ public class Mob extends Unit implements LibraryEntry {
     }
 
     protected AI ai;
+
+    private AI uncontrolledAI, dominanceAI, confusionAI;
+    private boolean uncontrolledFriendly;
     protected boolean boss;
     protected int experience;
     protected Item loot;
@@ -145,7 +158,8 @@ public class Mob extends Unit implements LibraryEntry {
     private Integer baseMaxHp;
     private Integer baseAttackSkill;
     private Integer baseDefenseSkill;
-    private float difficultyStatMultiplier = 1f;
+    private float difficultyHealthMultiplier = 1f;
+    private float difficultyAccuracyMultiplier = 1f;
     private float difficultyDefenseMultiplier = 1f;
     private transient GameSprite championAura;
 
@@ -159,6 +173,30 @@ public class Mob extends Unit implements LibraryEntry {
     public void draw(Batch batch, float alpha) {
         drawChampionAura(batch);
         super.draw(batch, alpha);
+    }
+
+    @Override
+    protected void drawBodyFilm(Batch batch) {
+        super.drawBodyFilm(batch);
+        if (isHero || isFriendly || showOnly() || isDead() || isInvisible() || gf.getAlpha() <= 0f) return;
+        OrthographicCamera camera = GameHelper.GetSingleton().getCamera();
+        float halfWidth = gf.getVisualWidth() / 2f, halfHeight = gf.getVisualHeight() / 2f;
+        if (camera == null || !camera.frustum.boundsInFrustum(gf.getVisualLeft() + halfWidth,
+                gf.getVisualBottom() + halfHeight, 0f, halfWidth, halfHeight, 0f)
+                || !UnitHelper.getInstance().canSeeTarget(UnitHelper.getInstance().getHero(), this)) return;
+
+        lastObservedBody = gf.copyDrawnFrame();
+        lastObservedRoom = room;
+        lastObservedIdle = unitState == UnitState.IDLE && !hasMeleeRecoveryPose();
+    }
+
+    public SpritePose getLastObservedBody(String outgoingRoom) {
+        return outgoingRoom != null && outgoingRoom.equals(room) && outgoingRoom.equals(lastObservedRoom)
+                ? lastObservedBody : null;
+    }
+
+    public boolean hasObservedIdlePose(String outgoingRoom) {
+        return lastObservedIdle && getLastObservedBody(outgoingRoom) != null;
     }
 
     @Override
@@ -178,7 +216,13 @@ public class Mob extends Unit implements LibraryEntry {
             sleepingWakeCheckTimer = 0f;
         }
 
-        if(ai != null && unitState != UnitState.DEAD && unitState != UnitState.SPAWNING){
+        MercenaryFear fear = (MercenaryFear)getBuff(MercenaryFear.class);
+        if (fear != null && fear.active()) {
+            fear.moveAway();
+            bufferedAiDelta = 0f;
+            aiActionDelayRemaining = 0f;
+        }
+        else if(ai != null && unitState != UnitState.DEAD && unitState != UnitState.SPAWNING){
             bufferedAiDelta += delta;
             aiActionDelayRemaining -= delta;
             if (aiActionDelayRemaining <= 0f) {
@@ -239,7 +283,8 @@ public class Mob extends Unit implements LibraryEntry {
         }
 
         DifficultyHelper.Difficulty difficulty = DifficultyHelper.getInstance().getCurrentDifficulty();
-        difficultyStatMultiplier = difficulty == null ? 1f : difficulty.getEnemyStatMultiplier();
+        difficultyHealthMultiplier = difficulty == null ? 1f : difficulty.getEnemyHealthMultiplier();
+        difficultyAccuracyMultiplier = difficulty == null ? 1f : difficulty.getEnemyAccuracyMultiplier();
         difficultyDefenseMultiplier = difficulty == null ? 1f : difficulty.getEnemyDefenseMultiplier();
         recalculateScaledStats(true);
     }
@@ -252,7 +297,7 @@ public class Mob extends Unit implements LibraryEntry {
         switch (championType) {
             case VAMPIRIC:
                 int previousHp = getHP();
-                setHP(getHP() + damageDealt);
+                setHP(getHP() + Math.round(damageDealt * CHAMPION_LIFESTEAL_MULTIPLIER));
                 if (getHP() > previousHp) {
                     EffectsHelper.getInstance().heal(this);
                 }
@@ -261,7 +306,7 @@ public class Mob extends Unit implements LibraryEntry {
                 refreshBuff(target, Weaken.class, new Weaken(), CHAMPION_DEBUFF_DURATION);
                 break;
             case FOUL:
-                refreshBuff(target, Poisoned.class, new Poisoned(), CHAMPION_DEBUFF_DURATION);
+                refreshBuff(target, Poisoned.class, new Poisoned().setDamageMultiplier(DifficultyHelper.getInstance().getEnemyDamageMultiplier(this)), CHAMPION_DEBUFF_DURATION);
                 break;
             case CHIEF:
             default:
@@ -287,8 +332,8 @@ public class Mob extends Unit implements LibraryEntry {
         float championHealthMultiplier = championType == null ? 1f : championType.getHealthMultiplier();
         float championDefenseMultiplier = championType == null ? 1f : championType.getDefenseMultiplier();
 
-        setMaxHP((int) Math.ceil(baseMaxHp * difficultyStatMultiplier * championHealthMultiplier));
-        setBaseAttackSkill(Math.max(1, Math.round(baseAttackSkill * difficultyStatMultiplier)));
+        setMaxHP((int) Math.ceil(baseMaxHp * difficultyHealthMultiplier * championHealthMultiplier));
+        setBaseAttackSkill(Math.max(1, Math.round(baseAttackSkill * difficultyAccuracyMultiplier)));
         setBaseDefenseSkill(Math.max(1, Math.round(baseDefenseSkill * difficultyDefenseMultiplier * championDefenseMultiplier)));
 
         if (!preserveHealthPercent) {
@@ -331,6 +376,28 @@ public class Mob extends Unit implements LibraryEntry {
     }
 
     @Override
+    protected void onDeathCommitted() {
+        Hero hero = UnitHelper.getInstance().getHero();
+        if (hero == null || (hero.getHeroClass() != HeroClass.NECROMANCER && hero.getHeroClass() != HeroClass.MERCENARY) || hero.isDead()
+
+                || isFriendly || isSummoned || showOnly || !grantsDeathRewards() || this instanceof MercenaryAlly
+                || room == null || !UnitHelper.getInstance().getUnits().contains(this)) {
+            return;
+        }
+        if (hero.getHeroClass() == HeroClass.NECROMANCER) {
+            if (boss) return;
+            Room deathRoom = MapHelper.getInstance().getRoom(room);
+            if (deathRoom != null) deathRoom.recordCorpseDeath(getPersistentId(), x, y);
+        } else {
+
+            if (getLastDamageSource() == hero && hero.hasSkill(Skills.WANTED)) {
+                InventoryHelper.getInstance().modifyGold(1);
+            }
+            if (!boss) InventoryHelper.getInstance().createBulletBundle(4).spawnNaturally(x, y, floorY, room);
+        }
+    }
+
+    @Override
     public void die(){
         if(isFriendly){
             return;
@@ -342,6 +409,8 @@ public class Mob extends Unit implements LibraryEntry {
             SoundHelper.GetSingleton().play(Sounds.BOSS, 0f, 1f);
             UIHelper.getInstance().showBossSlainBanner();
         }
+
+        if (!grantsDeathRewards()) return;
 
         Unit lastDamageSource = getLastDamageSource();
         int awardedExperience = getAwardedExperience();
@@ -381,6 +450,11 @@ public class Mob extends Unit implements LibraryEntry {
         return true;
     }
 
+
+    protected boolean grantsDeathRewards() {
+        return true;
+    }
+
     private int getAwardedExperience() {
         if (!isChampion()) {
             return experience;
@@ -395,6 +469,9 @@ public class Mob extends Unit implements LibraryEntry {
     }
 
     private void dropBaseGold() {
+
+
+        if (isSummoned) return;
         Item gold = new Gold().setQuantity(rollBaseGoldAmount());
         gold.spawnNaturally(x, y, floorY, room);
     }
@@ -418,7 +495,7 @@ public class Mob extends Unit implements LibraryEntry {
 
         ensureChampionAura();
         float auraOffset = (CHAMPION_AURA_SIZE - ConstantsHelper.UNIT_DIMENSIONS) / 2f;
-        championAura.setPosition(x - auraOffset, y - auraOffset + CHAMPION_AURA_VERTICAL_OFFSET);
+        championAura.setPosition(getRenderX() - auraOffset, getRenderY() - auraOffset + CHAMPION_AURA_VERTICAL_OFFSET);
         championAura.draw(batch);
     }
 
@@ -445,6 +522,7 @@ public class Mob extends Unit implements LibraryEntry {
     }
 
     public void makeFriendly(){
+        forgetControlAI();
         ai = new FriendlyAI(this);
         isFriendly = true;
         awareness = Awareness.WANDERING;
@@ -456,6 +534,7 @@ public class Mob extends Unit implements LibraryEntry {
             return;
         }
 
+        forgetControlAI();
         isFriendly = false;
         ai = new AgressiveAI(this);
         awareness = Awareness.WANDERING;
@@ -470,8 +549,15 @@ public class Mob extends Unit implements LibraryEntry {
         }
     }
 
+    public void clearBlindness() {
+        if (ai != null && ai.isBlind()) {
+            ai.clearTarget();
+            awareness = Awareness.WANDERING;
+        }
+    }
+
     public void alert(Unit source) {
-        if (ai == null || source == null || source.showOnly() || source.isInvisible()) {
+        if (ai == null || !ai.canTarget(source) || source.isInvisible()) {
             return;
         }
 
@@ -501,19 +587,17 @@ public class Mob extends Unit implements LibraryEntry {
             return;
         }
 
-        this.isFriendly = true;
-        FriendlyAI friendlyAI = new FriendlyAI(this);
-        this.ai = friendlyAI;
-        awareness = Awareness.WANDERING;
-        alerted = false;
+        rememberControlAI();
+        dominanceAI = new FriendlyAI(this);
+        switchControlAI(dominanceAI, true);
     }
 
     public void unDominate(){
-        if(ai == null){
-            return;
-        }
-
-        makeHostile();
+        AI previous = dominanceAI;
+        dominanceAI = null;
+        if (ai != previous) return;
+        if (confusionAI != null && hasActiveConfusion()) switchControlAI(confusionAI, false);
+        else restoreUncontrolledAI();
     }
 
     public void confused(){
@@ -521,16 +605,61 @@ public class Mob extends Unit implements LibraryEntry {
             return;
         }
 
-        this.isFriendly = false;
-        ConfusedAI confusedAI = new ConfusedAI(this);
+        rememberControlAI();
+        confusionAI = new ConfusedAI(this);
+        switchControlAI(confusionAI, false);
+    }
 
-        if(this.ai.isBlind()){
-            confusedAI.blinded();
+    public void unConfuse() {
+        if (hasActiveConfusion()) return;
+        AI previous = confusionAI;
+        confusionAI = null;
+        if (ai != previous) return;
+        if (dominanceAI != null && hasActiveControl(com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Dominate.class)) {
+            switchControlAI(dominanceAI, true);
+        } else restoreUncontrolledAI();
+    }
+
+    private boolean hasActiveConfusion() {
+        return hasActiveControl(com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Confused.class)
+                || hasActiveControl(com.bilboldev.skillfulpixeldungeonplatformer.units.buffs.Terrorized.class);
+    }
+
+    private boolean hasActiveControl(Class<? extends Buff> type) {
+        Buff buff = getBuff(type);
+        return buff != null && buff.active();
+    }
+
+    private void rememberControlAI() {
+        if (uncontrolledAI == null) {
+            uncontrolledAI = ai;
+            uncontrolledFriendly = isFriendly;
         }
+    }
 
-        this.ai = confusedAI;
+    private void switchControlAI(AI next, boolean friendly) {
+        boolean blind = ai != null && ai.isBlind();
+        if (ai != null) ai.clearTarget();
+        ai = next;
+        isFriendly = friendly;
+        ai.clearTarget();
+        if (blind) ai.blinded();
         awareness = Awareness.WANDERING;
         alerted = false;
+    }
+
+    private void restoreUncontrolledAI() {
+        if (uncontrolledAI != null) switchControlAI(uncontrolledAI, uncontrolledFriendly);
+        forgetControlAI();
+    }
+
+    private void forgetControlAI() {
+        uncontrolledAI = dominanceAI = confusionAI = null;
+    }
+
+
+    public boolean isFriendlyWithoutControl() {
+        return uncontrolledAI == null ? isFriendly : uncontrolledFriendly;
     }
 
     @Override
@@ -545,13 +674,13 @@ public class Mob extends Unit implements LibraryEntry {
             return;
         }
 
-        int at = (int) x + (int) ConstantsHelper.UNIT_DIMENSIONS / 2
+        int at = (int) getRenderX() + (int) ConstantsHelper.UNIT_DIMENSIONS / 2
                 - (totalIconCount % 2 == 0 ? 20 * totalIconCount / 2 : 10 + (20 * (totalIconCount - 1) / 2));
 
         if (isSleeping()) {
             float hoverOffset = MathUtils.sin(sleepIconAnimationTime * MathUtils.PI2 * SLEEP_ICON_HOVER_SPEED)
                     * SLEEP_ICON_HOVER_DISTANCE;
-            sleepingIcon.setPosition(at, y + ConstantsHelper.UNIT_DIMENSIONS + 5f + hoverOffset);
+            sleepingIcon.setPosition(at, getRenderY() + ConstantsHelper.UNIT_DIMENSIONS + 5f + hoverOffset);
             sleepingIcon.draw(batch);
             at += 20;
         }
@@ -564,7 +693,7 @@ public class Mob extends Unit implements LibraryEntry {
             float alpha = 1f - Interpolation.fade.apply(Math.max(0f, alertProgress - 0.2f) / 0.8f);
             alertIcon.setScale(scale, scale);
             alertIcon.setAlpha(alpha);
-            alertIcon.setPosition(at, y + ConstantsHelper.UNIT_DIMENSIONS + 5f + bubbleOffset);
+            alertIcon.setPosition(at, getRenderY() + ConstantsHelper.UNIT_DIMENSIONS + 5f + bubbleOffset);
             alertIcon.draw(batch);
             alertIcon.setScale(1f, 1f);
             alertIcon.setAlpha(1f);
@@ -572,7 +701,7 @@ public class Mob extends Unit implements LibraryEntry {
         }
 
         for (Buff buff : buffs) {
-            buff.getGameSprite().setPosition(at, y + ConstantsHelper.UNIT_DIMENSIONS + 5);
+            buff.getGameSprite().setPosition(at, getRenderY() + ConstantsHelper.UNIT_DIMENSIONS + 5);
             buff.getGameSprite().draw(batch);
             at += 20;
         }
@@ -589,7 +718,7 @@ public class Mob extends Unit implements LibraryEntry {
     }
 
     public boolean canNoticeTarget(Unit target, boolean alertBoost, boolean sleepingCheck) {
-        if (target == null || target.showOnly() || target.isInvisible()) {
+        if (ai == null || !ai.canTarget(target) || target.isInvisible()) {
             return false;
         }
 
@@ -653,7 +782,7 @@ public class Mob extends Unit implements LibraryEntry {
     }
 
     public void beginHunting(Unit source) {
-        if (ai == null || source == null || source.showOnly() || source.isInvisible()) {
+        if (ai == null || !ai.canTarget(source)) {
             return;
         }
 
@@ -752,7 +881,13 @@ public class Mob extends Unit implements LibraryEntry {
             return null;
         }
 
-        return UnitHelper.getInstance().findTargetInRoom(this, true);
+        Unit candidate = UnitHelper.getInstance().findTargetInRoom(this, true);
+        Unit current = ai == null ? null : ai.getOther();
+        if (candidate != null && current != null && ai.canTarget(current)
+                && (candidate.isInvisible() || !current.isInvisible()) && !ai.isBetterTarget(candidate)) {
+            return current;
+        }
+        return candidate;
     }
 
     private int getSleepingWakeChance(Hero hero, float distance) {

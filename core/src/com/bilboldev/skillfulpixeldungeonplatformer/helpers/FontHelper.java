@@ -154,6 +154,9 @@ public class FontHelper {
             parameter.magFilter = Texture.TextureFilter.Linear;
             parameter.packer = packer;
             BitmapFont font = generator.generateFont(parameter);
+
+
+            font.setOwnsTexture(true);
             font.setUseIntegerPositions(false);
             return font;
         } finally {
@@ -222,6 +225,8 @@ public class FontHelper {
         if (Gdx.files != null) {
             collectKnownMessageGlyphs(builder, seen);
             collectMessageGlyphs(Gdx.files.internal("messages"), builder, seen);
+
+            collectMessageGlyphs(Gdx.files.internal("free/about.properties"), builder, seen);
         }
 
         localizedGlyphs = builder.toString();
@@ -380,6 +385,20 @@ public class FontHelper {
 
         GlyphLayout fittedLayout = measure(Color.WHITE, fittedSize, fittedText);
         return new FittedTextBlock(fittedText, fittedSize, fittedLayout.width, fittedLayout.height, englishLayout.width);
+    }
+
+
+    public FittedTextBlock fitLabelToBounds(String localizedText, float maxSize, float wrapWidth, float maxHeight) {
+        float size = maxSize;
+        String text;
+        GlyphLayout measured;
+        do {
+            text = UtilsHelper.multiLineRaw(localizedText == null ? "" : localizedText, size, wrapWidth);
+            measured = measure(Color.WHITE, size, text);
+            if (size <= MIN_FIT_SIZE || (measured.width <= wrapWidth + 0.5f && measured.height <= maxHeight + 0.5f)) break;
+            size = Math.max(MIN_FIT_SIZE, size - FIT_SIZE_STEP);
+        } while (true);
+        return new FittedTextBlock(text, size, measured.width, measured.height, wrapWidth);
     }
 
     public FittedTextBlock fitOverlayText(String overlayKey,

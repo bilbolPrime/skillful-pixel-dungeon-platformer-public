@@ -1,6 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.EnhancementVisualHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
@@ -107,6 +108,15 @@ public class EnchantingAura extends Effect {
 
     @Override
     void gravity(float delta) {
+    }
+
+    @Override
+    public void draw(Batch batch) {
+        if (owner != null && gs != null) {
+            gs.setPosition(owner.getRenderX() + ConstantsHelper.UNIT_DIMENSIONS / 2f - effectWidth / 2f,
+                    owner.getRenderY() - effectHeight * 0.2f);
+        }
+        super.draw(batch);
     }
 
     @Override

@@ -7,6 +7,8 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.GunProject
 import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.MortarProjectile;
 
 public final class Mortar extends Gun {
+    @Override protected String localizationKey() { return "custom.newitems.mortar"; }
+
     {
         name = "Mortar";
         description = "Fires a slower straight shell. Its first impact hits one enemy and blasts up to eight others within 160 units for half damage. Walls block the blast; allies are safe.";

@@ -7,6 +7,8 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.GunProjectile;
 
 public final class Blunderbuss extends Gun {
+    @Override protected String localizationKey() { return "custom.newitems.blunderbuss"; }
+
     private static final float DAMAGE_MULTIPLIER = 1.5f;
 
     {
@@ -19,7 +21,6 @@ public final class Blunderbuss extends Gun {
     }
 
     @Override protected int projectilesPerShot() { return 3; }
-
 
     @Override public float min() { return super.min() * DAMAGE_MULTIPLIER; }
     @Override public float max() { return super.max() * DAMAGE_MULTIPLIER; }

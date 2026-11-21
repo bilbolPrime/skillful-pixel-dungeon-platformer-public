@@ -26,6 +26,9 @@ public class DescriptionWindow extends Window{
     private GameSprite descriptionSprite;
     private final String descriptionSource;
     private String description;
+    @Override public String partyText() { return descriptionSource == null ? "" : descriptionSource; }
+    public GameSprite partyPortrait() { return descriptionSprite; }
+    public float partyPortraitOffset() { return descriptionSpriteYOffset; }
     private float descriptionFontSize = DESCRIPTION_TEXT_SIZE;
     private float descriptionSpriteYOffset;
     private float reservedBottomHeight;
@@ -111,7 +114,4 @@ public class DescriptionWindow extends Window{
                 FontHelper.getSingleton().getFont(Color.WHITE, DESCRIPTION_TEXT_SIZE, description).getLineHeight() * 1.15f);
     }
 
-
 }
-
-

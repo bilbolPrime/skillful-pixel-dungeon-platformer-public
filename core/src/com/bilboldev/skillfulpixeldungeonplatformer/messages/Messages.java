@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.IllegalFormatException;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,9 +22,8 @@ public final class Messages {
 
     private static final String ROOT_PACKAGE = "com.bilboldev.skillfulpixeldungeonplatformer.";
     private static final String EXACT_MATCH_FILE = "messages/exact-match.tsv";
-    private static final Pattern FORMAT_PLACEHOLDER_PATTERN = Pattern.compile("%\\d*\\$?[sdifouxXeEgGcfbBhHtn%]");
+    private static final Pattern FORMAT_PLACEHOLDER_PATTERN = MessageFormats.TOKEN;
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
-    private static final Pattern ARG_INDEX_PATTERN = Pattern.compile("%(\\d+)\\$");
     private static final Pattern TRAILING_LEVEL_SUFFIX_PATTERN = Pattern.compile("^(.*?)(\\s\\+\\d+)$");
     private static final String[] BUNDLE_FILES = new String[] {
             "messages/actors/actors",
@@ -40,15 +40,16 @@ public final class Messages {
 
     public static final String NO_TEXT_FOUND = "!!!NO TEXT FOUND!!!";
 
-    private static final Properties properties = new Properties();
+    private static Properties properties = new Properties();
+    private static Properties englishProperties = new Properties();
     private static final HashMap<String, String> classKeyAliases = new HashMap<>();
-    private static final HashMap<String, String> exactTextKeys = new HashMap<>();
-    private static final HashMap<Character, ArrayList<ExactPatternEntry>> exactPatternKeys = new HashMap<>();
-    private static final ArrayList<ExactPatternEntry> leadingPatternKeys = new ArrayList<>();
-    private static final HashMap<String, String> bundleTextKeys = new HashMap<>();
-    private static final HashMap<Character, ArrayList<ExactPatternEntry>> bundlePatternKeys = new HashMap<>();
-    private static final ArrayList<ExactPatternEntry> leadingBundlePatternKeys = new ArrayList<>();
-    private static final HashMap<String, String> translationCache = new HashMap<>();
+    private static HashMap<String, String> exactTextKeys = new HashMap<>();
+    private static HashMap<Character, ArrayList<ExactPatternEntry>> exactPatternKeys = new HashMap<>();
+    private static ArrayList<ExactPatternEntry> leadingPatternKeys = new ArrayList<>();
+    private static HashMap<String, String> bundleTextKeys = new HashMap<>();
+    private static HashMap<Character, ArrayList<ExactPatternEntry>> bundlePatternKeys = new HashMap<>();
+    private static ArrayList<ExactPatternEntry> leadingBundlePatternKeys = new ArrayList<>();
+    private static HashMap<String, String> translationCache = new HashMap<>();
     private static final Object[] NO_ARGS = new Object[0];
 
     private static Languages language = Languages.ENGLISH;
@@ -70,6 +71,43 @@ public final class Messages {
     private Messages() {
     }
 
+    private static final java.util.EnumMap<Languages, LanguageContext> languageContexts = new java.util.EnumMap<>(Languages.class);
+    private static final class LanguageContext {
+        final Languages selected = language;
+        final Locale selectedLocale = locale;
+        final Properties properties = Messages.properties;
+        final Properties englishProperties = Messages.englishProperties;
+        final HashMap<String, String> exactTextKeys = Messages.exactTextKeys;
+        final HashMap<Character, ArrayList<ExactPatternEntry>> exactPatternKeys = Messages.exactPatternKeys;
+        final ArrayList<ExactPatternEntry> leadingPatternKeys = Messages.leadingPatternKeys;
+        final HashMap<String, String> bundleTextKeys = Messages.bundleTextKeys;
+        final HashMap<Character, ArrayList<ExactPatternEntry>> bundlePatternKeys = Messages.bundlePatternKeys;
+        final ArrayList<ExactPatternEntry> leadingBundlePatternKeys = Messages.leadingBundlePatternKeys;
+        final HashMap<String, String> translationCache = Messages.translationCache;
+        void install() {
+            language = selected; locale = selectedLocale;
+            Messages.properties = properties;
+            Messages.englishProperties = englishProperties;
+            Messages.exactTextKeys = exactTextKeys;
+            Messages.exactPatternKeys = exactPatternKeys;
+            Messages.leadingPatternKeys = leadingPatternKeys;
+            Messages.bundleTextKeys = bundleTextKeys;
+            Messages.bundlePatternKeys = bundlePatternKeys;
+            Messages.leadingBundlePatternKeys = leadingBundlePatternKeys;
+            Messages.translationCache = translationCache;
+        }
+    }
+
+    public static void withLanguage(Languages selected, Runnable action) {
+        if (selected == null || selected == language) { action.run(); return; }
+        LanguageContext previous = new LanguageContext();
+        LanguageContext next = languageContexts.get(selected);
+        try {
+            if (next == null) setup(selected); else next.install();
+            action.run();
+        } finally { previous.install(); }
+    }
+
     public static Languages lang() {
         return language;
     }
@@ -79,9 +117,20 @@ public final class Messages {
     }
 
     public static void setup(Languages nextLanguage) {
+        properties = new Properties();
+        englishProperties = new Properties();
+        exactTextKeys = new HashMap<>();
+        exactPatternKeys = new HashMap<>();
+        leadingPatternKeys = new ArrayList<>();
+        bundleTextKeys = new HashMap<>();
+        bundlePatternKeys = new HashMap<>();
+        leadingBundlePatternKeys = new ArrayList<>();
+        translationCache = new HashMap<>();
+
         language = nextLanguage == null ? Languages.ENGLISH : nextLanguage;
         locale = language.locale();
         properties.clear();
+        englishProperties.clear();
         exactTextKeys.clear();
         exactPatternKeys.clear();
         leadingPatternKeys.clear();
@@ -101,14 +150,24 @@ public final class Messages {
         }
 
         loadExactMatchIndex(EXACT_MATCH_FILE);
+        languageContexts.put(language, new LanguageContext());
     }
 
     public static String get(String key, Object... args) {
-        String value = getValue(normalizeKey(key));
-        return args != null && args.length > 0 ? format(value, args) : value;
+        return formatKey(normalizeKey(key), args);
+    }
+
+    public static String get(String key, String firstArgument, Object... args) {
+        Object[] values = new Object[1 + (args == null ? 0 : args.length)];
+        values[0] = firstArgument;
+        if (args != null) System.arraycopy(args, 0, values, 1, args.length);
+        return get(key, values);
     }
 
     public static String get(Object object, String key, Object... args) {
+        if (object instanceof String) {
+            return get((String) object, key, args);
+        }
         return object == null ? NO_TEXT_FOUND : get(object.getClass(), key, args);
     }
 
@@ -120,11 +179,12 @@ public final class Messages {
             if (value == null) {
                 String aliasKey = aliasKey(fullKey);
                 if (aliasKey != null) {
+                    fullKey = aliasKey;
                     value = properties.getProperty(aliasKey);
                 }
             }
             if (value != null) {
-                return args != null && args.length > 0 ? format(value, args) : value;
+                return formatKey(fullKey, args);
             }
             current = current.getSuperclass();
         }
@@ -142,6 +202,7 @@ public final class Messages {
         if (value == null) {
             String aliasKey = aliasKey(fullKey);
             if (aliasKey != null) {
+                fullKey = aliasKey;
                 value = properties.getProperty(aliasKey);
             }
         }
@@ -150,7 +211,7 @@ public final class Messages {
             return NO_TEXT_FOUND;
         }
 
-        return args != null && args.length > 0 ? format(value, args) : value;
+        return formatKey(fullKey, args);
     }
 
     public static String getOrNull(Class<?> type, String key, Object... args) {
@@ -232,9 +293,18 @@ public final class Messages {
 
             Properties loaded = new Properties();
             loaded.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            for (String key : loaded.stringPropertyNames()) {
+            for (String key : new TreeSet<>(loaded.stringPropertyNames())) {
                 String normalizedKey = normalizeKey(key);
                 String propertyValue = decodeEscapedText(loaded.getProperty(key));
+                if (indexBundleValues) {
+                    englishProperties.setProperty(normalizedKey, propertyValue);
+                } else {
+                    String source = englishProperties.getProperty(normalizedKey);
+                    if (source != null && !MessageFormats.compatible(source, propertyValue)) {
+                        if (Gdx.app != null) Gdx.app.error("Messages", "Invalid format: " + assetPath + ":" + key);
+                        continue;
+                    }
+                }
                 properties.setProperty(normalizedKey, propertyValue);
                 if (indexBundleValues) {
                     indexBundleValue(normalizedKey, propertyValue);
@@ -286,7 +356,7 @@ public final class Messages {
                 }
 
                 ExactPatternEntry entry = new ExactPatternEntry(key, template);
-                if (normalized.startsWith("%ARG%")) {
+                if (normalized.startsWith("%arg%")) {
                     leadingPatternKeys.add(entry);
                 } else {
                     char firstChar = normalized.charAt(0);
@@ -333,8 +403,10 @@ public final class Messages {
             return;
         }
 
+        if (!bundleTextKeys.containsKey(normalized)) bundleTextKeys.put(normalized, key);
+
         ExactPatternEntry entry = new ExactPatternEntry(key, value);
-        if (normalized.startsWith("%ARG%")) {
+        if (normalized.startsWith("%arg%")) {
             leadingBundlePatternKeys.add(entry);
             return;
         }
@@ -365,6 +437,19 @@ public final class Messages {
         return value == null ? NO_TEXT_FOUND : value;
     }
 
+    private static String formatKey(String key, Object[] args) {
+        String value = getValue(key);
+        if (args == null || args.length == 0) {
+            return MessageFormats.signature(value).isEmpty() ? MessageFormats.literals(value) : value;
+        }
+        try {
+
+            return String.format(locale, value, args);
+        } catch (IllegalFormatException e) {
+            return formatRaw(englishProperties.getProperty(key, value), args);
+        }
+    }
+
     private static String maybeTranslateInternal(String value, Object[] args) {
         if (value == null) {
             return null;
@@ -384,11 +469,11 @@ public final class Messages {
             if (localized == null) {
                 translated = args.length > 0 ? formatRaw(value, args) : value;
             } else if (args.length > 0) {
-                translated = formatRaw(localized, args);
+                translated = formatKey(normalizeKey(match.key), args);
             } else if (match.capturedArgs != null) {
                 translated = substituteRawFormat(localized, match.capturedArgs);
             } else {
-                translated = localized;
+                translated = MessageFormats.signature(localized).isEmpty() ? MessageFormats.literals(localized) : localized;
             }
         }
 
@@ -472,8 +557,10 @@ public final class Messages {
         Matcher matcher = FORMAT_PLACEHOLDER_PATTERN.matcher(format);
         int last = 0;
         int nextArg = 0;
+        int previousArg = -1;
 
         while (matcher.find()) {
+            if (!MessageFormats.isToken(matcher)) continue;
             builder.append(format, last, matcher.start());
             String token = matcher.group();
 
@@ -482,14 +569,15 @@ public final class Messages {
             } else if ("%n".equals(token)) {
                 builder.append('\n');
             } else {
-                int argIndex = argumentIndex(token, nextArg);
+                int argIndex = MessageFormats.argumentIndex(matcher, nextArg, previousArg);
                 if (argIndex >= 0 && argIndex < args.length) {
                     builder.append(args[argIndex]);
                 } else {
                     builder.append(token);
                 }
 
-                if (token.indexOf('$') < 0) {
+                previousArg = argIndex;
+                if (MessageFormats.isImplicit(matcher)) {
                     nextArg++;
                 }
             }
@@ -499,14 +587,6 @@ public final class Messages {
 
         builder.append(format.substring(last));
         return builder.toString();
-    }
-
-    private static int argumentIndex(String token, int defaultIndex) {
-        Matcher matcher = ARG_INDEX_PATTERN.matcher(token);
-        if (matcher.find()) {
-            return Integer.parseInt(matcher.group(1)) - 1;
-        }
-        return defaultIndex;
     }
 
     private static void registerClassKeyAlias(String sourcePrefix, String targetPrefix) {
@@ -630,6 +710,8 @@ public final class Messages {
     private static class ExactPatternEntry {
         private final String key;
         private final Pattern pattern;
+        private final ArrayList<Integer> argumentIndices = new ArrayList<>();
+        private int argumentCount;
 
         private ExactPatternEntry(String key, String template) {
             this.key = key;
@@ -642,28 +724,39 @@ public final class Messages {
                 return null;
             }
 
-            String[] args = new String[matcher.groupCount()];
-            for (int i = 0; i < args.length; i++) {
-                args[i] = matcher.group(i + 1);
+            String[] args = new String[argumentCount];
+            for (int i = 0; i < argumentIndices.size(); i++) {
+                int index = argumentIndices.get(i);
+                if (index < 0) return null;
+                String captured = matcher.group(i + 1);
+                if (args[index] != null && !args[index].equals(captured)) return null;
+                args[index] = captured;
             }
             return new TranslationMatch(key, args);
         }
 
-        private static String templatePattern(String template) {
+        private String templatePattern(String template) {
             StringBuilder regex = new StringBuilder("^");
             Matcher matcher = FORMAT_PLACEHOLDER_PATTERN.matcher(template);
             int last = 0;
+            int next = 0, previous = -1;
 
             while (matcher.find()) {
+                if (!MessageFormats.isToken(matcher)) continue;
                 regex.append(Pattern.quote(template.substring(last, matcher.start())));
                 String token = matcher.group();
 
                 if ("%%".equals(token)) {
                     regex.append('%');
                 } else if ("%n".equals(token)) {
-                    regex.append("\\\\R");
+                    regex.append("(?:\\r\\n|\\r|\\n)");
                 } else {
-                    regex.append("(.+?)");
+                    regex.append("(.*?)");
+                    int index = MessageFormats.argumentIndex(matcher, next, previous);
+                    argumentIndices.add(index);
+                    argumentCount = Math.max(argumentCount, index + 1);
+                    previous = index;
+                    if (MessageFormats.isImplicit(matcher)) next++;
                 }
 
                 last = matcher.end();
@@ -671,6 +764,8 @@ public final class Messages {
 
             regex.append(Pattern.quote(template.substring(last)));
             regex.append('$');
+
+            if (FORMAT_PLACEHOLDER_PATTERN.matcher(template).replaceAll("").trim().isEmpty()) return "(?!)";
             return regex.toString();
         }
     }

@@ -61,34 +61,23 @@ public class SaveHelper {
     private Hero saveOwner;
     private int activeSlot = -1;
     private String activeRunId;
-    private RunSaveData activeMetadata;
     private double playedSeconds;
-    private String steamAccount;
     private long slotRevision;
 
-    public void useSteamAccount(String account) {
-        if (account == null || !account.matches("[0-9]{1,20}")) throw new IllegalArgumentException("Invalid Steam account");
-        steamAccount = account;
-    }
-    public FileHandle desktopSaveRoot() { return Gdx.files.local(steamAccount == null ? "saves" : "saves/steam_" + steamAccount); }
-    public String activeRunId() { return activeRunId; }
-    public int activeSlot() { return activeSlot; }
-    public RunSaveData activeMetadata() { return activeMetadata; }
-    public double uncheckpointedSeconds() { return playedSeconds - (activeMetadata == null ? 0 : activeMetadata.playedSeconds); }
+    public FileHandle desktopSaveRoot() { return Gdx.files.local("saves"); }
     public long slotRevision() { return slotRevision; }
     public void advancePlayTime(float delta) {
         if (saveOwner != null && !saveOwner.isDead() && Float.isFinite(delta) && delta > 0) playedSeconds += Math.min(.1f, delta);
     }
 
-
-    public void detachRun() { saveOwner = null; activeSlot = -1; activeRunId = null; activeMetadata = null; playedSeconds = 0; }
+    public void detachRun() { saveOwner = null; activeSlot = -1; activeRunId = null; playedSeconds = 0; }
 
     public void attachRun(Hero hero, int slot, RunSaveData saved) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (slot < -1 || slot >= RUN_SLOT_COUNT) throw new IllegalArgumentException("Invalid run slot");
         saveOwner = hero;
         activeSlot = slot;
         activeRunId = saved == null ? java.util.UUID.randomUUID().toString() : saved.runId;
-        activeMetadata = saved;
         playedSeconds = saved == null ? 0 : saved.playedSeconds;
     }
 
@@ -100,32 +89,26 @@ public class SaveHelper {
     }
 
     public RunSaveData loadSlot(int slot) { return readRun(slotFile(slot)); }
-    public RunSaveData loadSlotBackup(int slot) { return readRunFile(backup(slotFile(slot))); }
-
 
     public boolean deleteSlot(int slot, String expectedRunId) {
         RunSaveData saved = loadSlot(slot);
         if (saved != null && !saved.runId.equals(expectedRunId)) return false;
-        if (saved != null && !com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.retire(saved.runId, "DELETED")) return false;
         boolean removed = deleteRunFiles(slotFile(slot));
-        if (removed) { slotRevision++; com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.fillSlots(); }
+        if (removed) { slotRevision++; }
         return removed;
     }
 
     public void deleteCurrentRun() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         Hero owner = saveOwner;
         int slot = activeSlot;
-        String identity = activeRunId;
-        if (owner != null) com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.retire(identity, owner.isDead() || owner.getHP() <= 0 ? "DEAD" : "WON");
         detachRun();
         if (owner == null) return;
-        if (slot >= 0) { deleteRunFiles(slotFile(slot)); slotRevision++; com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.fillSlots(); }
+        if (slot >= 0) { deleteRunFiles(slotFile(slot)); slotRevision++; }
         else deleteSave(owner.getHeroClass());
     }
 
-
     public void importClassRunsIntoSlots() {
-        if (steamAccount != null) return;
         for (HeroClass heroClass : HeroClass.values()) {
             if (heroClass == HeroClass.NEUTRAL || !hasSave(heroClass)) continue;
             RunSaveData saved = load(heroClass);
@@ -148,40 +131,6 @@ public class SaveHelper {
                 com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.RoomLayout.GENERATOR_VERSION));
     }
 
-    public boolean installCloudSlot(int slot, RunSaveData data) {
-        if (slot == activeSlot && saveOwner != null) return false;
-        boolean saved = writeRun(slotFile(slot), data);
-        if (saved) slotRevision++;
-        return saved;
-    }
-
-    public boolean replaceActiveCloudSlot(int slot, RunSaveData data) {
-        if (slot != activeSlot || saveOwner == null) return installCloudSlot(slot, data);
-        boolean saved = writeRun(slotFile(slot), data);
-        if (saved) { detachRun(); slotRevision++; }
-        return saved;
-    }
-
-
-    public void removeRetiredSlots(java.util.Set<String> retired) {
-        for (int slot = 0; slot < RUN_SLOT_COUNT; slot++) {
-            RunSaveData data = loadSlot(slot);
-            if (data != null && retired.contains(data.runId) && slot != activeSlot && deleteRunFiles(slotFile(slot))) slotRevision++;
-        }
-    }
-
-    public ArrayList<RunSaveData> unscopedDesktopRuns() {
-        ArrayList<RunSaveData> runs = new ArrayList<>();
-        for (int slot = 0; slot < RUN_SLOT_COUNT; slot++) {
-            RunSaveData data = readRun(Gdx.files.local(String.format(Locale.ROOT, "saves/slot_%02d_v2.sav", slot + 1)));
-            if (data != null) runs.add(data);
-        }
-        for (HeroClass type : HeroClass.values()) if (type != HeroClass.NEUTRAL) {
-            RunSaveData data = load(type); if (data != null) runs.add(data);
-        }
-        return runs;
-    }
-
     private static FileHandle backup(FileHandle file) { return file.sibling(file.name() + ".bak"); }
     private static boolean exists(FileHandle file) { return file.exists() || backup(file).exists(); }
 
@@ -191,7 +140,6 @@ public class SaveHelper {
         removed &= !previous.exists() || previous.delete();
         return removed;
     }
-
 
     private boolean writeRun(FileHandle file, RunSaveData data) {
         FileHandle temp = file.sibling(file.name() + ".tmp"), previous = backup(file);
@@ -269,6 +217,12 @@ public class SaveHelper {
         if (count != restoringRoomManifest.size()) throw new IllegalStateException("Generated room count mismatch");
     }
 
+    public boolean matchesGeneratedRoom(RoomSaveData saved) {
+        Room room = saved == null ? null : findRoom(saved.roomId);
+        return room != null && "party".equals(saved.family) && room.getWidth() == saved.width && room.getHeight() == saved.height
+                && room.getLayout().partySignature().equals(saved.layoutSignature);
+    }
+
     public static boolean matchesLayout(Room room, RoomSaveData saved) {
         return room != null && saved != null && room.getIdentifier().equals(saved.roomId)
                 && room.getLayout().family().equals(saved.family) && room.getWidth() == saved.width
@@ -299,6 +253,7 @@ public class SaveHelper {
     }
 
     public boolean saveCurrentRun() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return false;
         Hero hero = UnitHelper.getInstance().getHero();
         if (hero == null || hero != saveOwner || hero.isDead()) {
             return false;
@@ -307,14 +262,7 @@ public class SaveHelper {
         RunSaveData saveData = snapshotCurrentRun(hero);
         saveData.runId = activeRunId;
         saveData.playedSeconds = playedSeconds;
-        if (activeMetadata != null) {
-            saveData.cloudRevision = activeMetadata.cloudRevision;
-            saveData.cloudParent = activeMetadata.cloudParent;
-            saveData.cloudClock = activeMetadata.cloudClock;
-        }
-        if (!com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.recordLocalSave(saveData)) return false;
         boolean saved = writeRun(activeSlot >= 0 ? slotFile(activeSlot) : getSaveFile(hero.getHeroClass()), saveData);
-        if (saved || saveData.cloudRevision != null) activeMetadata = saveData;
         if (saved) slotRevision++;
         return saved;
     }
@@ -351,6 +299,7 @@ public class SaveHelper {
     }
 
     public boolean recordDefeatedRun() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return false;
         Hero hero = UnitHelper.getInstance().getHero();
         if (hero == null) {
             return false;
@@ -454,7 +403,7 @@ public class SaveHelper {
         return saveData;
     }
 
-    private HeroSaveData snapshotHero(Hero hero) {
+    public HeroSaveData snapshotHero(Hero hero) {
         HeroSaveData saveData = new HeroSaveData();
         if (hero.getHeroClass() == HeroClass.NECROMANCER) saveData.necromancerOwnerId = hero.getPersistentId();
         saveData.x = hero.x;
@@ -562,7 +511,7 @@ public class SaveHelper {
         return lines;
     }
 
-    private InventorySaveData snapshotInventory(Hero hero) {
+    public InventorySaveData snapshotInventory(Hero hero) {
         InventorySaveData saveData = new InventorySaveData();
         ArrayList<Item> snapshottedItems = new ArrayList<>();
         saveData.gold = InventoryHelper.getInstance().getGold();
@@ -591,7 +540,7 @@ public class SaveHelper {
         return saveData;
     }
 
-    private ArrayList<UnitSaveData> snapshotUnits() {
+    public ArrayList<UnitSaveData> snapshotUnits() {
         ArrayList<UnitSaveData> units = new ArrayList<>();
         HashSet<String> ownedIds = new HashSet<>();
         for (Unit unit : UnitHelper.getInstance().getUnits()) {
@@ -698,7 +647,7 @@ public class SaveHelper {
         return units;
     }
 
-    private ArrayList<DoorSaveData> snapshotDoors() {
+    public ArrayList<DoorSaveData> snapshotDoors() {
         ArrayList<DoorSaveData> doors = new ArrayList<>();
         for (Level level : MapHelper.getInstance().levels) {
             for (Room room : level.rooms) {
@@ -723,7 +672,7 @@ public class SaveHelper {
         return doors;
     }
 
-    private ArrayList<RoomSaveData> snapshotRooms(Hero hero) {
+    public ArrayList<RoomSaveData> snapshotRooms(Hero hero) {
         ArrayList<RoomSaveData> rooms = new ArrayList<>();
         for (Level level : MapHelper.getInstance().levels) {
             for (Room room : level.rooms) {
@@ -733,6 +682,9 @@ public class SaveHelper {
                 saveData.width = (int) room.getWidth();
                 saveData.height = (int) room.getHeight();
                 saveData.layoutSignature = room.getLayout().signature();
+                if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running()) {
+                    saveData.family = "party"; saveData.layoutSignature = room.getLayout().partySignature();
+                }
                 saveData.bossEncounterStarted = room.hasBossEncounterStarted();
                 saveData.bossDefeated = room.isBossDefeated();
                 if (hero.getHeroClass() == HeroClass.NECROMANCER) {
@@ -753,7 +705,7 @@ public class SaveHelper {
         return rooms;
     }
 
-    private ItemSaveData snapshotItem(Item item, Hero hero) {
+    public ItemSaveData snapshotItem(Item item, Hero hero) {
         if (item == null) {
             return null;
         }
@@ -814,7 +766,7 @@ public class SaveHelper {
         }
     }
 
-    private void restoreHero(Hero hero, HeroSaveData saveData, String roomId) {
+    public void restoreHero(Hero hero, HeroSaveData saveData, String roomId) {
         if (hero.getHeroClass() == HeroClass.NECROMANCER && saveData.necromancerOwnerId != null
                 && !saveData.necromancerOwnerId.isEmpty()) hero.setPersistentId(saveData.necromancerOwnerId);
         hero.setLevelDirect(saveData.level);
@@ -854,7 +806,7 @@ public class SaveHelper {
         hero.setActiveSkill7(resolveActiveSkill(saveData.activeSkill7Id));
     }
 
-    private void restoreInventory(InventorySaveData saveData, Hero hero) {
+    public void restoreInventory(InventorySaveData saveData, Hero hero) {
         InventoryHelper inventoryHelper = InventoryHelper.getInstance();
         ArrayList<String> legacyEquippedItems = new ArrayList<>();
         ArrayList<Item> equippedMiscItems = new ArrayList<>();
@@ -999,8 +951,7 @@ public class SaveHelper {
         }
     }
 
-
-    private void restoreOwnedMinions(ArrayList<UnitSaveData> rows, Hero hero) {
+    public void restoreOwnedMinions(ArrayList<UnitSaveData> rows, Hero hero) {
         if (rows == null || hero.getHeroClass() != HeroClass.NECROMANCER || hero.isDead() || hero.getHP() <= 0) return;
         HashSet<String> seen = new HashSet<>();
         for (Unit unit : UnitHelper.getInstance().getUnits()) seen.add(unit.getPersistentId());
@@ -1045,7 +996,7 @@ public class SaveHelper {
         }
     }
 
-    private void restoreDoorStates(ArrayList<DoorSaveData> doorSaveData) {
+    public void restoreDoorStates(ArrayList<DoorSaveData> doorSaveData) {
         if (doorSaveData == null) {
             return;
         }
@@ -1080,8 +1031,8 @@ public class SaveHelper {
         }
     }
 
-    private void restoreRoomStates(ArrayList<RoomSaveData> roomSaveData) {
-        MapHelper.getInstance().clearCorpses();
+    public void restoreRoomStates(ArrayList<RoomSaveData> roomSaveData) {
+        if (!com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running()) MapHelper.getInstance().clearCorpses();
         if (roomSaveData == null) {
             return;
         }
@@ -1096,7 +1047,7 @@ public class SaveHelper {
             room.setBossEncounterStarted(saveData.bossEncounterStarted);
             room.setBossDefeated(saveData.bossDefeated);
             Hero hero = UnitHelper.getInstance().getHero();
-            if (hero != null && hero.getHeroClass() == HeroClass.NECROMANCER) {
+            if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running() || hero != null && hero.getHeroClass() == HeroClass.NECROMANCER) {
                 ArrayList<CorpseRecord> records = null;
                 if (saveData.corpses != null && !saveData.corpses.isEmpty()) {
                     records = new ArrayList<>();
@@ -1110,7 +1061,7 @@ public class SaveHelper {
         }
     }
 
-    private void applyUnitState(Unit unit, UnitSaveData saveData) {
+    public void applyUnitState(Unit unit, UnitSaveData saveData) {
         unit.setPersistentId(saveData.id);
         unit.setRoom(saveData.roomId);
         unit.x = saveData.x;
@@ -1188,7 +1139,7 @@ public class SaveHelper {
         PhysicsHelper.getInstance().syncBodyToUnit(unit);
     }
 
-    private Unit createUnit(UnitSaveData saveData) {
+    public Unit createUnit(UnitSaveData saveData) {
         try {
             if (saveData.item != null) {
                 Item item = createItem(saveData.item);
@@ -1280,7 +1231,7 @@ public class SaveHelper {
         return item instanceof RangedWeapon ? (RangedWeapon) item : null;
     }
 
-    private Item createItem(ItemSaveData saveData) {
+    public Item createItem(ItemSaveData saveData) {
         try {
             Item item = SaveRegistry.createItem(saveData.className);
             if (item == null) {
@@ -1442,7 +1393,7 @@ public class SaveHelper {
         }
     }
 
-    private boolean isValidSavedUnit(UnitSaveData saveData) {
+    public boolean isValidSavedUnit(UnitSaveData saveData) {
         return saveData != null && saveData.id != null && saveData.hp > 0 && saveData.minion == null
                 && !SaveRegistry.isOwnedMinionId(saveData.className);
     }
@@ -1502,6 +1453,9 @@ public class SaveHelper {
     }
 
     private boolean isPersistentUnit(Unit unit) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running()) return unit != null && !unit.isHero
+                && (unit.getRoom() != null || unit instanceof NecromancerMinion && ((NecromancerMinion)unit).isPendingTransfer())
+                && (SaveRegistry.getUnitId(unit) != null || unit instanceof MerchantRoom.ItemForPurchase);
         if (unit instanceof NecromancerMinion) {
             NecromancerMinion minion = (NecromancerMinion)unit;
             return !unit.isDead() && unit.getHP() > 0 && minion.belongsTo(UnitHelper.getInstance().getHero())
@@ -1528,15 +1482,12 @@ public class SaveHelper {
             return true;
         }
 
-
-
         return unit instanceof Mob && (!unit.isSummoned
                 || unit instanceof com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.city.DwarvenUndead
                 || unit instanceof com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.halls.Larva);
     }
 
     private FileHandle getSaveFile(HeroClass heroClass) {
-
 
         return Gdx.files.local("saves/" + heroClass.name().toLowerCase(java.util.Locale.ROOT) + "_v"
                 + com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.RoomLayout.GENERATOR_VERSION + ".sav");
@@ -1583,8 +1534,6 @@ public class SaveHelper {
         private static final long serialVersionUID = 1L;
         public String runId;
         public double playedSeconds;
-        public String cloudRevision, cloudParent, cloudDevice;
-        public HashMap<String, Long> cloudClock;
         public int generatorVersion = com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.RoomLayout.GENERATOR_VERSION;
         public String heroClassName;
         public String difficultyName;

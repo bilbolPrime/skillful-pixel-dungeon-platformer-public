@@ -81,7 +81,6 @@ public class SkillsHelper {
     private void init(){
         skills = new ArrayList<>();
 
-
         Skill skill = new Skill(Skills.TRAINING, HeroClass.WARRIOR, 1, "Training", "Training", "A warrior can never be prepared enough.\nGain 1 strength","images/skills/warrior-training.png") {
             @Override
             public void affect(Unit owner){
@@ -108,7 +107,7 @@ public class SkillsHelper {
 
         skills.add(skill.setRequires(Skills.HEALTH).setTreeOffsets(100, -480 - 125));
 
-        skill = new Skill(Skills.TOUGHNESS, HeroClass.WARRIOR, 1, "Toughness", "+20% defence", "Many years of conflict has made this hero durable. What hurts others barely scratches this one.\n+20% defence","images/skills/warrior-toughness.png") {
+        skill = new Skill(Skills.TOUGHNESS, HeroClass.WARRIOR, 1, "Toughness", "+20% defence", "Many years of conflict have made this hero durable. What hurts others barely scratches this one.\n+20% defence","images/skills/warrior-toughness.png") {
             @Override
             public void affect(Unit owner){
                 Buff existing = owner.getBuff(Toughness.class);
@@ -154,7 +153,6 @@ public class SkillsHelper {
         skills.add(new Frenzy(Skills.FRENZY, HeroClass.WARRIOR, 4, "Frenzy", "Frenzy", "Sometimes a warrior should just let go. Entering a frenzy state increases damage by 50% but lowers speed by 25%","images/skills/frenzy.png").setRequires(Skills.BERSERKER).setTreeOffsets(100 + 1350, -480 - 125));
         skills.add(new Rampage(Skills.RAMPAGE, HeroClass.WARRIOR, 4, "Rampage", "Rampage", "Deals damage to all enemies in range.","images/skills/warrior-rampage.png").setRequires(Skills.FRENZY).setTreeOffsets(100 + 1350, -480 ));
 
-
         skill = new Skill(Skills.MANA, HeroClass.WIZARD, 1, "Spirituality", "+20% mana", "Spirit is as important as body. Champions who train their spirit can conjure their inner strength with increased stamina.\n- +20% mana","images/skills/mana.png") {
             @Override
             public void affect(Unit owner){
@@ -199,8 +197,6 @@ public class SkillsHelper {
 
         skills.add(skill.setRequires(Skills.SUMMON_FIRE_PLUS).setTreeOffsets(100 + 1350, -480 - 375));
 
-
-
         skill = new Skill(Skills.BATTLE_MAGE, HeroClass.WIZARD, 3, "Battle Mage", "Battle Mage", "Battle mages rely on wands and summoned allies in combat.\n- +50 max health\n- +50 max mana\n- Wand melee damage scales with current mana, up to +5\n- Successful wand hits restore 1 mana\n- Locks out Warlock","images/skills/battle-mage.png") {
             @Override
             public void affect(Unit owner){
@@ -241,7 +237,6 @@ public class SkillsHelper {
 
         skills.add(skill.setRequires(Skills.WEAKEN).setRequires(Skills.BLIND).setRequires(Skills.SLOW).setLocksOut(Skills.BATTLE_MAGE).setTreeOffsets(100 + 900, -480 - 125));
 
-
         skill = new Slow(Skills.SLOW, HeroClass.WIZARD, 2, "Slow", "Slow", "Slows down enemies making them easier to be dealt with.\n - Target loses 50% speed","images/skills/slow.png");
 
         skills.add(skill.setTreeOffsets(100, -480));
@@ -266,7 +261,6 @@ public class SkillsHelper {
 
         skill = new Dominate(Skills.DOMINATE, HeroClass.WIZARD, 4, "Dominate", "Dominate", "Dominate the target turning it into nothing more than a slave of your will for a duration.","images/skills/dominate.png");
         skills.add(skill.setRequires(Skills.CONFUSE).setTreeOffsets(100 + 900 + 450, -480 - 375));
-
 
         skills.add(new Skill(Skills.BANDIT, HeroClass.ROGUE, 1, "Bandit", "More loot", "Rogues learn to spot and pocket extra valuables.\n- +100% gold found\n- Gold cannot be stolen","images/skills/Bandit.png").setTreeOffsets(100, -480));
         skills.add(new Skill(Skills.STEALTH, HeroClass.ROGUE, 1, "Stealth", "Stay unseen", "Rogues excel at staying unseen.\n- Hero is harder to spot","images/skills/Stealth.png").setTreeOffsets(100 + 450, -480 - 125));
@@ -297,7 +291,6 @@ public class SkillsHelper {
             }
         }.setRequires(Skills.BANDIT).setTreeOffsets(100 + 450, -480 - 125));
         skills.add(new Skill(Skills.SILENT_DEATH, HeroClass.ROGUE, 4, "Silent Death", "Execution", "Sleeping non-boss enemies have a 25% chance to die instantly from melee attacks.","images/skills/Silent Death.png").setRequires(Skills.ASSASSIN).setTreeOffsets(100 + 900 + 450, -480 - 250));
-
 
         skills.add(new Skill(Skills.AWARENESS, HeroClass.ARCHER, 1, "Awareness", "Awareness", "Heightened awareness keeps the huntress ready for incoming missiles.\n+25% defense from ranged attacks","images/skills/Awareness.png").setTreeOffsets(100 + 450, -480));
         skills.add(new Skill(Skills.ACCURACY, HeroClass.ARCHER, 1, "Accuracy", "Accuracy", "Steady aim with the bow makes every shot more reliable.\n+25% accuracy when using the bow","images/skills/Accuracy.png").setTreeOffsets(100, -480 - 125));
@@ -345,7 +338,6 @@ public class SkillsHelper {
         registerNewClassSkill(new Execute());
     }
 
-
     public Skill getSkill(int id){
         for(Skill skill : skills){
             if(skill.getId() == id){
@@ -355,7 +347,6 @@ public class SkillsHelper {
 
         return null;
     }
-
 
     private void registerNewClassSkill(Skill skill) {
         if (skill == null || getSkill(skill.getId()) != null)

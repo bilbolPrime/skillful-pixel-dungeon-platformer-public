@@ -61,6 +61,9 @@ public class InventoryWindow extends InteractiveTabbedWindow {
     private GameSprite heroSprite;
     private MODE mode = MODE.HERO;
 
+    public int partyTab() { return mode.ordinal(); }
+    public void selectPartyTab(int tab) { tabs.get(tab).click(); }
+
     private final ArrayList<ActionButton> skillButtons;
     private final ArrayList<ActionButton> heroButtons;
     private final ArrayList<ActionButton> inventoryButtons;
@@ -78,6 +81,7 @@ public class InventoryWindow extends InteractiveTabbedWindow {
     private Item previewRangedItem;
 
     String titleDescription;
+    @Override public String partyText() { return titleDescription == null ? "" : titleDescription; }
     private float titleDescriptionFontSize = 3f;
 
     public InventoryWindow(HeroClass heroClass, float width, float height) {
@@ -728,6 +732,7 @@ public class InventoryWindow extends InteractiveTabbedWindow {
     private class SelectSkillButton extends ActionButton {
 
         private final String text;
+        @Override public String partyLabel() { return text == null ? "" : text; }
         private final boolean selected;
         private final Skill skill;
         private final float buttonAlpha;
@@ -920,6 +925,7 @@ public class InventoryWindow extends InteractiveTabbedWindow {
     }
 
     private class JournalButton extends ActionButton {
+        @Override public String partyLabel() { return "Journal"; }
 
         private static final float SIZE = 60f;
 

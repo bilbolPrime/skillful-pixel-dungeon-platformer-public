@@ -1,5 +1,6 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.hero;
 
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -221,7 +222,6 @@ public class Hero extends Unit {
         airbornePose.update(this, delta);
     }
 
-
     public void updateJumpSupport(float delta) {
         if (showOnly() || !PhysicsHelper.getInstance().hasBody(this)) {
             ledgeGraceRemaining = 0f;
@@ -242,6 +242,7 @@ public class Hero extends Unit {
     }
 
     public void pressJump() {
+        if (PartySession.action(PartySession.JUMP, 0)) return;
         if (jumpHeld || showOnly()) return;
         jumpHeld = true;
         jumpBufferRemaining = JUMP_BUFFER_SECONDS;
@@ -250,6 +251,7 @@ public class Hero extends Unit {
     }
 
     public void releaseJump() {
+        if (PartySession.action(PartySession.RELEASE_JUMP, 0)) return;
         if (jumpHeld) cutReleasedJump();
         jumpHeld = false;
     }
@@ -264,7 +266,6 @@ public class Hero extends Unit {
         }
     }
 
-
     public void clearControlIntent() {
         ledgeGraceRemaining = 0f;
         jumpBufferRemaining = 0f;
@@ -278,11 +279,29 @@ public class Hero extends Unit {
         clearCombatBuffer();
     }
 
-    public void requestPrimaryAction() { requestCombatAction(PRIMARY_ACTION); }
+    public int[] partyCombatLinks() {
+        return new int[]{pendingMeleeWeapon != null && pendingMeleeWeapon == weapon ? 1 : 0,
+                ordinaryMeleeWeapon != null && ordinaryMeleeWeapon == weapon ? 1 : 0,
+                queuedMeleeWeapon != null && queuedMeleeWeapon == weapon ? 1 : 0,
+                queuedRangedWeapon != null && queuedRangedWeapon == rangedWeapon ? 1 : 0,
+                queuedSkill == null ? -1 : queuedSkill.getId()};
+    }
+    public void partyCombatLinks(int[] links) {
+        if (links == null || links.length != 5) throw new IllegalArgumentException("combat links");
+        pendingMeleeWeapon = links[0] == 1 ? weapon : null;
+        ordinaryMeleeWeapon = links[1] == 1 ? weapon : null;
+        queuedMeleeWeapon = links[2] == 1 ? weapon : null;
+        queuedRangedWeapon = links[3] == 1 ? rangedWeapon : null;
+        Skill linked = links[4] == -1 ? null : SkillsHelper.getInstance().getSkill(links[4]);
+        queuedSkill = linked instanceof ActiveSkill ? (ActiveSkill)linked : null;
+    }
 
-    public void requestRangedAction() { requestCombatAction(RANGED_ACTION); }
+    public void requestPrimaryAction() { if (!PartySession.action(PartySession.PRIMARY, 0)) requestCombatAction(PRIMARY_ACTION); }
+
+    public void requestRangedAction() { if (!PartySession.action(PartySession.RANGED, 0)) requestCombatAction(RANGED_ACTION); }
 
     public void requestQuickSkill(int slotIndex) {
+        if (PartySession.action(PartySession.SKILL, slotIndex)) return;
         if (slotIndex >= 0 && slotIndex < QUICK_SKILL_SLOT_COUNT) {
             lastRequestedQuickSkillSlot = slotIndex;
             requestCombatAction(FIRST_SKILL_ACTION + slotIndex);
@@ -435,12 +454,17 @@ public class Hero extends Unit {
         setBaseDefenseSkill(heroClass.getBaseDefenseSkill() + Math.max(0, level - 1));
     }
 
+    @Override public void partyVisualStep(float delta) {
+        super.partyVisualStep(delta);
+        if (armor != null) gf.tileY = armor.getTier() - 1;
+    }
+
     @Override
     public void act(float delta){
         super.act(delta);
         if (newClassActions != null && !isDead() && !showOnly() && getRoom() != null
                 && getRoom().equals(MapHelper.getInstance().getActiveRoomIdentifier())
-                && !WindowHelper.getInstance().windowOpen()) newClassActions.tick(delta);
+                && (PartySession.running() || !WindowHelper.getInstance().windowOpen())) newClassActions.tick(delta);
         updateMeleeContact();
 
         if (eatIconTimer > 0f) {
@@ -455,7 +479,6 @@ public class Hero extends Unit {
         updateEquippedRings(delta);
         updateCursedEquipmentEffects(delta);
         updateHuntressPassives(delta);
-
 
         hunger -= 1f * delta * getHungerRateModifier();
         updateStarvationState(delta);
@@ -626,6 +649,9 @@ public class Hero extends Unit {
 
     @Override
     public void takeDamage(Unit source, Weapon damagingItem, float damage) {
+        if (PartySession.running() && PartySession.controls(this) && this != UnitHelper.getInstance().getHero()) {
+            PartySession.withOwner(this, () -> takeDamage(source, damagingItem, damage)); return;
+        }
 
         if (this == UnitHelper.getInstance().getHero() && !isDead() && getHP() > 0
                 && getMasterOfDeathRecoveryRemaining() > 0f) return;
@@ -758,7 +784,6 @@ public class Hero extends Unit {
         for(Buff buff : buffs){
             buff.resetBuff();
         }
-
 
         EffectsHelper.getInstance().levelUp(this);
         EffectsHelper.getInstance().message(this, "LEVEL UP!", Color.GREEN, 0f);
@@ -991,8 +1016,6 @@ public class Hero extends Unit {
         super.setRangedWeapon(weapon);
     }
 
-
-
     public int getSkillPoints(){
         return skillPoints;
     }
@@ -1097,7 +1120,6 @@ public class Hero extends Unit {
     public boolean learnSkill(Skill skill){
         return grantSkill(skill, false);
     }
-
 
     public boolean restoreSkill(Skill skill) {
         return grantSkill(skill, true);
@@ -1327,7 +1349,6 @@ public class Hero extends Unit {
         satisfyHunger(WARLOCK_SOUL_HUNGER_RESTORE);
     }
 
-
     public void applyMarshalHealth() {
         if (marshalHealthApplied || heroClass != HeroClass.MERCENARY || !hasSkill(Skills.MARSHAL)
                 || hasSkill(Skills.EXECUTIONER) || isDead() || getHP() <= 0) return;
@@ -1346,7 +1367,6 @@ public class Hero extends Unit {
         }
         return modifier;
     }
-
 
     public int adjustExecuteDamage(Unit target, int appliedDamage) {
         if (appliedDamage > 0 && this == UnitHelper.getInstance().getHero() && heroClass == HeroClass.MERCENARY
@@ -1691,7 +1711,6 @@ public class Hero extends Unit {
         return eatIcon;
     }
 
-
     public void getFriendlies(){
         for(Unit unit : UnitHelper.getInstance().getUnits()){
             if(unit.isFriendly && !unit.showOnly && !unit.isHero && !(unit instanceof NecromancerMinion)){
@@ -1737,13 +1756,11 @@ public class Hero extends Unit {
 
     public boolean hasUsedMasterOfDeath() { return masterOfDeathUsed; }
 
-
     public float getMasterOfDeathRecoveryRemaining() {
         float remaining = heroClass == HeroClass.NECROMANCER && hasSkill(Skills.MASTER_OF_DEATH) && masterOfDeathUsed && newClassActions != null
                 ? newClassActions.duration(Skills.MASTER_OF_DEATH) : 0f;
         return remaining <= .000001f ? 0f : remaining;
     }
-
 
     public void restoreMasterOfDeath(Boolean savedUsed) {
         boolean eligible = heroClass == HeroClass.NECROMANCER && hasSkill(Skills.MASTER_OF_DEATH);
@@ -1761,6 +1778,11 @@ public class Hero extends Unit {
         }
 
         deathHandled = true;
+        if (PartySession.heroDied(this)) {
+            clearControlIntent();
+            SoundHelper.GetSingleton().play(Sounds.DEATH, 0f, 1f);
+            return;
+        }
         NecromancerCurse.clearAll();
         MercenaryFear.clearAll();
         NewClassSpellProjectile.clearFor(this);

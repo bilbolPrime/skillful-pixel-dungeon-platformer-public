@@ -130,11 +130,15 @@ public class GameSprite {
         return  alpha;
     }
 
+    public Sprite partySprite() { return new Sprite(sprite); }
+    public int[] partyAnimation() { return null; }
+    public void partyRegion(int x, int y, int width, int height, boolean flipX, boolean flipY) {
+        sprite.setRegion(x, y, width, height); sprite.flip(flipX, flipY);
+    }
 
     public SpritePose copyPose() {
         return copyPoseAt(x, y, alpha);
     }
-
 
     public SpritePose copyPoseAt(float observedX, float observedY, float observedAlpha) {
         if (sprite == null) return null;
@@ -212,7 +216,6 @@ public class GameSprite {
                 previousColor.b * spriteColor.b,
                 previousColor.a * spriteColor.a * alpha);
 
-
         if(!repeatable)
             batch.draw(sprite, x, y, originX, originY, width, height, scaleX, scaleY, rotation);
         else
@@ -224,7 +227,6 @@ public class GameSprite {
 
         batch.setColor(previousColor);
     }
-
 
     public void drawFeatheredEdges(Batch batch, float edgeWidth) {
         if (rotation != 0f || scaleX != 1f || scaleY != 1f || repeatable || edgeWidth <= 0f) {
@@ -268,7 +270,6 @@ public class GameSprite {
             previousColor.g * spriteColor.g,
             previousColor.b * spriteColor.b,
                 previousColor.a * spriteColor.a * alpha);
-
 
         batch.draw(sprite, x + offsetX, y + offsetY, originX, originY, width, height, scaleX, scaleY, rotation);
 
@@ -343,4 +344,3 @@ public class GameSprite {
         textureRegion.setRegion(x, y, width, height);
     }
 }
-

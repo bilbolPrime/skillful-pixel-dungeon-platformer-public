@@ -11,7 +11,7 @@ public final class NightModeHelper {
     }
 
     public static boolean isNightModeActive() {
-        return Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < NIGHT_END_HOUR_EXCLUSIVE;
+        return com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.night(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < NIGHT_END_HOUR_EXCLUSIVE);
     }
 
     public static float getRespawnCheckMultiplier() {

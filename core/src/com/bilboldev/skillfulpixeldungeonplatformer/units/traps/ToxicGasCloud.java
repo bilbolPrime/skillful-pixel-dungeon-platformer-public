@@ -35,6 +35,12 @@ public class ToxicGasCloud extends Unit {
         return this;
     }
 
+    @Override public void partyVisualStep(float delta) {
+        if (room == null || !room.equals(MapHelper.getInstance().getActiveRoomIdentifier())) return;
+        particleAt += delta;
+        while (particleAt >= PARTICLE_INTERVAL) { emitParticles(); particleAt -= PARTICLE_INTERVAL; }
+    }
+
     @Override
     public void act(float delta) {
         elapsed += delta;
@@ -98,7 +104,6 @@ public class ToxicGasCloud extends Unit {
                     0.01f));
         }
     }
-
 
     public Rectangle getCloudArea() {
         float radiusX = Math.min(MAX_HORIZONTAL_RADIUS_TILES * ConstantsHelper.TILE, elapsed * ConstantsHelper.TILE * 1.5f);

@@ -97,6 +97,41 @@ public class ThrownProjectile extends Unit {
         return this;
     }
 
+    private transient float partyPhysicsRemainder;
+    public float partyDamage() { return damage; }
+    public Weapon partyWeapon() { return attackingItem; }
+    public com.bilboldev.skillfulpixeldungeonplatformer.items.Item partyPayload() { return null; }
+    public void partyPayload(com.bilboldev.skillfulpixeldungeonplatformer.items.Item item) { }
+    public String[] partyHitTargets() {
+        String[] ids = new String[hitTargets.size()];
+        for (int i = 0; i < ids.length; i++) ids[i] = hitTargets.get(i).getPersistentId();
+        return ids;
+    }
+    public void partyHitTargets(String[] ids, java.util.Map<String, Unit> units) {
+        if (ids == null || ids.length > 512) throw new IllegalArgumentException("hit targets");
+        hitTargets.clear();
+        for (String id : ids) if (units.containsKey(id)) hitTargets.add(units.get(id));
+    }
+    public void partySeek(float x, float y, float vx, float vy, float elapsed, float gravity, float damping) {
+        this.x = x; this.y = y; speedX = vx; speedY = vy; partyPhysicsRemainder = 0;
+        float remaining = Math.min(60, elapsed);
+        while (remaining > 0) { float step = Math.min(1f / 60f, remaining); partyVisualStep(step, gravity, damping); remaining -= step; }
+    }
+
+    public void partyVisualStep(float delta, float gravity, float damping) {
+        partyPhysicsRemainder += PhysicsHelper.boundGameDelta(delta);
+        final float step = 1f / 60f;
+        while (partyPhysicsRemainder >= step) {
+            speedY -= ConstantsHelper.GRAVITY * gravity * step;
+            float drag = Math.max(0, 1 - step * damping);
+            speedX *= drag; speedY *= drag;
+            x += speedX * step; y += speedY * step;
+            partyPhysicsRemainder -= step;
+        }
+        if (alignRotationToVelocity && (speedX != 0 || speedY != 0)) rotation = calculateAngleFromSpeed(speedX, speedY);
+        else if (spinSpeed != 0) rotation += (speedX >= 0 ? -spinSpeed : spinSpeed) * delta;
+    }
+
     public Unit getOwner() {
         return owner;
     }
@@ -137,13 +172,11 @@ public class ThrownProjectile extends Unit {
         return true;
     }
 
-
     public boolean hitsBothSidesOfPlatforms() { return false; }
 
     public void onTerrainCollision() {
         markUsed();
     }
-
 
     public void afterPhysicsStep() { }
 

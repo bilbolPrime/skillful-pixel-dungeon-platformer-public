@@ -54,7 +54,9 @@ public class TreasureRoom extends SingleDoorSpecialRoom {
         UnitHelper.getInstance().addUnit(statue);
         UnitHelper.getInstance().addUnit(statue2);
 
-        TreasureOnScreen treasure = new TreasureOnScreen(){
+        TreasureOnScreen treasure = com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()
+                ? new com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.GuardedTreasureOnScreen(statue, statue2)
+                : new TreasureOnScreen(){
             @Override
             public void pickedUp(){
                 super.pickedUp();
@@ -70,7 +72,5 @@ public class TreasureRoom extends SingleDoorSpecialRoom {
         treasure.setRoom(identifier);
         UnitHelper.getInstance().addUnit(treasure);
 
-
     }
 }
-

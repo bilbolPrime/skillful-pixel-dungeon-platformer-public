@@ -21,7 +21,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.traps.PlatformTrap;
 
 import java.util.ArrayList;
 
-
 public class UnitHelper {
     private static final boolean UNIT_MOVEMENT_COLLISION_BLOCKING_ENABLED = true;
     private static final float PLATFORM_SIGHT_EYE_HEIGHT_RATIO = 0.72f;
@@ -36,7 +35,6 @@ public class UnitHelper {
     private Hero hero;
     private Stage unitStage;
 
-
     private UnitHelper(){
         units = new ArrayList<>();
     }
@@ -47,6 +45,7 @@ public class UnitHelper {
 
     public void setHero(Hero hero){
         this.hero = hero;
+        refreshUnitLayers();
     }
 
     public void reset() {
@@ -68,10 +67,10 @@ public class UnitHelper {
             ((com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob) unit).applyCurrentRunDifficulty();
         }
 
-
         units.add(unit);
         unitStage.addActor(unit);
         PhysicsHelper.getInstance().register(unit);
+        if (unit instanceof ThrownProjectile) com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.launched((ThrownProjectile)unit);
 
         if(hero){
             this.hero = (Hero) unit;
@@ -81,14 +80,12 @@ public class UnitHelper {
         refreshUnitLayers();
     }
 
-
     public void addUnit(Unit unit){
         addUnit(unit, false);
     }
 
-
-
     public void removeUnit(Unit unit){
+        if (unit instanceof ThrownProjectile) com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.retired((ThrownProjectile)unit);
         if(units.contains(unit)){
             if (unit instanceof NecromancerMinion) NewClassSpellProjectile.clearFrom(unit);
             NecromancerCurse.clear(unit);
@@ -130,11 +127,11 @@ public class UnitHelper {
     }
 
     public float getHeroX(){
-        return hero.x;
+        return getHero().x;
     }
 
     public Hero getHero(){
-        return hero;
+        return com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.hero(hero);
     }
 
     public Unit findTarget(Unit searcher, float los){
@@ -316,7 +313,6 @@ public class UnitHelper {
         return attackTarget(source, target, attackingItem, damage, magic, accuracyMultiplier, null, 1f);
     }
 
-
     public boolean attackGunTarget(Unit source, Unit target, Weapon attackingItem, GunProjectile shot,
                                    float scale, boolean splash, float accuracyMultiplier) {
         return attackTarget(source, target, attackingItem, shot.getDamage(), splash, accuracyMultiplier, shot, scale);
@@ -351,7 +347,6 @@ public class UnitHelper {
         int previousHp = target.getHP();
         target.takeDamage(source, attackingItem, damage);
         int damageDealt = Math.max(0, previousHp - target.getHP());
-
 
         boolean hitEffects = gunShot == null || (damageDealt > 0 && gunShot.claimHitEffects(target));
         if (hitEffects && source instanceof Hero) {
@@ -486,16 +481,9 @@ public class UnitHelper {
     public boolean freeSpace( int x, int y, String room){
         for(Unit unit : units){
 
-
-
-
             if(unit.getRoom() == null || !unit.getRoom().equals(room)){
                 continue;
             }
-
-
-
-
 
             if(unit.getHitBox().contains(x, y)){
                 return false;
@@ -516,6 +504,5 @@ public class UnitHelper {
     public boolean isUnitMovementCollisionBlockingEnabled() {
         return UNIT_MOVEMENT_COLLISION_BLOCKING_ENABLED;
     }
-
 
 }

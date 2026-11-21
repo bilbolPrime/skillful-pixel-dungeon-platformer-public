@@ -6,6 +6,8 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.GunProjectile;
 
 public final class Rifle extends Gun {
+    @Override protected String localizationKey() { return "custom.newitems.rifle"; }
+
     {
         name = "Rifle";
         description = "A powerful, precise firearm. Fires one straight bullet with 50% greater accuracy, at a slower rate.";

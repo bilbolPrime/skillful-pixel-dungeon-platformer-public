@@ -15,10 +15,12 @@ public class Window {
     protected  float width, height;
     protected ArrayList<GameSprite> gameSprites;
     protected Runnable onHide;
+    private final float initialWidth, initialHeight;
 
     public Window(float width, float height){
         this.width = width;
         this.height = height;
+        initialWidth = width; initialHeight = height;
 
         gameSprites = new ArrayList<>();
     }
@@ -165,6 +167,7 @@ public class Window {
         return false;
     }
 
+    public boolean keyTyped(char character) { return false; }
 
     public void cancelPointerInput() { }
 
@@ -172,6 +175,13 @@ public class Window {
         this.onHide = onHide;
         return this;
     }
+
+    protected java.util.List<? extends com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.Button> getKeyboardChoices() { return java.util.Collections.emptyList(); }
+    public java.util.List<? extends com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.Button> partyChoices() { return getKeyboardChoices(); }
+    public String partyText() { return ""; }
+    public boolean partyValid() { return true; }
+    public float partyWidth() { return initialWidth; }
+    public float partyHeight() { return initialHeight; }
 
     public void hide(){
         WindowHelper.getInstance().closeWindow(this);
@@ -188,5 +198,3 @@ public class Window {
         build();
     }
 }
-
-

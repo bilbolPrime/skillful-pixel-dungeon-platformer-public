@@ -2,11 +2,12 @@ package com.bilboldev.skillfulpixeldungeonplatformer.helpers;
 
 import com.badlogic.gdx.audio.Sound;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartyFeedback;
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.WaterSplash.Contact;
 
 public class SoundHelper {
     private static SoundHelper m_instance;
-
 
     public static SoundHelper GetSingleton(){
         if(m_instance == null){
@@ -24,24 +25,23 @@ public class SoundHelper {
     {
     }
 
-
     public void play(Sounds sound, float extraPitch, float volume){
         play(sound, extraPitch, volume, true);
     }
 
     private void play(Sounds sound, float extraPitch, float volume, boolean audible) {
-        if (!GameSettingsHelper.getInstance().isSoundFxEnabled()) {
-            return;
+        if (PartySession.client() && PartyFeedback.isWorldSound(sound)) return;
+        boolean enabled = GameSettingsHelper.getInstance().isSoundFxEnabled();
+        float pitch = enabled ? 0.85f + RandomHelper.getInstance().randomFloat(0.3f) + extraPitch : 1f + extraPitch;
+        if (audible) {
+            PartyFeedback.sound(sound, pitch, cueVolume(sound, volume));
+            if (enabled) getSound(sound).play(cueVolume(sound, volume), pitch, 0f);
         }
-        float pitch = 0.85f + RandomHelper.getInstance().randomFloat(0.3f) + extraPitch;
-        if (audible) getSound(sound).play(cueVolume(sound, volume), pitch, 0f);
     }
-
 
     public void playLegacyFootstep(float volume, boolean audible) {
         play(Sounds.STEP, 0f, volume, audible);
     }
-
 
     public void playFootContact(boolean wet, Contact contact) {
         if (contact == Contact.TAKEOFF || !GameSettingsHelper.getInstance().isSoundFxEnabled()) return;
@@ -68,10 +68,16 @@ public class SoundHelper {
     }
 
     public void play(Sounds sound){
+        if (PartySession.client() && PartyFeedback.isWorldSound(sound)) return;
+        PartyFeedback.sound(sound, 1f, cueVolume(sound, 1f));
         if (!GameSettingsHelper.getInstance().isSoundFxEnabled()) {
             return;
         }
         getSound(sound).play(cueVolume(sound, 1f), 1f, 0f);
+    }
+
+    public void playPartySound(Sounds sound, float pitch, float volume) {
+        if (GameSettingsHelper.getInstance().isSoundFxEnabled()) getSound(sound).play(volume, pitch, 0f);
     }
 
     public void playUiClick() {
@@ -82,11 +88,9 @@ public class SoundHelper {
         getSound(Sounds.CLICK).play(1f, 1f, 0f);
     }
 
-
     public void playGunDryFire() {
         if (GameSettingsHelper.getInstance().isSoundFxEnabled()) getSound(Sounds.CLICK).play(.25f, 1f, 0f);
     }
-
 
     public void playGunContact(Sounds sound, float volume, boolean audible) {
         play(sound, 0f, volume, audible);
@@ -100,4 +104,3 @@ public class SoundHelper {
         return AssetHelper.getInstance().getSound(sound);
     }
 }
-

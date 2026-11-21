@@ -13,6 +13,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.rings.Ring;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.MeleeWeapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.wands.Wand;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
+import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.InventoryItemChoiceWindow;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class ScrollOfUpgrade extends Scroll {
 
         WindowHelper.getInstance().addWindow(new InventoryItemChoiceWindow(
                 getGameSprite().spriteString,
-            "Choose an upgradeable item.",
+                Messages.get("items.scrolls.scrollofupgrade.inv_title"),
                 candidates,
                 new InventoryItemChoiceWindow.ItemSelectionHandler() {
                     @Override

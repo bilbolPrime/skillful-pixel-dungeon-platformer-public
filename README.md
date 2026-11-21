@@ -8,8 +8,10 @@ This public repository contains the game code, assets, and build configuration n
 
 ## Get the game
 
-Buying the game on Steam supports the developer and includes these supporter bonuses:
+Buying the game on Steam supports the developer and includes:
 
+- Online co-op through Steam
+- Remote Play Together
 - Steam achievements
 - Steam Cloud saves
 - A supporter badge
@@ -23,7 +25,7 @@ Buying the game on Steam supports the developer and includes these supporter bon
 ## Project layout
 
 - `core`: shared gameplay code, content logic, and screens
-- `desktop`: desktop launcher and optional Steam integration hooks
+- `desktop`: desktop launcher, controller support, and packaging
 - `android`: Android launcher and app packaging
 - `assets`: runtime textures, audio, fonts, and localization bundles
 
@@ -31,7 +33,7 @@ Buying the game on Steam supports the developer and includes these supporter bon
 
 Requirements:
 
-- JDK 17 or 21 available through `JAVA_HOME` or on `PATH`; the builds were verified with JDK 21
+- JDK 17 or 21 available through `JAVA_HOME` or on `PATH`
 - Android SDK Platform 35 and SDK Build-Tools for Android builds, with SDK licenses accepted
 - Set `ANDROID_HOME` to your SDK installation, or set `sdk.dir` in the ignored `local.properties` file
 
@@ -49,9 +51,17 @@ On Windows, use `gradlew.bat` instead of `./gradlew`.
 
 These assembly tasks do not run tests. Desktop ZIP/TAR distributions are written to `desktop/build/distributions/`, and Android APKs are written to `android/build/outputs/apk/`. The release APK is minified and unsigned; debug builds use the locally generated Android debug signing key.
 
-For local desktop development, run `./gradlew :desktop:run`. This launches directly from compiled classes without requiring Steam configuration. Set `SKILLFUL_DESKTOP_DEBUG_JAVA_HOME` if the desktop launcher needs a different JDK from Gradle.
+For local desktop development, run `./gradlew :desktop:run`. This launches directly from compiled classes without requiring a store account. Set `SKILLFUL_DESKTOP_DEBUG_JAVA_HOME` if the desktop launcher needs a different JDK from Gradle.
 
-Optional native desktop packaging is available through `./gradlew :desktop:packageSteamFree`. It requires a full JDK containing `jpackage`, configured through `JAVA_HOME` or `SKILLFUL_DESKTOP_DEBUG_JAVA_HOME`; `JPACKAGE` can override the packaging executable. Packages are created for the current host: Windows x64, Linux x64, or macOS arm64.
+Optional native desktop packaging is available through `./gradlew :desktop:packageDesktop`. It requires a full JDK containing `jpackage`, configured through `JAVA_HOME` or `SKILLFUL_DESKTOP_DEBUG_JAVA_HOME`; `JPACKAGE` can override the packaging executable. Packages are created for the current host: Windows x64, Linux x64, or macOS arm64, under `desktop/build/desktop/package/`.
+
+## LAN play
+
+Choose a hero, then select **Party: local network**. Both players must be on the same Wi-Fi or local network. The host shares the pairing code and starts the game after the guest connects.
+
+Party progress is not saved, and party games do not earn achievements or unlock difficulty levels. Menus do not pause the game.
+
+Fork maintainers should replace the zero UUID in `PartyConnection.FORK_ID` with their own UUID. Both players need builds with the same identifier. The public placeholder keeps these builds separate from the official release.
 
 ## AI and tooling disclosure
 

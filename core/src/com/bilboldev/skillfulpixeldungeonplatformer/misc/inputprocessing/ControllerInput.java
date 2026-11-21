@@ -11,7 +11,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.windows.PauseControlsWindow;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.PauseMenuWindow;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.Window;
 
-
 public final class ControllerInput {
     private static final ControllerInput INSTANCE = new ControllerInput();
     private static final ControllerButton[] BUTTONS = ControllerButton.values();

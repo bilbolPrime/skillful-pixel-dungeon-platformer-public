@@ -149,7 +149,7 @@ public class MapHelper {
         this.theme = theme;
         RandomHelper.getInstance().beginLevelGeneration(atDepth);
         try {
-            level = this.theme.getLevel().generateLevel(atDepth);
+            com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.generate(() -> level = this.theme.getLevel().generateLevel(atDepth));
         }
         finally {
             RandomHelper.getInstance().endLevelGeneration();
@@ -291,7 +291,6 @@ public class MapHelper {
         level = null;
         restoringGeneratedLevels = false;
     }
-
 
     public void clearCorpses() {
         for (Level retained : levels) for (Room room : retained.rooms) room.clearCorpses();
@@ -472,12 +471,9 @@ public class MapHelper {
         return calculateFloorY(unit.x, unit.y);
     }
 
-
     public float calculateFloorY(float x, float y){
         int calculatedTile = (int) (x / ConstantsHelper.TILE);
         int calculatedYTile = (int) (y / ConstantsHelper.TILE);
-
-
 
         float candidateFloor = MIN_FLOOR * ConstantsHelper.TILE;
         if(floors.containsKey(calculatedTile))
@@ -491,15 +487,12 @@ public class MapHelper {
             }
         }
 
-
-
         if(x % ConstantsHelper.TILE > ConstantsHelper.TILE / 2){
             float edgeFloorY = calculateFloorY(x - x % ConstantsHelper.TILE + ConstantsHelper.TILE, y);
             if(edgeFloorY < candidateFloor){
                 return edgeFloorY;
             }
         }
-
 
         if(x % ConstantsHelper.TILE > ConstantsHelper.TILE / 2){
             float edgeFloorY = calculateFloorY(x - x % ConstantsHelper.TILE + ConstantsHelper.TILE, y);
@@ -558,8 +551,6 @@ public class MapHelper {
         theme.drawBossArena(batch, activeRoom);
         theme.drawSpecialRoomFocalPoint(batch, activeRoom);
 
-
-
         for (String sewerDecorationPlatform : sewerDecorationPlatforms) {
             String[] tile = sewerDecorationPlatform.split("_");
             int tileX = Integer.parseInt(tile[0]);
@@ -568,14 +559,12 @@ public class MapHelper {
             drawSewerWallDecoration(batch, tileX, wallY);
         }
 
-
         for (int tileX = 0; tileX < activeRoom.getWidth(); tileX++) {
             if (renderedWaterTiles.contains(UtilsHelper.platformKey(tileX, MIN_FLOOR - 1)))
                 drawWaterPlatform(batch, renderedWaterTiles, sewerDecorationPlatforms, tileX, MIN_FLOOR - 1);
         }
 
         drawCorpses(batch);
-
 
         for (int j = 0; j < activeRoom.getHeight(); j++) {
             for (int i = 0; i < activeRoom.getWidth(); i++) {
@@ -746,7 +735,6 @@ public class MapHelper {
             waterShimmer.draw(batch);
             waterShimmerDraws++;
         }
-
 
         if ((seed & 1) != 0 || waterMoteDraws >= (reduced ? 3 : MAX_WATER_MOTES)) return;
         float phase = waterPhase(4800L, seed ^ 0x57415452, 0f);
@@ -966,7 +954,6 @@ public class MapHelper {
                 GameSettingsHelper.getInstance().isReducedVisualEffects() ? 2 : 3, 4f, true);
     }
 
-
     private float waterCatchY(float x, float startY) {
         int column = (int) Math.floor(x / ConstantsHelper.TILE);
         int topRow = (int) Math.floor((startY - 4.01f) / ConstantsHelper.TILE) - 1;
@@ -1114,7 +1101,6 @@ public class MapHelper {
         return level.getAtRoom();
     }
 
-
     public RoomDisplayDepth getRoomDisplayDepth() {
         return RoomDisplayDepth.from(level);
     }
@@ -1165,20 +1151,6 @@ public class MapHelper {
 
     public double getBackgroundVisualTime() { return backgroundVisualTime; }
 
-    public RoomSnapshot getCachedRoomAppearance(String identifier) { return roomAppearances.get(identifier); }
-
-    public RoomSnapshot getCachedRoomAppearanceAt(int slot) { return roomAppearances.at(slot); }
-
-
-    public int getRetainedRoomAppearanceCount() {
-        int count = roomAppearances.size();
-        if (predecessorSnapshot != null && !roomAppearances.contains(predecessorSnapshot)) count++;
-        RoomSnapshot retiring = roomTransition.getOutgoingBackdrop();
-        if (retiring != null && retiring != predecessorSnapshot && !roomAppearances.contains(retiring)) count++;
-        return count;
-    }
-
-
     public void clearRoomAppearances() {
         predecessorSnapshot = null;
         roomTransition.clearAppearances();
@@ -1187,7 +1159,6 @@ public class MapHelper {
         roomFixtureObservation.clear();
         backgroundVisualTime = 0d;
     }
-
 
     public void clearRoomPresentation() {
         clearRoomAppearances();
@@ -1650,7 +1621,7 @@ public class MapHelper {
 
     private boolean checkItems(int tileX, int tileY){
         ItemOnScreen itemOnScreen = getItemAt(tileX, tileY);
-        while (itemOnScreen != null && shouldAutoPickup(itemOnScreen)) {
+        while (!com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.client() && itemOnScreen != null && shouldAutoPickup(itemOnScreen)) {
             if (itemOnScreen.getItem() instanceof Key) {
                 collectKey(itemOnScreen, false);
             }
@@ -1713,6 +1684,7 @@ public class MapHelper {
     }
 
     public boolean performContextAction() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.action(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.INTERACT, 0)) return true;
         if (WindowHelper.getInstance().windowOpen()) return false;
         InteractionPrompt resolved = getContextPrompt();
         Object target = resolved == null ? null : resolved.target;
@@ -1730,7 +1702,6 @@ public class MapHelper {
         }
         return false;
     }
-
 
     private boolean prepareInteractionSelection() {
         Unit hero = UnitHelper.getInstance().getHero();
@@ -1773,7 +1744,6 @@ public class MapHelper {
                 && canReachInteractionArea(unit.x, unit.y, ConstantsHelper.UNIT_DIMENSIONS, margin);
     }
 
-
     public boolean canInteractWithItem(ItemOnScreen item) {
         return prepareInteractionSelection() && eligibleInteraction(item, INTERACTION_MARGIN + INTERACTION_HYSTERESIS);
     }
@@ -1783,7 +1753,6 @@ public class MapHelper {
         if (target instanceof Sign) return 2;
         return target instanceof Interactable ? 3 : 4;
     }
-
 
     private Object selectContextTarget() {
         if (!prepareInteractionSelection()) return null;
@@ -1806,7 +1775,6 @@ public class MapHelper {
         }
         return selectedDoorTarget;
     }
-
 
     public static final class InteractionPrompt {
         public final String verbKey;
@@ -1849,6 +1817,7 @@ public class MapHelper {
     }
 
     public void enterDoor(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.action(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.DOOR, 0)) return;
         if (WindowHelper.getInstance().windowOpen()) return;
         InteractionPrompt resolved = getDoorPrompt();
         Door doorFound = resolved == null ? null : (Door) resolved.target;
@@ -1892,12 +1861,14 @@ public class MapHelper {
     }
 
     public void readSign(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.action(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.INTERACT, 0)) return;
         if (WindowHelper.getInstance().windowOpen()) return;
         InteractionPrompt resolved = getContextPrompt();
         if (resolved != null && resolved.target instanceof Sign) ((Sign) resolved.target).read();
     }
 
     public void openItemWindow(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.action(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.INTERACT, 0)) return;
         if (WindowHelper.getInstance().windowOpen()) return;
         InteractionPrompt resolved = getContextPrompt();
         if (resolved != null && resolved.target instanceof ItemOnScreen) openItemWindow((ItemOnScreen) resolved.target);
@@ -1918,6 +1889,7 @@ public class MapHelper {
     }
 
     public void interact(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.action(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.INTERACT, 0)) return;
         if (WindowHelper.getInstance().windowOpen()) return;
         InteractionPrompt resolved = getContextPrompt();
         if (resolved != null && resolved.target instanceof Interactable) ((Interactable) resolved.target).interact();
@@ -1998,7 +1970,6 @@ public class MapHelper {
         if (door == null || UnitHelper.getInstance().getHero() == null) {
             return;
         }
-
 
         float centerOffset = level.getAtRoom().isBossArena() ? ConstantsHelper.UNIT_DIMENSIONS / 2f
                 : (door.getDisplayWidth() - ConstantsHelper.UNIT_DIMENSIONS) / 2f;

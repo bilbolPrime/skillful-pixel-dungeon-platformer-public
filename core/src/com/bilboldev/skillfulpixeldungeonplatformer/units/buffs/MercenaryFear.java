@@ -12,7 +12,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.UnitState;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skills;
 
-
 public final class MercenaryFear extends Buff {
     public static final float SECONDS = 1f;
     private final Hero source;
@@ -56,12 +55,11 @@ public final class MercenaryFear extends Buff {
     }
 
     @Override public boolean active() {
-        return owner != null && duration > 0f && source == UnitHelper.getInstance().getHero()
+        return owner != null && duration > 0f && (source == UnitHelper.getInstance().getHero() || com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running() && com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.controls(source))
                 && originRoom.equals(source.getRoom()) && canAffect(owner);
     }
 
     @Override public boolean preventsAttacks() { return active(); }
-
 
     public void moveAway() {
         if (!active()) { debuff(); return; }

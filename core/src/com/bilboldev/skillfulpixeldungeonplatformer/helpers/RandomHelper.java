@@ -30,13 +30,15 @@ public class RandomHelper {
         return generationRandom != null ? generationRandom : runtimeRandom;
     }
 
-
     public <T> T withPreviewRandom(java.util.function.Supplier<T> factory) {
         RandomXS128 previous = previewRandom;
         previewRandom = new RandomXS128(0x4D454E55L);
         try { return factory.get(); }
         finally { previewRandom = previous; }
     }
+
+    public long[] partyRandomState() { return new long[]{runtimeRandom.getState(0), runtimeRandom.getState(1)}; }
+    public void partyRandomState(long first, long second) { runtimeRandom.setState(first, second); }
 
     public long newRunSeed() {
         return runtimeRandom.nextLong();
@@ -58,10 +60,6 @@ public class RandomHelper {
         generationRandom = null;
     }
 
-    public boolean isGeneratingLevel() {
-        return generationRandom != null;
-    }
-
     public long levelSeed(int depth) {
         return mix(runSeed + SEED_MIXER * depth);
     }
@@ -73,14 +71,12 @@ public class RandomHelper {
         return new RandomXS128(primarySeed, secondarySeed);
     }
 
-
     public <T> T withRoomGenerationRandom(int depth, String identifier, long salt, java.util.function.Supplier<T> action) {
         RandomXS128 previous = generationRandom;
         generationRandom = createRoomRandom(depth, identifier, salt);
         try { return action.get(); }
         finally { generationRandom = previous; }
     }
-
 
     public int randomInt(int maxExcluded)
     {
@@ -140,4 +136,3 @@ public class RandomHelper {
         return hash;
     }
 }
-

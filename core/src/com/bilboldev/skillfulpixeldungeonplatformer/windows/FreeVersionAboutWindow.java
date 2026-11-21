@@ -27,8 +27,8 @@ public class FreeVersionAboutWindow extends Window {
     private static final String LOCALIZATION_ASSET_PATH = "free/about.properties";
     private static final String ANDROID_STORE_URL = "https://store.steampowered.com/app/4725620/Pixel_Dungeon_Platformer/?utm_source=android&utm_medium=free_port&utm_campaign=steam_conversion";
     private static final String DESKTOP_STORE_URL = "https://store.steampowered.com/app/4725620/Pixel_Dungeon_Platformer/?utm_source=desktop&utm_medium=free_port&utm_campaign=steam_conversion";
-    private static final String ENGLISH_TITLE = "A realtime platform adaption of Skillful Pixel Dungeon by BilbolDev";
-    private static final String ENGLISH_BODY = "Thank you for playing the free version of Pixel Dungeon Platformer. You can play the entire game without any limitations. Please consider purchasing through Steam to support the dev. Supporter bonuses in the Steam version include access to Steam achievements, Steam Cloud saves, a supporter badge, and the option for Rat King to accompany you on your adventure as a harmless entertaining companion.";
+    private static final String ENGLISH_TITLE = "A real-time platformer based on Skillful Pixel Dungeon, by BilbolDev";
+    private static final String ENGLISH_BODY = "Thanks for playing the free version of Pixel Dungeon Platformer! You can play the full adventure for free. Buying on Steam supports the developer and includes online co-op, Remote Play Together, Steam achievements, Steam Cloud saves and a supporter badge. The Rat King can also tag along. He won't help in combat, but he makes good company.";
     private static Properties localizationProperties;
 
     private final GameSprite aboutSprite;

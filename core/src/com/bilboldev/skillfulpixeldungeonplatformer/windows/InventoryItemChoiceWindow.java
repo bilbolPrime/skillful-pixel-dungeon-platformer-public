@@ -11,6 +11,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import java.util.ArrayList;
 
 public class InventoryItemChoiceWindow extends DescriptionWindow {
+    public ArrayList<Item> partyItems() { return new ArrayList<>(items); }
     public interface ItemSelectionHandler {
         void onItemSelected(Item item);
     }

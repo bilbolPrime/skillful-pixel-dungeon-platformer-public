@@ -55,7 +55,7 @@ public class Thief extends Mob {
             playSound(Sounds.HIT, 0.4f);
 
             if (target instanceof Hero) {
-                stealGold((Hero) target);
+                com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.withOwner(target, () -> stealGold((Hero)target));
             }
         }
         else {

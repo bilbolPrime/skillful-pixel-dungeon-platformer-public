@@ -4,6 +4,8 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassAssets;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 
 public final class Pistol extends Gun {
+    @Override protected String localizationKey() { return "custom.newitems.pistol"; }
+
     {
         name = "Pistol";
         description = "A reliable sidearm. Fires one stronger straight bullet from the ranged slot.";

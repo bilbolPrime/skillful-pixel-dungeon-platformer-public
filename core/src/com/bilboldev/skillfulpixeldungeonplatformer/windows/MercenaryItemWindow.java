@@ -2,6 +2,7 @@ package com.bilboldev.skillfulpixeldungeonplatformer.windows;
 
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.ConstantsHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.EquipableItem;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.RangedWeapon;
@@ -35,7 +36,7 @@ public class MercenaryItemWindow extends ItemWindow {
     }
 
     private void dropEquipment() {
-        if (mercenary == null || mercenary.isDead()) {
+        if (!partyValid()) {
             return;
         }
 
@@ -54,6 +55,13 @@ public class MercenaryItemWindow extends ItemWindow {
 
         clearOwnership(equipment);
         equipment.drop(mercenary.x, mercenary.y, mercenary.getRoom());
+    }
+
+    @Override public boolean partyValid() {
+        if (mercenary == null || mercenary.isDead() || !UnitHelper.getInstance().getUnitsSnapshot().contains(mercenary)) return false;
+        Item current = slot == MercenaryWindow.EquipmentSlot.ARMOR ? mercenary.getMercenaryArmor()
+                : item instanceof RangedWeapon ? mercenary.getMercenaryRangedWeapon() : mercenary.getMercenaryWeapon();
+        return current == item;
     }
 
     private void clearOwnership(Item equipment) {

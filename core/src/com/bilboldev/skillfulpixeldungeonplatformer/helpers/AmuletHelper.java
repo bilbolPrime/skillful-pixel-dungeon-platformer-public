@@ -57,6 +57,10 @@ public final class AmuletHelper {
     }
 
     private static void finishRun(BaseScreen nextScreen) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running()) {
+            com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.finishParty(nextScreen instanceof SurfaceEndingScreen);
+            return;
+        }
         MapHelper.getInstance().clearRoomPresentation();
         WindowHelper.getInstance().hideAll();
 

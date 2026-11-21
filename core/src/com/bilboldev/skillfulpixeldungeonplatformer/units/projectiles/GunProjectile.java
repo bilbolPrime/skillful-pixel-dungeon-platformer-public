@@ -1,5 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles;
 
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession;
+
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.*;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged.Gun;
@@ -9,7 +11,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skills;
 import java.util.ArrayList;
-
 
 public class GunProjectile extends ThrownProjectile {
     public static final int MAX_LIVE = 24;
@@ -21,7 +22,6 @@ public class GunProjectile extends ThrownProjectile {
     private float elapsed;
     private ShotDamage shotDamage;
     private int shareIndex, shares = 1;
-
 
     private static final class ShotDamage {
         final float rolled;
@@ -46,6 +46,27 @@ public class GunProjectile extends ThrownProjectile {
         speedX = facingRight ? SPEED : -SPEED; speedY = 0f;
         alignRotationToVelocity = false; rotationOffset = 0f;
         gs = new GameSprite(NewClassAssets.ItemArt.BULLET.key(), 64, 64);
+    }
+
+    public Object partyDamageGroup() { return shotDamage; }
+    public float[] partyDamageState() { return shotDamage == null ? new float[]{damage, damage, 0} : new float[]{shotDamage.rolled, shotDamage.modified, shotDamage.resolved ? 1 : 0}; }
+    public String[] partyDamageVictims() {
+        if (shotDamage == null) return new String[0];
+        String[] result = new String[shotDamage.successfulVictims.size()];
+        for (int i = 0; i < result.length; i++) result[i] = shotDamage.successfulVictims.get(i).getPersistentId();
+        return result;
+    }
+    public void partyDamageState(float[] state, String[] victims, java.util.Map<String, Unit> units) {
+        if (state == null || state.length != 3 || victims == null || victims.length > 512) throw new IllegalArgumentException("shot damage");
+        for (float value : state) if (!Float.isFinite(value)) throw new IllegalArgumentException("shot damage");
+        shotDamage = new ShotDamage(state[0]); shotDamage.modified = state[1]; shotDamage.resolved = state[2] == 1;
+        for (String id : victims) if (units.containsKey(id)) shotDamage.successfulVictims.add(units.get(id));
+    }
+    public void partyDamageLink(GunProjectile sibling) { shotDamage = sibling.shotDamage; }
+    @Override public void partyVisualStep(float delta, float gravity, float damping) {
+        super.partyVisualStep(delta, gravity, damping);
+        elapsed += PhysicsHelper.boundGameDelta(delta);
+        lastClearX = x; lastClearY = y;
     }
 
     @Override public void setDamage(float damage) {
@@ -84,7 +105,6 @@ public class GunProjectile extends ThrownProjectile {
         return UnitHelper.getInstance().attackGunTarget(ownerHero, target, attackingItem, this, scale, splash, accuracyMultiplier);
     }
 
-
     public static int liveCount() {
         int count = 0;
         for (Unit unit : UnitHelper.getInstance().getUnits()) if (unit instanceof GunProjectile) count++;
@@ -100,7 +120,7 @@ public class GunProjectile extends ThrownProjectile {
         }
     }
     protected final boolean validOwner() {
-        return ownerHero == UnitHelper.getInstance().getHero() && Gun.supports(ownerHero)
+        return (ownerHero == UnitHelper.getInstance().getHero() || PartySession.running() && PartySession.controls(ownerHero)) && Gun.supports(ownerHero)
                 && !ownerHero.isDead() && ownerHero.getHP() > 0
                 && placementVersion == ownerHero.getPresentationPlacementVersion() && room != null
                 && room.equals(ownerHero.getRoom()) && room.equals(MapHelper.getInstance().getActiveRoomIdentifier());

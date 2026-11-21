@@ -4,6 +4,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.Prefix;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartyFeedback;
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.BlackSpark;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.Blood;
@@ -49,42 +51,59 @@ public class EffectsHelper {
     }
 
     public void message(Unit unit, String message, Color color, float momentX){
+        if (PartySession.client()) return;
+        PartyFeedback.message(unit, message, color, momentX);
         effects.add(new Text().init(unit.x, unit.y + ConstantsHelper.UNIT_DIMENSIONS, momentX, message, color));
     }
 
     public void miss(Unit unit) {
-        if (unit == null) {
+        if (unit == null || PartySession.client()) {
             return;
         }
 
-        combatText(unit, Messages.get("custom.ui.miss"), new Color(1f, 0.82f, 0.45f, 1f));
+        PartyFeedback.miss(unit);
+        showMiss(unit.x, unit.y);
     }
 
+    public void showMiss(float x, float y) {
+        Messages.withLanguage(PartySession.localLanguage(), () ->
+                combatText(x, y, Messages.get("custom.ui.miss"), new Color(1f, 0.82f, 0.45f, 1f)));
+    }
 
     public void hitResult(Unit source, Unit defender, int appliedDamage) {
-        Color color = appliedDamage == 0 ? new Color(0.80f, 0.90f, 1f, 1f)
-                : defender.isHero ? new Color(1f, 0.55f, 0.40f, 1f) : new Color(1f, 0.91f, 0.65f, 1f);
-        combatText(defender, Integer.toString(appliedDamage), color);
-        if (appliedDamage <= 0) return;
-        if (defender.gf != null) defender.gf.showImpactFlash();
-        if (source != null && (source.isHero || defender.isHero)
+        if (PartySession.client()) return;
+        float impulse = source != null && (source.isHero || defender.isHero)
                 && defender.getRoom() != null && defender.getRoom().equals(MapHelper.getInstance().getActiveRoomIdentifier())
-                && appliedDamage >= Math.max(4f, defender.getMaxHP() * 0.15f)) {
-            GameHelper.GetSingleton().showHitImpulse((float) appliedDamage / Math.max(1, defender.getMaxHP()),
-                    source.x <= defender.x ? 1f : -1f);
-        }
+                && appliedDamage >= Math.max(4f, defender.getMaxHP() * 0.15f)
+                ? Math.min(1f, (float)appliedDamage / Math.max(1, defender.getMaxHP())) : 0f;
+        PartyFeedback.hit(source, defender, appliedDamage, impulse);
+        showHitResult(defender, defender.x, defender.y, appliedDamage, defender.isHero, impulse,
+                source == null || source.x <= defender.x ? 1f : -1f);
     }
 
-    private void combatText(Unit unit, String text, Color color) {
-        add(new CombatText().init(unit.x + ConstantsHelper.UNIT_DIMENSIONS / 2f,
-                unit.y + ConstantsHelper.UNIT_DIMENSIONS + 28f, text, color));
+    public void showHitResult(Unit defender, float x, float y, int appliedDamage, boolean hero, float impulse, float direction) {
+        Color color = appliedDamage == 0 ? new Color(0.80f, 0.90f, 1f, 1f)
+                : hero ? new Color(1f, 0.55f, 0.40f, 1f) : new Color(1f, 0.91f, 0.65f, 1f);
+        combatText(x, y, Integer.toString(appliedDamage), color);
+        if (appliedDamage <= 0) return;
+        if (defender != null && defender.gf != null) defender.gf.showImpactFlash();
+        if (impulse > 0) GameHelper.GetSingleton().showHitImpulse(impulse, direction);
+    }
+
+    private void combatText(float x, float y, String text, Color color) {
+        add(new CombatText().init(x + ConstantsHelper.UNIT_DIMENSIONS / 2f,
+                y + ConstantsHelper.UNIT_DIMENSIONS + 28f, text, color));
     }
 
     public void heal(Unit owner){
+        if (PartySession.client()) return;
+        PartyFeedback.heal(owner);
         effects.add(new Heal().init(owner.x, owner.y, 0, 0, 0, 0, owner));
     }
 
     public void levelUp(Unit owner){
+        if (PartySession.client()) return;
+        PartyFeedback.levelUp(owner);
         effects.add(new LevelUp().init(owner.x, owner.y, 0, 0, 0, 0, owner));
     }
 
@@ -147,7 +166,6 @@ public class EffectsHelper {
     public void waterSplash(Unit owner){
         Effect splash = new WaterSplash().init(owner.x, owner.y, 0, owner.speedX, 0, 0);
 
-
         if (!owner.isHero) effects.add(splash);
     }
 
@@ -168,6 +186,8 @@ public class EffectsHelper {
     }
 
     public void manaShielded(Unit owner, boolean faceRight){
+        if (PartySession.client()) return;
+        PartyFeedback.shield(owner, faceRight);
         effects.add(new ManaShield().init(owner.x + (faceRight ? 10f : -10f), owner.y, faceRight));
     }
 
@@ -175,4 +195,3 @@ public class EffectsHelper {
         effects.clearEffects();
     }
 }
-

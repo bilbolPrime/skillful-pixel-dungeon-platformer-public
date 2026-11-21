@@ -15,7 +15,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.screens.TitleScreen;
 
 import java.util.ArrayList;
 
-
 public final class DesktopPauseMenuWindow extends PauseMenuWindow {
     private static final float PANEL_WIDTH = 820, ROW_HEIGHT = 82;
     private interface ToggleValue { boolean getAsBoolean(); }
@@ -49,7 +48,7 @@ public final class DesktopPauseMenuWindow extends PauseMenuWindow {
                 () -> settings.setPlatformShadowsEnabled(!settings.isPlatformShadowsEnabled()));
         add(Messages.get("windows.wndsettings$inputtab.key_bindings"), "images/menu/game-controller.png", null,
                 () -> WindowHelper.getInstance().addWindow(new PauseControlsWindow(true).build()));
-        add(Messages.get("desktop.pause.save_exit"), "images/menu/exit.png", null, this::saveAndExit);
+        add(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running() ? Messages.get("party.leave") : Messages.get("desktop.pause.save_exit"), "images/menu/exit.png", null, this::saveAndExit);
         layout();
         return this;
     }
@@ -85,6 +84,7 @@ public final class DesktopPauseMenuWindow extends PauseMenuWindow {
     @Override public void hide() { cancelPointerInput(); closing = true; }
 
     private void saveAndExit() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running()) { com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.leave(); return; }
         if (!SaveHelper.getInstance().saveCurrentRun()) {
             WindowHelper.getInstance().addWindow(new TextWindow(1100, 240, Messages.get("desktop.runs.save_failed")).build());
             return;

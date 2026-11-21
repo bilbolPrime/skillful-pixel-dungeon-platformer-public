@@ -39,6 +39,12 @@ public class PoisonCloud extends Unit {
         return owner;
     }
 
+    @Override public void partyVisualStep(float delta) {
+        if (room == null || !room.equals(MapHelper.getInstance().getActiveRoomIdentifier())) return;
+        particleAt += delta;
+        while (particleAt >= PARTICLE_INTERVAL) { emitParticles(); particleAt -= PARTICLE_INTERVAL; }
+    }
+
     @Override
     public void act(float delta) {
         elapsed += delta;
@@ -99,7 +105,6 @@ public class PoisonCloud extends Unit {
                     0.01f));
         }
     }
-
 
     public Rectangle getCloudArea() {
         float radiusX = Math.min(MAX_HORIZONTAL_RADIUS_TILES * ConstantsHelper.TILE, elapsed * ConstantsHelper.TILE);

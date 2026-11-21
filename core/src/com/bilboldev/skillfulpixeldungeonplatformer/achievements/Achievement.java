@@ -37,7 +37,7 @@ public enum Achievement {
     NO_MONSTERS_SLAIN("NO_MONSTERS_SLAIN", "Level completed without killing any monsters", "Level completed without killing any monsters", "Complete a dungeon level without killing any monsters."),
     GRIM_WEAPON("GRIM_WEAPON", "Monster killed by a Grim weapon", "Monster killed by a Grim weapon", "Kill any monster with a Grim weapon effect."),
     PIRANHAS("PIRANHAS", "6 piranhas killed", "6 piranhas killed", "Kill 6 piranhas."),
-    SUPPORTER("SUPPORTER", "Thanks for your support!", "Thanks for your support!", "Apply supporter ownership/unlocks through donation, billing, or store entitlements."),
+    SUPPORTER("SUPPORTER", "Thanks for your support!", "Thanks for your support!", "Thanks for your support!"),
     BOSS_SLAIN_1_ALL_CLASSES("BOSS_SLAIN_1_ALL_CLASSES", "1st boss slain by Warrior, Mage, Rogue & Huntress", "1st boss slain by Warrior, Mage, Rogue & Huntress", "Defeat the 1st boss once with each base class: Warrior, Mage, Rogue, and Huntress."),
     BOSS_SLAIN_3_ALL_SUBCLASSES("BOSS_SLAIN_3_ALL_SUBCLASSES", "3rd boss slain by Gladiator, Berserker, Warlock, Battlemage, Freerunner, Assassin, Sniper & Warden", "3rd boss slain by Gladiator, Berserker, Warlock, Battlemage, Freerunner, Assassin, Sniper & Warden", "Defeat the 3rd boss once with each subclass: Gladiator, Berserker, Warlock, Battlemage, Freerunner, Assassin, Sniper, and Warden."),
     YASD("YASD", "Death from fire, poison, toxic gas & hunger", "Death from fire, poison, toxic gas & hunger", "Unlock the fire, poison, toxic gas, and hunger death badges across runs."),

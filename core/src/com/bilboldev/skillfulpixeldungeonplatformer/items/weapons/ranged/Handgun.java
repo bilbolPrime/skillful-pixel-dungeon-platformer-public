@@ -4,6 +4,8 @@ import com.bilboldev.skillfulpixeldungeonplatformer.helpers.NewClassAssets;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 
 public final class Handgun extends Gun {
+    @Override protected String localizationKey() { return "custom.newitems.handgun"; }
+
     {
         name = "Handgun";
         description = "A compact, reliable firearm for the Mercenary. Fires one straight bullet from the ranged slot.";

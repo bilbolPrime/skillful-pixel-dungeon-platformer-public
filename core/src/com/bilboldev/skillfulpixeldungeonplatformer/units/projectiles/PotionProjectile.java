@@ -12,6 +12,11 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 public class PotionProjectile extends ThrownProjectile {
 
     private Potion potion;
+    @Override public com.bilboldev.skillfulpixeldungeonplatformer.items.Item partyPayload() { return potion; }
+    @Override public void partyPayload(com.bilboldev.skillfulpixeldungeonplatformer.items.Item item) {
+        if (!(item instanceof Potion)) throw new IllegalArgumentException("potion");
+        setPotion((Potion)item);
+    }
 
     public PotionProjectile setPotion(Potion potion) {
         this.potion = potion;

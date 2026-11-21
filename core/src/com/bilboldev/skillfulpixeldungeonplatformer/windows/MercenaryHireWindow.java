@@ -33,9 +33,13 @@ public class MercenaryHireWindow extends Window {
     private static final float LINE_HEIGHT = 46f;
 
     private final MercenaryRecruit recruit;
+    public MercenaryRecruit partyRecruit() { return recruit; }
+    @Override public boolean partyValid() { return recruit != null && !recruit.isDead() && UnitHelper.getInstance().getUnitsSnapshot().contains(recruit); }
     private final ArrayList<ActionButton> buttons = new ArrayList<ActionButton>();
     private final ArrayList<String> descriptionLines = new ArrayList<String>();
     private ActionButton pressedButton;
+    @Override public String partyText() { return buildDescriptionText(); }
+    @Override public java.util.List<? extends com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.Button> partyChoices() { return buttons; }
 
     public MercenaryHireWindow(MercenaryRecruit recruit) {
         super(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -119,6 +123,7 @@ public class MercenaryHireWindow extends Window {
         PauseMenuRowButton hireButton = new PauseMenuRowButton(hireButtonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT) {
             @Override
             public void clicked() {
+                if (!partyValid()) { hide(); return; }
                 if (InventoryHelper.getInstance().getGold() < recruit.getMercenaryPrice()) {
                     EffectsHelper.getInstance().message(
                             UnitHelper.getInstance().getHero(),

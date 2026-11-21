@@ -40,7 +40,7 @@ import java.util.ArrayList;
 
 public class TitleScreen extends MenuScreenBase {
     private static final float FIREWORK_BLAST_COOLDOWN_SECONDS = 0.45f;
-    private static final String VERSION_LABEL = "2.0.0 (Build 14)";
+    private static final String VERSION_LABEL = "2.1.0 (Build 15)";
     private static final String ABOUT_TEXT = "A realtime platform adaption of Skillful Pixel Dungeon by BilbolDev";
     private static final String TITLE_PATH = "images/intro/pixel-dungeon-platformer.png";
     private static final String TITLE_OVERLAY_PATH = "images/intro/pixel-dungeon-platformer-over.png";
@@ -170,7 +170,6 @@ public class TitleScreen extends MenuScreenBase {
                     WindowHelper.getInstance().addWindow(new RatKingWindow().build()); });
         addTitleButton("ABOUT", "about", 6, this::showAboutWindow);
 
-
         if (desktopLayout) buttons.add(new DesktopMenuButton("Exit", "images/menu/exit.png", 7, () -> Gdx.app.exit()));
         else buttons.add(new ActionButton(
                 ConstantsHelper.SCREEN_WIDTH - EXIT_BUTTON_MARGIN - EXIT_BUTTON_SIZE,
@@ -251,7 +250,6 @@ public class TitleScreen extends MenuScreenBase {
         desktopSession.navigation().backToTitle();
     }
 
-
     @Override protected InputGestureListener windowInputGestureListener() {
         final InputGestureListener windows = super.windowInputGestureListener();
         return new InputGestureListener() {
@@ -314,7 +312,6 @@ public class TitleScreen extends MenuScreenBase {
             }
         };
     }
-
 
     public boolean usesDesktopMenuScenes() { return desktopSession != null; }
 

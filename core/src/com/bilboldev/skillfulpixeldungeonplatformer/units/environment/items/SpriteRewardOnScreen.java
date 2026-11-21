@@ -8,6 +8,8 @@ import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 public class SpriteRewardOnScreen extends ItemOnScreen {
     private final GameSprite displaySprite;
 
+    public GameSprite partyDisplaySprite() { return displaySprite; }
+
     public SpriteRewardOnScreen(Item item, String spritePath, float width, float height) {
         super(item);
         displaySprite = new GameSprite(spritePath, width, height);

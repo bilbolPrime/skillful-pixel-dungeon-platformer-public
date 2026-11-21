@@ -1,5 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.helpers;
 
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession;
+
 import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.BuildHeroWindow;
 import com.bilboldev.skillfulpixeldungeonplatformer.windows.DescriptionWindow;
@@ -30,8 +32,9 @@ public class BuildHeroHelper {
         WindowHelper.getInstance().addWindow(new DescriptionWindow(icon, description, 1500, 400).build());
     }
 
+    public void play(HeroClass heroClass) { PartySession.choose(heroClass); }
 
-    public void play(HeroClass heroClass) {
+    public void playSolo(HeroClass heroClass) {
         if (com.bilboldev.skillfulpixeldungeonplatformer.SkillfulPixelDungeonPlatformer.getPlatformProfile().keyboardControlsEnabled()
                 && !com.bilboldev.skillfulpixeldungeonplatformer.SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled()) {
             int slot = SaveHelper.getInstance().firstEmptySlot();
@@ -45,4 +48,3 @@ public class BuildHeroHelper {
         } else WindowHelper.getInstance().addWindow(new DifficultySelectWindow(heroClass, false).build());
     }
 }
-

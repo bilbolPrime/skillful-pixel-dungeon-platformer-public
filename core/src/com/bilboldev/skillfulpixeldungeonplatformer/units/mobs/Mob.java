@@ -137,6 +137,11 @@ public class Mob extends Unit implements LibraryEntry {
     }
 
     protected AI ai;
+    public AI[] partyBrains() { return new AI[]{ai, uncontrolledAI, dominanceAI, confusionAI}; }
+    public void partyBrains(AI[] brains) {
+        if (brains.length != 4) throw new IllegalArgumentException("brains");
+        ai = brains[0]; uncontrolledAI = brains[1]; dominanceAI = brains[2]; confusionAI = brains[3];
+    }
 
     private AI uncontrolledAI, dominanceAI, confusionAI;
     private boolean uncontrolledFriendly;
@@ -450,7 +455,6 @@ public class Mob extends Unit implements LibraryEntry {
         return true;
     }
 
-
     protected boolean grantsDeathRewards() {
         return true;
     }
@@ -469,7 +473,6 @@ public class Mob extends Unit implements LibraryEntry {
     }
 
     private void dropBaseGold() {
-
 
         if (isSummoned) return;
         Item gold = new Gold().setQuantity(rollBaseGoldAmount());
@@ -656,7 +659,6 @@ public class Mob extends Unit implements LibraryEntry {
     private void forgetControlAI() {
         uncontrolledAI = dominanceAI = confusionAI = null;
     }
-
 
     public boolean isFriendlyWithoutControl() {
         return uncontrolledAI == null ? isFriendly : uncontrolledFriendly;
@@ -1046,4 +1048,3 @@ public class Mob extends Unit implements LibraryEntry {
         return String.format(Locale.US, "%.1f", value);
     }
 }
-

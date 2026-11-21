@@ -198,8 +198,8 @@ public class Armor extends EquipableItem {
 
     private String getStrengthRequirementText() {
         StringBuilder info = new StringBuilder();
-        info.append("\n\n").append(Messages.maybeTranslate(
-                "You need %d Strength to use the %s.",
+        info.append("\n\n").append(Messages.get(
+                "custom.generated.you_need_arg_strength_to_d29e64b632",
                 getRequiredStrength(),
                 getName().toLowerCase()));
 
@@ -221,4 +221,3 @@ public class Armor extends EquipableItem {
         return owner.usesEquipmentStrengthRequirements() ? owner : null;
     }
 }
-

@@ -14,7 +14,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.prefixes.weapons.enchantments.DeathEnchantment;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.Weapon;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
-import com.bilboldev.skillfulpixeldungeonplatformer.platform.AchievementService;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.classes.HeroClass;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.Mob;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.caves.DM300;
@@ -48,7 +47,6 @@ public class AchievementManager {
     private static final String SCROLLS_PACKAGE = "com.bilboldev.skillfulpixeldungeonplatformer.items.scrolls.";
     private static final String RINGS_PACKAGE = "com.bilboldev.skillfulpixeldungeonplatformer.items.rings.";
     private static final String WANDS_PACKAGE = "com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.wands.";
-
 
     private static final HeroClass[] VICTORY_CLASSES = new HeroClass[]{
         HeroClass.WARRIOR,
@@ -194,7 +192,6 @@ public class AchievementManager {
             Achievement.GAMES_PLAYED_4
     );
 
-    private AchievementService service;
     private boolean trackingRun;
     private int killsThisGame;
     private HashMap<Integer, Integer> killsByDepthThisGame = new HashMap<Integer, Integer>();
@@ -212,18 +209,13 @@ public class AchievementManager {
         return instance;
     }
 
-    public void setService(AchievementService service) {
-        this.service = service;
-        if (service != null) {
-            service.synchronize(getUnlockedAchievements());
-        }
-    }
-
     public void onGameStarted() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         onGameStarted(true);
     }
 
     public void onGameStarted(boolean countAsNewGame) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         trackingRun = true;
         killsThisGame = 0;
         killsByDepthThisGame.clear();
@@ -246,10 +238,12 @@ public class AchievementManager {
     }
 
     public void onEnemyKilled() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         onEnemyKilled(null);
     }
 
     public void onEnemyKilled(Mob mob) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun || mob == null) {
             return;
         }
@@ -325,6 +319,7 @@ public class AchievementManager {
     }
 
     public void onGoldCollected(int amount) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun || amount <= 0) {
             return;
         }
@@ -337,6 +332,7 @@ public class AchievementManager {
     }
 
     public void onLevelReached(int level) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun) {
             return;
         }
@@ -351,6 +347,7 @@ public class AchievementManager {
     }
 
     public void onFoodEaten() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun) {
             return;
         }
@@ -363,6 +360,7 @@ public class AchievementManager {
     }
 
     public void onLevelCompleted(int completedDepth) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun) {
             return;
         }
@@ -374,6 +372,7 @@ public class AchievementManager {
     }
 
     public void onDeathFromFire() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (trackingRun) {
             unlock(Achievement.DEATH_FROM_FIRE);
             checkBadgeSetAchievements();
@@ -381,6 +380,7 @@ public class AchievementManager {
     }
 
     public void onDeathFromPoison() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (trackingRun) {
             unlock(Achievement.DEATH_FROM_POISON);
             checkBadgeSetAchievements();
@@ -388,6 +388,7 @@ public class AchievementManager {
     }
 
     public void onDeathFromGas() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (trackingRun) {
             unlock(Achievement.DEATH_FROM_GAS);
             checkBadgeSetAchievements();
@@ -395,6 +396,7 @@ public class AchievementManager {
     }
 
     public void onDeathFromHunger() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (trackingRun) {
             unlock(Achievement.DEATH_FROM_HUNGER);
             checkBadgeSetAchievements();
@@ -402,6 +404,7 @@ public class AchievementManager {
     }
 
     public void onItemIdentified(Item item) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun || item == null) {
             return;
         }
@@ -410,6 +413,7 @@ public class AchievementManager {
     }
 
     public void onItemObtained(Item item) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun || item == null) {
             return;
         }
@@ -418,10 +422,12 @@ public class AchievementManager {
     }
 
     public void onItemUpgraded(Item item) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         onItemObtained(item);
     }
 
     public void onStrengthChanged(int strength) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun) {
             return;
         }
@@ -438,18 +444,8 @@ public class AchievementManager {
                 .getBoolean(KEY_UNLOCKED_PREFIX + achievement.getId(), false);
     }
 
-    public Iterable<Achievement> getUnlockedAchievements() {
-        EnumSet<Achievement> unlocked = EnumSet.noneOf(Achievement.class);
-        for (Achievement achievement : Achievement.values()) {
-            if (isUnlocked(achievement)) {
-                unlocked.add(achievement);
-            }
-        }
-
-        return unlocked;
-    }
-
     public void onVictory() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun) {
             return;
         }
@@ -463,6 +459,7 @@ public class AchievementManager {
     }
 
     public void onHappyEnd() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun) {
             return;
         }
@@ -470,33 +467,8 @@ public class AchievementManager {
         unlock(Achievement.HAPPY_END);
     }
 
-    public void onSupporterOwned() {
-        applySupporterOwnership(true);
-    }
-
-    public void applySupporterOwnership(boolean showFeedback) {
-        unlock(Achievement.SUPPORTER, showFeedback);
-    }
-
-    public void applyPlatformSync(Achievement achievement) {
-        if (achievement == null || isUnlocked(achievement)) {
-            return;
-        }
-
-        markUnlocked(achievement);
-    }
-
-    public void applyPlatformSync(Iterable<Achievement> achievements) {
-        if (achievements == null) {
-            return;
-        }
-
-        for (Achievement achievement : achievements) {
-            applyPlatformSync(achievement);
-        }
-    }
-
     public void onGladiatorCombo(int comboCount) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun) {
             return;
         }
@@ -507,6 +479,7 @@ public class AchievementManager {
     }
 
     public void onNightKillStreak(int streak) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (!trackingRun) {
             return;
         }
@@ -528,9 +501,6 @@ public class AchievementManager {
         if (showFeedback) {
             SoundHelper.GetSingleton().play(Sounds.BADGE, 0f, 1f);
             UIHelper.getInstance().showAchievementBanner(achievement);
-        }
-        if (service != null) {
-            service.unlock(achievement);
         }
     }
 

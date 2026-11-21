@@ -19,6 +19,7 @@ public class RedButton extends ActionButton {
     private static final int TEXT_SIZE = 3;
 
     String text;
+    @Override public String partyLabel() { return text == null ? "" : text; }
     float offsetX;
     private Color textColor = new Color(Color.WHITE);
     private Color backgroundTint = new Color(Color.WHITE);
@@ -105,6 +106,8 @@ public class RedButton extends ActionButton {
         return Math.max(80f, buttonWidth - TEXT_HORIZONTAL_PADDING * 2f);
     }
 
+    protected float getTextLeftInset() { return 0f; }
+
     @Override
     public void draw(Batch batch){
         super.draw(batch);
@@ -123,9 +126,11 @@ public class RedButton extends ActionButton {
         }
         batch.setColor(previousColor);
 
-        FittedButtonText fittedText = fitText(text, width, Math.max(1f, height - TEXT_VERTICAL_PADDING * 2f));
+        float leftInset = getTextLeftInset();
+        float textWidth = width - leftInset;
+        FittedButtonText fittedText = fitText(text, textWidth, Math.max(1f, height - TEXT_VERTICAL_PADDING * 2f));
         GlyphLayout glyphLayout = FontHelper.getSingleton().measure(textColor, fittedText.size, fittedText.text);
-        offsetX = width / 2 - glyphLayout.width / 2;
+        offsetX = leftInset + textWidth / 2 - glyphLayout.width / 2;
         float textY = y + (height + glyphLayout.height) / 2f;
         FontHelper.getSingleton().writeRaw(textColor, batch, fittedText.size, x + offsetX, textY, fittedText.text);
     }
@@ -159,4 +164,3 @@ public class RedButton extends ActionButton {
         }
     }
 }
-

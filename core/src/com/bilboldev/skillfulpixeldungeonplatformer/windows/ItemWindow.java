@@ -51,17 +51,32 @@ public class ItemWindow extends DescriptionWindow {
 
     ArrayList<ActionButton> actionButtons;
     Item item;
+    public Item partyItem() { return item; }
     private final Vector3 pointer = new Vector3();
 
     public ItemWindow(Item item) {
-        super(buildDescriptionSprite(item), item.getName() + "\n" + item.getBigDescription(), 1500, MIN_ITEM_WINDOW_HEIGHT);
+        this(item, item.getName() + "\n" + item.getBigDescription());
+    }
+
+    public ItemWindow(Item item, String description) {
+        super(buildDescriptionSprite(item), description, 1500, MIN_ITEM_WINDOW_HEIGHT);
         this.item = item;
         actionButtons = new ArrayList<>();
         setDescriptionSpriteYOffset(72f);
         setReservedBottomHeight(ITEM_DESCRIPTION_PADDING);
-        height = calculateBaseHeight(item.getName() + "\n" + item.getBigDescription());
+        height = calculateBaseHeight(description);
         y = ConstantsHelper.SCREEN_HEIGHT / 2 - height / 2;
         x = ConstantsHelper.SCREEN_WIDTH / 2 - width / 2;
+    }
+
+    public ItemWindow addPartyChoice(String label, float buttonWidth, boolean enabled, Runnable action) {
+        if (actionButtons.isEmpty()) height += ITEM_ACTION_AREA_HEIGHT;
+        RedButton button = new RedButton(0, 0, buttonWidth, ITEM_ACTION_BUTTON_HEIGHT) {
+            @Override public void click() { if (canClick()) action.run(); }
+        }.setText(label);
+        if (!enabled) button.disable();
+        actionButtons.add(button);
+        return this;
     }
 
     private float calculateBaseHeight(String descriptionSource) {
@@ -106,7 +121,6 @@ public class ItemWindow extends DescriptionWindow {
         }
         return this;
     }
-
 
     public Window addEquipUnequip(){
         boolean equipped = ((EquipableItem) item).getEquipped();
@@ -210,7 +224,7 @@ public class ItemWindow extends DescriptionWindow {
 
                 AmuletHelper.claimVictory();
             }
-        }.setText("CLAIM VICTORY"));
+        }.setText(Messages.get("custom.ui.claim_victory")));
 
         actionButtons.add(new RedButton(x + width - 500, y + 100, 400, 100) {
             @Override
@@ -226,7 +240,7 @@ public class ItemWindow extends DescriptionWindow {
                 AmuletHelper.takeToSurface();
                 hide();
             }
-        }.setText("TAKE TO SURFACE"));
+        }.setText(Messages.get("custom.ui.take_to_surface")));
 
         return this;
     }
@@ -519,7 +533,7 @@ public class ItemWindow extends DescriptionWindow {
                 hide();
                 WindowHelper.getInstance().refresh();
             }
-        }.setText("SELL FOR " + sellPrice));
+        }.setText(Messages.get("windows.wndtradeitem.sell", sellPrice)));
 
         return this;
     }
@@ -544,7 +558,6 @@ public class ItemWindow extends DescriptionWindow {
         }
     }
 
-
     @Override
     public boolean click(float x, float y){
         for(ActionButton actionButton : actionButtons){
@@ -565,5 +578,3 @@ public class ItemWindow extends DescriptionWindow {
         return true;
     }
 }
-
-

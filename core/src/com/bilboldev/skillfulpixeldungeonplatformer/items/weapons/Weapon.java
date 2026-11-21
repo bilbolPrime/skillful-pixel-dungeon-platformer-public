@@ -128,7 +128,6 @@ public class Weapon extends EquipableItem {
         return applyStrengthDamage(prefixModifier * (tier + getUpgradeBonusDamage() + damage * 1.5f));
     }
 
-
     public float getDamage(){
         float prefixModifier = prefix != null ? prefix.getModifier() : 1f;
         float rolledDamage = prefixModifier * owner.getOutgoingDamageModifier() * (tier + getUpgradeBonusDamage() + damage * (0.75f + RandomHelper.getInstance().randomFloat(0.75f)));
@@ -168,8 +167,8 @@ public class Weapon extends EquipableItem {
 
     protected String getStrengthRequirementText() {
         StringBuilder info = new StringBuilder();
-        info.append("\n\n").append(Messages.maybeTranslate(
-                "You need %d Strength to use the %s.",
+        info.append("\n\n").append(Messages.get(
+                "custom.generated.you_need_arg_strength_to_d29e64b632",
                 getRequiredStrength(),
                 getName().toLowerCase()));
 
@@ -215,7 +214,6 @@ public class Weapon extends EquipableItem {
         return withLevelSuffix(baseName);
     }
 
-
     public void modifyKnockback(float modification){
         knockBack += modification;
     }
@@ -248,4 +246,3 @@ public class Weapon extends EquipableItem {
         }
     }
 }
-

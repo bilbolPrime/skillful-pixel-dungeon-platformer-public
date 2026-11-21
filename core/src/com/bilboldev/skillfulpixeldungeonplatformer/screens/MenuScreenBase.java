@@ -107,6 +107,10 @@ public abstract class MenuScreenBase extends BaseScreen {
             @Override
             public boolean keyUp(int keycode) { return menuKeysHeld.remove(keycode); }
 
+            @Override public boolean keyTyped(char character) {
+                return !ownsMenuInput() || WindowHelper.getInstance().handleKeyTyped(character);
+            }
+
             @Override public boolean touchDown(int x, int y, int pointer, int button) { return !ownsMenuInput(); }
             @Override public boolean touchUp(int x, int y, int pointer, int button) { return !ownsMenuInput(); }
             @Override public boolean touchDragged(int x, int y, int pointer) { return !ownsMenuInput(); }

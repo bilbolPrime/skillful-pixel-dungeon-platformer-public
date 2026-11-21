@@ -1,5 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.screens;
 
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -63,10 +65,6 @@ public class GameScreen extends BaseScreen {
 
     }
 
-
-
-
-
 Stage stage;
 
     private DesktopInputProcessor desktopInputProcessor;
@@ -81,14 +79,9 @@ Stage stage;
     private float cameraTrackX, baseCameraX, cameraLookAhead;
     private float cameraLastHeroX, cameraLastHeroY;
 
-
-
     GameSprite stats = new GameSprite("stats.png", 1212, 250);
 
-
     Hero hero2 = null;
-
-
 
     UnitHelper unitHelper;
     private final boolean loadSavedRun;
@@ -138,7 +131,7 @@ Stage stage;
                 ? DifficultyHelper.Difficulty.fromName(saveData != null ? saveData.difficultyName : null)
                 : startingDifficulty;
         DifficultyHelper.getInstance().setCurrentDifficulty(runDifficulty);
-        RandomHelper.getInstance().setRunSeed(saveData != null ? saveData.runSeed : RandomHelper.getInstance().newRunSeed());
+        RandomHelper.getInstance().setRunSeed(saveData != null ? saveData.runSeed : PartySession.runSeed(RandomHelper.getInstance().newRunSeed()));
         ItemIdentityHelper.getInstance().restore(saveData != null ? saveData.itemIdentity : null, RandomHelper.getInstance().getRunSeed());
         QuestManager.getInstance().restore(saveData != null ? saveData.quests : null);
 
@@ -169,12 +162,8 @@ Stage stage;
 
         darknessAlpha = 1f;
 
-
         batch = new SpriteBatch();
         batchUI = new SpriteBatch();
-
-
-
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, width, height);
@@ -186,17 +175,13 @@ Stage stage;
         GameHelper.GetSingleton().setUICamera(uiCamera);
         createUiViewport();
 
-
         stage = new Stage(stageUnits.getViewport());
 
         if (touchControlsEnabled) {
             dpadStage = addTouchPad(unitHelper, width, height);
         }
 
-
-
         stageUnits.addActor(new AmbientSound());
-
 
         Effects effects = new Effects();
         stageUnits.addActor(effects);
@@ -211,6 +196,7 @@ Stage stage;
         }
         QuestManager.getInstance().ensureBlacksmithOreVeins();
         MapHelper.getInstance().setRestoringGeneratedLevels(false);
+        PartySession.gameCreated();
 
         AchievementManager.getInstance().onGameStarted(!loadSavedRun);
 
@@ -225,14 +211,7 @@ Stage stage;
         font = new BitmapFont();
         skin = new Skin();
 
-
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
-        inputMultiplexer.addProcessor(new InputAdapter() {
-            @Override public boolean keyDown(int key) { return com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsInput(); }
-            @Override public boolean keyUp(int key) { return com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsInput(); }
-            @Override public boolean touchDown(int x, int y, int pointer, int button) { return com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsInput(); }
-            @Override public boolean touchUp(int x, int y, int pointer, int button) { return com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsInput(); }
-        });
         Gdx.input.setCatchKey(Input.Keys.BACK, true);
         Gdx.input.setCatchKey(Input.Keys.ESCAPE, true);
         inputMultiplexer.addProcessor(new InputAdapter() {
@@ -244,7 +223,7 @@ Stage stage;
                 }
                 if (!closeKeysHeld.add(keycode)) return true;
 
-                if (unitHelper.getHero() != null && unitHelper.getHero().isDead()) {
+                if (!PartySession.running() && unitHelper.getHero() != null && unitHelper.getHero().isDead()) {
                     return true;
                 }
 
@@ -337,16 +316,12 @@ Stage stage;
 
     @Override
     public void act(float delta) {
-        if (com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.holdsGameplay()) {
-            clearPresentationPresses();
-            return;
-        }
         com.bilboldev.skillfulpixeldungeonplatformer.windows.DesktopPauseMenuWindow pause = WindowHelper.getInstance().desktopPause();
         if (pause != null) {
             pause.act(delta);
             if (desktopInputProcessor != null) desktopInputProcessor.refreshMovementState();
             MapHelper.getInstance().getRoomTransition().stopSound();
-            return;
+            if (!PartySession.running()) return;
         }
         delta = PhysicsHelper.boundGameDelta(delta);
         if(darknessAlpha > 0){
@@ -361,7 +336,11 @@ Stage stage;
         MapHelper.getInstance().act(delta);
 
         if (desktopInputProcessor != null) desktopInputProcessor.refreshMovementState();
-        if(!WindowHelper.getInstance().windowOpen()){
+        if (PartySession.running()) {
+            PartySession.update(stageUnits, delta);
+            GameHelper.GetSingleton().updateHitImpulse(delta);
+            MapHelper.getInstance().getRoomTransition().update(delta);
+        } else if(!WindowHelper.getInstance().windowOpen()){
             SaveHelper.getInstance().advancePlayTime(delta);
             stageUnits.act(delta);
             unitHelper.act(delta);
@@ -369,7 +348,6 @@ Stage stage;
             unitHelper.getHero().updateAirbornePose(delta);
             GameHelper.GetSingleton().updateHitImpulse(delta);
             MapHelper.getInstance().getRoomTransition().update(delta);
-            com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.gameplayAdvanced(delta);
         } else MapHelper.getInstance().getRoomTransition().stopSound();
 
         welcome();
@@ -383,7 +361,7 @@ Stage stage;
 
         OrthographicCamera worldCamera = GameHelper.GetSingleton().getCamera();
         RoomTransition transition = MapHelper.getInstance().getRoomTransition();
-        Hero cameraSubject = unitHelper.getHero();
+        Hero cameraSubject = PartySession.viewHero(unitHelper.getHero());
         transition.validate(MapHelper.getInstance().getActiveRoomIdentifier(), MapHelper.getInstance().getDepth(),
                 cameraSubject.getPresentationPlacementVersion(), cameraSubject.isDead());
         if (WindowHelper.getInstance().desktopPause() == null) updateCameraTracking(Gdx.graphics.getDeltaTime());
@@ -429,7 +407,6 @@ Stage stage;
             dpadStage.draw();
         }
 
-
         batchUI.end();
 
     }
@@ -452,7 +429,6 @@ Stage stage;
         }
                 disposeTouchPad();
         batch.dispose();
-
 
     }
 
@@ -485,8 +461,6 @@ Stage stage;
         }
     }
 
-
-
     boolean welcomed;
     public void welcome(){
         if(welcomed){
@@ -497,7 +471,6 @@ Stage stage;
 
     }
 
-
     public void resetCameraTracking() {
         cameraTrackingReady = false;
         GameHelper.GetSingleton().clearHitImpulse();
@@ -505,7 +478,7 @@ Stage stage;
     }
 
     private void updateCameraTracking(float delta) {
-        Hero hero = unitHelper.getHero();
+        Hero hero = PartySession.viewHero(unitHelper.getHero());
         Room room = MapHelper.getInstance().getActiveRoom();
         int depth = MapHelper.getInstance().getDepth();
         float focusX = hero.getRenderX() + ConstantsHelper.UNIT_DIMENSIONS / 2f;

@@ -34,7 +34,6 @@ public class Room {
     protected ArrayList<Door> doors;
     protected ArrayList<Unit> stuff;
 
-
     private ArrayList<CorpseRecord> corpses;
     private List<CorpseRecord> corpseView;
     private long nextCorpseOrder;
@@ -49,7 +48,6 @@ public class Room {
     private RoomLayout layout;
     private int generationDepth = 1, generationOrdinal;
     private boolean contentsPlaced;
-
 
     public final void populate() {
         if (contentsPlaced) return;
@@ -83,7 +81,6 @@ public class Room {
             seedWater();
             return this;
         }
-
 
         int tileX = RandomHelper.getInstance().randomInt(width);
         int platformWidth = 3 + RandomHelper.getInstance().randomInt(width / 5);
@@ -412,7 +409,6 @@ public class Room {
         return this;
     }
 
-
     public Room addGroundWater() {
         for (int x = 0; x < width; x++)
             waterPlatforms.add(UtilsHelper.platformKey(x, ConstantsHelper.MIN_FLOOR - 1));
@@ -485,7 +481,6 @@ public class Room {
     public long getNextCorpseOrder() { return nextCorpseOrder; }
     long getCorpseRestoreVersion() { return corpseRestoreVersion; }
 
-
     public void clearCorpses() {
         if (corpses != null) corpses.clear();
         corpses = null;
@@ -494,10 +489,9 @@ public class Room {
         corpseRestoreVersion++;
     }
 
-
     public void restoreCorpses(List<CorpseRecord> saved, Long savedNextOrder) {
         clearCorpses();
-        Hero hero = UnitHelper.getInstance().getHero();
+        Hero hero = com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.corpseHero(UnitHelper.getInstance().getHero());
         if (hero == null || hero.getHeroClass() != HeroClass.NECROMANCER || hero.isDead()) return;
         if (saved != null && !saved.isEmpty()) {
             HashSet<String> seen = new HashSet<>();
@@ -531,14 +525,12 @@ public class Room {
         return oldest;
     }
 
-
     boolean claimCorpse(String victimId, long order) {
         if (corpses == null) return false;
         for (int i = 0; i < corpses.size(); i++) {
             CorpseRecord record = corpses.get(i);
             if (record.order == order && record.victimId.equals(victimId)) {
                 corpses.remove(i);
-
 
                 for (Unit unit : UnitHelper.getInstance().getUnitsSnapshot()) {
                     if (unit.isDead() && identifier.equals(unit.getRoom()) && victimId.equals(unit.getPersistentId()))
@@ -550,9 +542,8 @@ public class Room {
         return false;
     }
 
-
     public boolean recordCorpseDeath(String victimId, float deathX, float deathY) {
-        Hero hero = UnitHelper.getInstance().getHero();
+        Hero hero = com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.corpseHero(UnitHelper.getInstance().getHero());
         if (hero == null || hero.getHeroClass() != HeroClass.NECROMANCER || hero.isDead()
                 || victimId == null || victimId.isEmpty() || identifier == null
                 || !Float.isFinite(deathX) || !Float.isFinite(deathY)) {
@@ -576,11 +567,9 @@ public class Room {
         return true;
     }
 
-
     public float corpseSupportBelow(float centerX, float deathY) {
         return corpseSupportBelow(centerX, deathY, CorpseRecord.HALF_WIDTH);
     }
-
 
     float corpseSupportBelow(float centerX, float deathY, float halfWidth) {
         if (!Float.isFinite(centerX) || !Float.isFinite(deathY)
@@ -626,7 +615,6 @@ public class Room {
         door.y = Integer.parseInt(position[1]) * ConstantsHelper.TILE;
         return door;
     }
-
 
     protected ArrayList<String> getDoorCandidates() {
         if (getClass() == Room.class) return getLayeredDoorCandidates();
@@ -724,7 +712,6 @@ public class Room {
         return spawn;
     }
 
-
     public ArrayList<String> getSpawnCandidates() {
         ArrayList<String> spawnCandidates = new ArrayList<String>();
         for (String platform : platforms) {
@@ -789,7 +776,6 @@ public class Room {
 
     public int calculateDoorFloorY(int doorX){
         int calculatedTile = doorX;
-
 
         int candidateFloor = 3;
 
@@ -922,4 +908,3 @@ public class Room {
 
     }
 }
-

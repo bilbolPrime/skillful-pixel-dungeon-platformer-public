@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 public class TextWindow extends Window{
     protected String text;
+    @Override public String partyText() { return sourceText; }
     private final String sourceText;
     private float textFontSize = ConstantsHelper.WINDOW_FONT_SIZE;
     protected float xOffset, yOffset;
@@ -86,5 +87,3 @@ public class TextWindow extends Window{
         FontHelper.getSingleton().writeRaw(Color.WHITE, batch, textFontSize, (int)(x + xOffset), (int)(y + yOffset), text);
     }
 }
-
-

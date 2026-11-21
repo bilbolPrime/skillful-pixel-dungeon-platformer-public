@@ -56,7 +56,7 @@ public final class RaisedSkeletonArcher extends NecromancerMinion {
     public boolean tryShoot(Unit target) {
         Hero hero = getOwnerHero();
         if (hero == null || hero.isDead() || isDead() || isPendingTransfer() || showOnly() || room == null || !room.equals(hero.getRoom())
-                || hero.getNewClassActions().isSuspended() || WindowHelper.getInstance().windowOpen()
+                || hero.getNewClassActions().isSuspended() || (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running() == false && WindowHelper.getInstance().windowOpen())
                 || shotCooldown > 0f || !canAttack() || !hasShotLine(target)
                 || NewClassSpellProjectile.liveCount() >= NewClassSpellProjectile.MAX_LIVE) return false;
         facingRight = target.x >= x;

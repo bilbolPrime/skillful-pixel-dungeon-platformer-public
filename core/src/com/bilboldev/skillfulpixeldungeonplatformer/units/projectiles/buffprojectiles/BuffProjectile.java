@@ -156,6 +156,12 @@ public class BuffProjectile extends ThrownProjectile {
         fluctuation(delta);
     }
 
+    @Override public void partyVisualStep(float delta, float gravity, float damping) {
+        super.partyVisualStep(delta, gravity, damping);
+        lifeSpan -= 75f * delta;
+        fluctuation(delta);
+    }
+
     protected void fluctuation(float delta){
         for(XY xy : xyArrayList){
             xy.y += floatSpeed * delta;
@@ -166,7 +172,6 @@ public class BuffProjectile extends ThrownProjectile {
             }
         }
     }
-
 
     @Override
     public void draw(Batch batch, float alpha){
@@ -195,7 +200,6 @@ public class BuffProjectile extends ThrownProjectile {
         this.lifeSpan = lifeSpan;
     }
 
-
     class XY {
         public float x;
         public float y;
@@ -206,4 +210,3 @@ public class BuffProjectile extends ThrownProjectile {
         }
     }
 }
-

@@ -304,6 +304,7 @@ public final class SaveRegistry {
         registerUnit("units/environment/items/ItemOnScreen", com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.ItemOnScreen.class);
         registerUnit("units/environment/items/SpriteRewardOnScreen", com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.SpriteRewardOnScreen.class);
         registerUnit("units/environment/items/TreasureOnScreen", com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.TreasureOnScreen.class);
+        registerUnit("units/environment/items/GuardedTreasureOnScreen", com.bilboldev.skillfulpixeldungeonplatformer.units.environment.items.GuardedTreasureOnScreen.class);
         registerUnit("units/environment/decoration/DarkGoldVein", com.bilboldev.skillfulpixeldungeonplatformer.units.environment.decoration.DarkGoldVein.class);
 
         registerUnit("units/environment/plants/Plant", com.bilboldev.skillfulpixeldungeonplatformer.units.environment.plants.Plant.class);
@@ -378,6 +379,10 @@ public final class SaveRegistry {
         registerUnit("units/mobs/supporter/MercenaryAlly", com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.supporter.MercenaryAlly.class);
         registerUnit("units/mobs/supporter/RatKing", com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.supporter.RatKing.class);
 
+        registerUnit("units/traps/PoisonCloud", com.bilboldev.skillfulpixeldungeonplatformer.units.traps.PoisonCloud.class);
+        registerUnit("units/traps/ToxicGasCloud", com.bilboldev.skillfulpixeldungeonplatformer.units.traps.ToxicGasCloud.class);
+        registerUnit("units/traps/ParalyticGasCloud", com.bilboldev.skillfulpixeldungeonplatformer.units.traps.ParalyticGasCloud.class);
+        registerUnit("units/traps/FreezingCloud", com.bilboldev.skillfulpixeldungeonplatformer.units.traps.FreezingCloud.class);
         registerUnit("units/traps/PlatformTrap", com.bilboldev.skillfulpixeldungeonplatformer.units.traps.PlatformTrap.class);
     }
 }

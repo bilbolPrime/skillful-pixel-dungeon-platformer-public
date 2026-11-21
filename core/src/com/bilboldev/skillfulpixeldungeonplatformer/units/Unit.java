@@ -207,7 +207,6 @@ public class Unit extends Actor {
 
     protected boolean canLeaveAttackForMovement() { return false; }
 
-
     public float getVisualAttackX(float phase) {
         float left = gf == null ? getRenderX() : gf.getVisualLeft();
         float width = gf == null ? ConstantsHelper.UNIT_DIMENSIONS : gf.getVisualWidth();
@@ -301,7 +300,23 @@ public class Unit extends Actor {
         return Float.toString(rounded);
     }
 
-    @Override
+    private transient UnitState partyPreviousState;
+
+    public void partyVisualStep(float delta) {
+        if (gf != null) gf.updateImpactFlash(delta);
+        if (partyPreviousState != unitState) { frameAt = 0; partyPreviousState = unitState; }
+        if (unitState == UnitState.SPAWNING && spawnFrames != null && spawnFrames.length > 0) frameAt = (frameAt + delta) % spawnFrames.length;
+        if (unitState == UnitState.IDLE && idleFrames != null && idleFrames.length > 0) frameAt = (frameAt + delta) % idleFrames.length;
+        if (unitState == UnitState.RUNNING && runFrames != null && runFrames.length > 0) frameAt = (frameAt + delta * 10) % runFrames.length;
+        if (unitState == UnitState.JUMPING && jumpFrames != null && jumpFrames.length > 0) frameAt = (frameAt + delta) % jumpFrames.length;
+        if (unitState == UnitState.ATTACKING && attackFrames != null && attackFrames.length > 0) frameAt = Math.min(attackFrames.length - .001f, frameAt + delta * getAttackAnimationSpeed());
+        if (unitState == UnitState.DEAD && dieFrames != null && dieFrames.length > 0) {
+            frameAt = Math.min(dieFrames.length, frameAt + delta * 7);
+            if (frameAt >= dieFrames.length) frameAlpha = Math.max(0, frameAlpha - delta);
+        }
+        frameSpawning = Math.min(1, frameSpawning + 4 * delta);
+    }
+
     public void act(float delta){
 
         if(unitState != UnitState.DEAD){
@@ -324,7 +339,6 @@ public class Unit extends Actor {
         if(!physicsControlled && tileChange()){
             floorY = MapHelper.getInstance().calculateFloorY(this);
         }
-
 
         if(momentX != 0){
             momentX -= 0.8f * momentX * delta;
@@ -396,7 +410,6 @@ public class Unit extends Actor {
                 }
             }
 
-
             if(y < floorY && (!canFly || showOnly)){
                 y = floorY;
                 speedY = 0;
@@ -405,7 +418,6 @@ public class Unit extends Actor {
                     changeState(UnitState.IDLE);
                 }
             }
-
 
             if(x < 1){
                 movingLeft = false;
@@ -421,7 +433,6 @@ public class Unit extends Actor {
                 y = MapHelper.getInstance().getHeight() * ConstantsHelper.TILE - ConstantsHelper.UNIT_DIMENSIONS;
                 speedY = 0;
             }
-
 
             if(movingLeft || movingRight || momentX != 0){
                 if(!attackMovementLocked){
@@ -489,7 +500,6 @@ public class Unit extends Actor {
                 }
             }
         }
-
 
         frameSpawning += 4f * delta;
     }
@@ -616,13 +626,11 @@ public class Unit extends Actor {
             stepSound = 0f;
         }
 
-
         if(this.unitState == UnitState.SPAWNING && !forced){
             if(frameSpawning < 1f){
                 return;
             }
         }
-
 
         if(forced){
             this.unitState = unitState;
@@ -634,11 +642,9 @@ public class Unit extends Actor {
             return;
         }
 
-
         if(this.unitState == UnitState.DEAD){
             return;
         }
-
 
         if(unitState == UnitState.IDLE && this.unitState != UnitState.ATTACKING && this.unitState != UnitState.IDLE){
             frameAt = 0;
@@ -646,13 +652,11 @@ public class Unit extends Actor {
             return;
         }
 
-
         if(unitState == UnitState.JUMPING && this.unitState == UnitState.RUNNING){
             frameAt = 0;
             this.unitState = unitState;
             return;
         }
-
 
         if(this.unitState == UnitState.IDLE && unitState != UnitState.IDLE){
             frameAt = 0;
@@ -857,8 +861,6 @@ public class Unit extends Actor {
         return ConstantsHelper.UNIT_DIMENSIONS * COLLISION_WIDTH_RATIO;
     }
 
-
-
     public int repayDeferredDamage(int amount) {
         if (amount < 1 || isDead() || hp < 1) return 0;
         boolean previousRepayment = repayingDeferredDamage;
@@ -967,7 +969,6 @@ public class Unit extends Actor {
         return unitState.showOnly() || showOnly;
     }
 
-
     public boolean isDroppingThroughPlatform() { return false; }
 
     public boolean isDead() {
@@ -1000,15 +1001,12 @@ public class Unit extends Actor {
         presentationPlacementVersion++;
     }
 
-
-    public float getRenderX() { return PhysicsHelper.getInstance().getRenderX(this); }
-    public float getRenderY() { return PhysicsHelper.getInstance().getRenderY(this); }
-
+    public float getRenderX() { return com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.client() ? x : PhysicsHelper.getInstance().getRenderX(this); }
+    public float getRenderY() { return com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.client() ? y : PhysicsHelper.getInstance().getRenderY(this); }
 
     public int getPresentationPlacementVersion() {
         return presentationPlacementVersion;
     }
-
 
     public int getRunFootstepPhase() {
         return unitState == UnitState.RUNNING ? (int) (frameAt / (runFrames.length / 2f)) : -1;
@@ -1062,7 +1060,6 @@ public class Unit extends Actor {
         float volume = Math.min(1, soundLevel * modifier);
         if (sounds == Sounds.STEP) {
 
-
             SoundHelper.GetSingleton().playLegacyFootstep(volume,
                     !isHero || showOnly() || !PhysicsHelper.getInstance().hasBody(this));
         } else {
@@ -1097,7 +1094,6 @@ public class Unit extends Actor {
     protected boolean preventDeath(Unit source, Weapon damagingItem, float damage) {
         return false;
     }
-
 
     protected final void notifyDeathCommitted() {
         if (committedDeathNotified || !isDead() || hp > 0) return;
@@ -1235,7 +1231,6 @@ public class Unit extends Actor {
         beginAttackAnimation(durationSeconds, true);
     }
 
-
     public void startSpellCastAnimation(float durationSeconds) {
         startAttackAnimation(durationSeconds);
         spellCastAnimation = true;
@@ -1249,7 +1244,6 @@ public class Unit extends Actor {
         changeState(UnitState.ATTACKING, true);
         if (isHero) reserveAttackCycle(durationSeconds);
     }
-
 
     private void reserveAttackCycle(float durationSeconds) {
         attackCycleRemaining = Math.max(attackCycleRemaining, Math.max(0.01f, durationSeconds));
@@ -1436,14 +1430,9 @@ public class Unit extends Actor {
         this.mp += mp;
     }
 
-
-
-
     public void modifyManaRegenerationRate(float modification){
         this.manaRegenerationRate += modification;
     }
-
-
 
     protected void regenerate(float delta){
 

@@ -12,6 +12,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.RedButton;
 import java.util.ArrayList;
 
 public class IdentifyScrollWindow extends DescriptionWindow {
+    public ArrayList<Item> partyItems() { return new ArrayList<>(unidentifiedItems); }
     private final ArrayList<ActionButton> actionButtons;
     private final ArrayList<Item> unidentifiedItems;
     private final ScrollOfIdentify scrollOfIdentify;

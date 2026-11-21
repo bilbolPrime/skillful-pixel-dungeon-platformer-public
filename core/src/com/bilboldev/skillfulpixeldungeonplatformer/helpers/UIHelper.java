@@ -266,6 +266,17 @@ public class UIHelper {
         clearPressedButton();
     }
 
+    public void rebuildHeroHud() {
+        basicButtons();
+        Hero hero = UnitHelper.getInstance().getHero();
+        if (hero.getWeapon() instanceof MeleeWeapon) equiped((MeleeWeapon)hero.getWeapon());
+        equiped(hero.getRangedWeapon());
+        for (int slot = 0; slot < hero.getQuickSkillSlotCount(); slot++) setQuickSkill(slot, hero.getQuickSkill(slot));
+        setExpString(hero.expString());
+        setInventoryString(InventoryHelper.getInstance().getItems().size() + " / 16");
+        updateRangedButton();
+    }
+
     public void basicButtons(){
         clearButtons();
         boolean touchHudEnabled = SkillfulPixelDungeonPlatformer.getPlatformProfile().touchControlsEnabled();
@@ -541,7 +552,6 @@ public class UIHelper {
                 - (HUD_PLAYER_PANEL_LEFT + HUD_PLAYER_PANEL_WIDTH / 2f);
     }
 
-
     public void layoutHud() {
         if (backPackButton == null || hpBar == null) return;
         float bottom = hudBottom();
@@ -642,7 +652,6 @@ public class UIHelper {
         if (touchHudEnabled) {
             drawTouchStatusBadges(batch);
         }
-
 
         float statusX = touchHudEnabled ? heroPortrait.getX() : HUD_STATUS_X;
         float statusY = touchHudEnabled ? HUD_HEIGHT + 8f : HUD_STATUS_Y;
@@ -766,22 +775,27 @@ public class UIHelper {
     }
 
     public void showDoorButton(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         doorButton.setEnabled();
     }
 
     public void disableDoorButton(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         doorButton.disable();
     }
 
     public void showSignButton(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         signButton.setEnabled();
     }
 
     public void disableSignButton(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         signButton.disable();
     }
 
     public void showPickupButton(ItemOnScreen item){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         pickupButton.clearSprites();
         GameSprite gs = item.getItem().getGameSprite().clone();
         gs.setWidth((int) ConstantsHelper.TILE / 2);
@@ -791,9 +805,11 @@ public class UIHelper {
         pickupButton.setEnabled();
     }
 
-    public void disablePickupButton(){ pickupButton.disable(); }
+    public void disablePickupButton(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return; pickupButton.disable(); }
 
     public void showInteractButton(GameSprite person){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         interactButton.clearSprites();
         GameSprite gs = person.clone();
         gs.setWidth((int) ConstantsHelper.TILE / 2);
@@ -803,7 +819,8 @@ public class UIHelper {
         interactButton.setEnabled();
     }
 
-    public void disableInteractButton(){ interactButton.disable(); }
+    public void disableInteractButton(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return; interactButton.disable(); }
 
     public boolean performContextAction() {
         if (heroDead()) {
@@ -916,6 +933,7 @@ public class UIHelper {
     }
 
     public void updateTouchConsumableButtons() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         InventoryHelper inventoryHelper = InventoryHelper.getInstance();
         if (inventoryHelper == null) {
             return;
@@ -928,6 +946,7 @@ public class UIHelper {
     }
 
     public void updateTouchConsumableButtons(int healthPotionCount, int manaPotionCount, int rationsCount) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         if (healthPotionButton != null) {
             healthPotionButton.setItemCount(healthPotionCount);
         }
@@ -952,8 +971,8 @@ public class UIHelper {
         return true;
     }
 
-
     public void equiped(MeleeWeapon weapon){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         if(meleeButton == null){
             return;
         }
@@ -981,6 +1000,7 @@ public class UIHelper {
     }
 
     public void equiped(RangedWeapon weapon){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         if(rangedButton == null){
             return;
         }
@@ -1213,6 +1233,7 @@ public class UIHelper {
     }
 
     public void setExpString(String expString){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         GlyphLayout glyphLayout = new GlyphLayout();
         glyphLayout.setText(FontHelper.getSingleton().getFont(Color.WHITE, 3), expString);
 
@@ -1221,6 +1242,7 @@ public class UIHelper {
     }
 
     public void setInventoryString(String inventoryString){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         GlyphLayout glyphLayout = new GlyphLayout();
         glyphLayout.setText(FontHelper.getSingleton().getFont(Color.WHITE, 3), inventoryString);
 
@@ -1229,6 +1251,7 @@ public class UIHelper {
     }
 
     public void updateRangedButton(){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         if (rangedButton == null) {
             return;
         }
@@ -1400,36 +1423,44 @@ public class UIHelper {
     }
 
     public void setQuickSkill(ActiveSkill activeSkill){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         setQuickSkill(0, activeSkill);
     }
 
     public void setQuickSkillCostCheck(boolean canCast){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         setQuickSkillCostCheck(0, canCast);
     }
 
     public void setMeleeButtonCostCheck(boolean canCast){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         if (meleeButton != null) {
             meleeButton.setHaveMana(canCast);
         }
     }
 
     public void setQuickSkill2(ActiveSkill activeSkill){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         setQuickSkill(1, activeSkill);
     }
 
     public void setQuickSkill2CostCheck(boolean canCast){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         setQuickSkillCostCheck(1, canCast);
     }
 
     public void setQuickSkill3(ActiveSkill activeSkill){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         setQuickSkill(2, activeSkill);
     }
 
     public void setQuickSkill3CostCheck(boolean canCast){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         setQuickSkillCostCheck(2, canCast);
     }
 
     public void setQuickSkill(int slotIndex, ActiveSkill activeSkill){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         ActionButton quickSkillButton = getQuickSkillButton(slotIndex);
         if(quickSkillButton == null){
             return;
@@ -1459,14 +1490,16 @@ public class UIHelper {
     }
 
     public void setQuickSkillCostCheck(int slotIndex, boolean canCast){
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         ActionButton quickSkillButton = getQuickSkillButton(slotIndex);
         if(quickSkillButton != null){
             quickSkillButton.setHaveMana(canCast);
         }
     }
 
-
     public void showPickupNotice(String text, GameSprite icon) {
+        com.bilboldev.skillfulpixeldungeonplatformer.party.PartyFeedback.notice(text, icon);
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.remoteContext()) return;
         if (text == null || text.isEmpty()) return;
         if (pickupNotices.size() == MAX_PICKUP_NOTICES) pickupNotices.remove(0);
         pickupNotices.add(new PickupNotice(text, snapshotDesktopActionIcon(icon)));
@@ -1535,6 +1568,7 @@ public class UIHelper {
     }
 
     public void showBossSlainBanner() {
+        com.bilboldev.skillfulpixeldungeonplatformer.party.PartyFeedback.bossSlain();
         bossSlainBanner = buildBossSlainBanner();
         bossSlainBannerTimer = BOSS_SLAIN_BANNER_DURATION;
     }
@@ -1774,8 +1808,6 @@ public class UIHelper {
         }
     }
 
-
-
     private final class HudActionButton extends ActionButton {
         private final int slot;
         private HudActionButton(int slot) {
@@ -1787,7 +1819,7 @@ public class UIHelper {
         @Override public boolean isHitProjected(float px, float py) {
             return isEnabled() && px >= x && px < x + HUD_SLOT_WIDTH && py >= y && py < y + HUD_SLOT_HEIGHT;
         }
-        @Override public void draw(Batch batch) {                                              }
+        @Override public void draw(Batch batch) {   }
         @Override public void clicked() {
             switch (slot) {
                 case 0: performEatFoodAction(); break;
@@ -1800,7 +1832,6 @@ public class UIHelper {
         }
         private boolean pressed() { return isShowingPressFeedback(); }
     }
-
 
     public int getHoveredQuickSkillSlot() {
         if (desktopHudActions == null || WindowHelper.getInstance().windowOpen()) return -1;
@@ -1871,7 +1902,6 @@ public class UIHelper {
     }
 
     private void hudBinding(Batch batch, String binding, float x, float y) {
-
 
         ControllerInput input = ControllerInput.getInstance();
         String face = input.usesControllerLabels() && input.layout() == ControllerButton.Layout.PLAYSTATION

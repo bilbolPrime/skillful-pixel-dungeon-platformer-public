@@ -156,7 +156,6 @@ public class PlatformTrap extends Unit {
         return this;
     }
 
-
     public Rectangle getTriggerArea() {
         return new Rectangle(
                 x + TRIGGER_INSET_X,
@@ -305,7 +304,7 @@ public class PlatformTrap extends Unit {
         }
 
         for (Unit unit : UnitHelper.getInstance().getUnits()) {
-            if (unit instanceof MercenaryAlly && canTriggerTrap(unit)) {
+            if ((unit instanceof MercenaryAlly || com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running() && unit instanceof Hero) && canTriggerTrap(unit)) {
                 return unit;
             }
         }

@@ -69,6 +69,8 @@ public final class AssetHelper {
         return assetManager.get(normalizedPath, Texture.class);
     }
 
+    public String texturePath(Texture texture) { return assetManager.getAssetFileName(texture); }
+
     public Sound getSound(Sounds sound) {
         ensureLoaded();
         return assetManager.get(sound.getPath(), Sound.class);

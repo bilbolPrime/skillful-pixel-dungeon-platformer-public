@@ -19,6 +19,8 @@ public class ChoiceDialogWindow extends DescriptionWindow {
     private final ArrayList<ActionButton> actionButtons;
     private float buttonBottomPadding = DEFAULT_BUTTON_BOTTOM_PADDING;
     private float bottomExtension;
+    public float partyButtonPadding() { return buttonBottomPadding; }
+    public float partyBottomExtension() { return bottomExtension; }
 
     public ChoiceDialogWindow(String sprite, String description, float width, float height) {
         super(sprite, description, width, height);

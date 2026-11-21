@@ -78,16 +78,14 @@ public class InventoryHelper {
     private static final InventoryHelper ourInstance = new InventoryHelper();
 
     public static InventoryHelper getInstance() {
-        return ourInstance;
+        return com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.inventory(ourInstance);
     }
 
-    private InventoryHelper() {
-        init();
-    }
+    public InventoryHelper() { init(); }
+    public InventoryHelper(boolean initialize) { if (initialize) init(); else items = new ArrayList<>(); }
 
     private void init(){
         items = new ArrayList<>();
-
 
         if (NewClassSkillTree.isNewClass(UnitHelper.getInstance().getHero().getHeroClass())
                 && MapHelper.getInstance().isRestoringGeneratedLevels()) {
@@ -142,7 +140,6 @@ public class InventoryHelper {
         }
         return addRestoredItem(item);
     }
-
 
     public boolean addRestoredItem(Item item) {
         if (item instanceof BulletItem) {
@@ -226,7 +223,6 @@ public class InventoryHelper {
         }
         return items.size() < INVENTORY_SIZE;
     }
-
 
     private boolean addBullets(BulletItem incoming) {
         if (incoming.getQuantity() <= 0) return false;
@@ -342,6 +338,7 @@ public class InventoryHelper {
     }
 
     public boolean consumeHealthPotion() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.action(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.HEALTH, 0)) return true;
         for (int i = 0; i < items.size(); i++) {
             Item item = items.get(i);
             if (item instanceof HealthPotion) {
@@ -354,6 +351,7 @@ public class InventoryHelper {
     }
 
     public boolean consumeManaPotion() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.action(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.MANA, 0)) return true;
         for (int i = 0; i < items.size(); i++) {
             Item item = items.get(i);
             if (item instanceof ManaPotion) {
@@ -366,6 +364,7 @@ public class InventoryHelper {
     }
 
     public boolean consumeRations() {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.action(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.FOOD, 0)) return true;
         for (int i = 0; i < items.size(); i++) {
             Item item = items.get(i);
             if (item instanceof Rations) {
@@ -393,7 +392,6 @@ public class InventoryHelper {
         return getItemQuantity(ArrowItem.class);
     }
 
-
     public int getBulletCount() {
         long total = 0;
         for (Item item : items) {
@@ -401,7 +399,6 @@ public class InventoryHelper {
         }
         return (int) Math.min(Integer.MAX_VALUE, total);
     }
-
 
     public boolean consumeBullets(int amount) {
         if (amount < 0 || getBulletCount() < amount) return false;
@@ -532,7 +529,6 @@ public class InventoryHelper {
         return null;
     }
 
-
     public BulletItem createBulletBundle(int quantity) {
         Hero hero = UnitHelper.getInstance().getHero();
         if (!Gun.supports(hero)) return null;
@@ -594,7 +590,6 @@ public class InventoryHelper {
             addWeightedCandidate(candidateItems, Gold.class, GOLD_DROP_WEIGHT);
         }
 
-
         addWeightedCandidate(candidateItems, HealthPotion.class, 6);
         addWeightedCandidate(candidateItems, ManaPotion.class, 4);
         if (depth >= 2) {
@@ -648,13 +643,11 @@ public class InventoryHelper {
             candidateItems.add(ScrollOfWipeOut.class);
         }
 
-
         candidateItems.add(Cloth.class);
         candidateItems.add(LeatherArmor.class);
         candidateItems.add(MailArmor.class);
         candidateItems.add(PlateArmor.class);
         candidateItems.add(ScaleArmor.class);
-
 
         Hero hero = UnitHelper.getInstance().getHero();
         addWeightedCandidate(candidateItems, ArrowItem.class,
@@ -680,7 +673,6 @@ public class InventoryHelper {
                 candidateItems.add(FlameBow.class);
             }
 
-
             candidateItems.add(Axe.class);
             candidateItems.add(Dagger.class);
             candidateItems.add(Glaive.class);
@@ -692,7 +684,6 @@ public class InventoryHelper {
             candidateItems.add(ShortSword.class);
             candidateItems.add(Spear.class);
             candidateItems.add(Sword.class);
-
 
             addWeightedCandidate(candidateItems, FireBoltWand.class, 8);
             if (depth >= 3) {
@@ -783,12 +774,10 @@ public class InventoryHelper {
         try {
             ArrayList<Class<? extends Item>> candidateItems = new ArrayList<>();
 
-
             candidateItems.add(LeatherArmor.class);
             candidateItems.add(MailArmor.class);
             candidateItems.add(PlateArmor.class);
             candidateItems.add(ScaleArmor.class);
-
 
             candidateItems.add(Axe.class);
             candidateItems.add(Glaive.class);
@@ -821,7 +810,6 @@ public class InventoryHelper {
             candidateItems.add(RingOfElements.class);
             candidateItems.add(RingOfShadows.class);
 
-
             applyDepthEquipmentWeights(candidateItems, depth);
             Item item = candidateItems.get(RandomHelper.getInstance().randomInt(candidateItems.size())).newInstance();
             if (item instanceof ArrowItem) item.setQuantity(24);
@@ -838,7 +826,6 @@ public class InventoryHelper {
     private int lootDepthBand(int depth) {
         return depth <= 2 ? 0 : depth <= 5 ? 1 : depth <= 10 ? 2 : depth <= 15 ? 3 : depth <= 20 ? 4 : 5;
     }
-
 
     public <T extends Item> void applyDepthEquipmentWeights(ArrayList<Class<? extends T>> candidates, int depth) {
         ArrayList<Class<? extends T>> weighted = new ArrayList<Class<? extends T>>();
@@ -875,7 +862,6 @@ public class InventoryHelper {
             candidateItems.add(itemClass);
         }
     }
-
 
     public Item chooseMercenaryGun(Item candidate, int depth, RandomXS128 random) {
 
@@ -1065,7 +1051,6 @@ public class InventoryHelper {
         while (items.size() < MERCHANT_STOCK_SIZE) {
             items.add(new ScrollOfRefuge());
         }
-
 
         if (Gun.supports(UnitHelper.getInstance().getHero())) items.add(createBulletBundle(20));
         else items.add(new ArrowItem().setQuantity(80));

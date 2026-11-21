@@ -117,6 +117,12 @@ public class FireBolt extends ThrownProjectile {
         fluctuation(delta);
     }
 
+    @Override public void partyVisualStep(float delta, float gravity, float damping) {
+        super.partyVisualStep(delta, gravity, damping);
+        lifeSpan -= 75f * delta;
+        fluctuation(delta);
+    }
+
     protected void fluctuation(float delta){
         fluctuation -= delta * 100f;
         if(fluctuation < 0){
@@ -160,4 +166,3 @@ public class FireBolt extends ThrownProjectile {
         this.damage = damage;
     }
 }
-

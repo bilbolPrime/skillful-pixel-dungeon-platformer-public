@@ -9,6 +9,11 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 public class SeedProjectile extends ThrownProjectile {
 
     private Seed seed;
+    @Override public com.bilboldev.skillfulpixeldungeonplatformer.items.Item partyPayload() { return seed; }
+    @Override public void partyPayload(com.bilboldev.skillfulpixeldungeonplatformer.items.Item item) {
+        if (!(item instanceof Seed)) throw new IllegalArgumentException("seed");
+        setSeed((Seed)item);
+    }
 
     public SeedProjectile setSeed(Seed seed) {
         this.seed = seed;

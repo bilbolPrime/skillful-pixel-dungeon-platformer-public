@@ -28,6 +28,7 @@ public class StoryWindow extends Window {
 
     private final NinePatch chromePatch;
     private final String storyText;
+    @Override public String partyText() { return storyText; }
 
     private String wrappedText;
     private float fittedFontSize = FONT_SIZE;

@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.MathUtils;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.*;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 
-
 public final class NewClassBurst extends Effect {
     private static final float DURATION = .55f;
     private final TextureRegion mote = new TextureRegion(TextureHelper.GetSingleton().getSolidPixel());
@@ -64,7 +63,7 @@ public final class NewClassBurst extends Effect {
     }
     @Override public void act(float delta) {
         if (!active()) { remaining = 0f; hero = null; return; }
-        if (WindowHelper.getInstance().windowOpen() || hero.getNewClassActions().isSuspended()) return;
+        if ((com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running() == false && WindowHelper.getInstance().windowOpen()) || hero.getNewClassActions().isSuspended()) return;
         if (Float.isFinite(delta) && delta > 0f) remaining = Math.max(0f, remaining - delta);
         if (remaining <= 0f) hero = null;
     }

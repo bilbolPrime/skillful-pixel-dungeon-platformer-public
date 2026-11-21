@@ -20,14 +20,20 @@ public class WindowHelper {
     private static final WindowHelper ourInstance = new WindowHelper();
 
     public static WindowHelper getInstance() {
-        return ourInstance;
+        return com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.windows(ourInstance);
     }
 
-    private WindowHelper() {
+    public WindowHelper() {
         windows = new ArrayList<>();
     }
 
     public void addWindow(Window window){
+        if (window instanceof com.bilboldev.skillfulpixeldungeonplatformer.windows.MercenaryWindow
+                && com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.requestMercenary(
+                        ((com.bilboldev.skillfulpixeldungeonplatformer.windows.MercenaryWindow)window).partyMercenary())) return;
+        if (window instanceof com.bilboldev.skillfulpixeldungeonplatformer.windows.InventoryWindow
+                && !(window instanceof com.bilboldev.skillfulpixeldungeonplatformer.party.PartyInventoryWindow)
+                && com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.action(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.INVENTORY, 0)) return;
         if (windows.contains(window)) return;
         if (window instanceof PauseMenuWindow) {
             for (Window existing : windows) if (existing instanceof PauseMenuWindow) return;
@@ -105,7 +111,6 @@ public class WindowHelper {
         pointerWindow = null;
         pointerPending = true;
     }
-
 
     public InputGestureListener inputGestureListener(){
         return new InputGestureListener(){
@@ -192,8 +197,6 @@ public class WindowHelper {
 
         boolean consumed = false;
 
-
-
         return consumed;
     }
 
@@ -215,6 +218,13 @@ public class WindowHelper {
         }
     }
 
+    public boolean handleKeyTyped(char character) {
+        Window current = topWindow();
+        if (current == null) return false;
+        current.keyTyped(character);
+        return true;
+    }
+
     public boolean handleKeyDown(int keycode) {
         if (windows == null || windows.size() == 0) {
             return false;
@@ -227,4 +237,3 @@ public class WindowHelper {
         return true;
     }
 }
-

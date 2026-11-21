@@ -1,5 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.ranged;
 
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession;
+
 import com.badlogic.gdx.graphics.Color;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.*;
 import com.bilboldev.skillfulpixeldungeonplatformer.messages.Messages;
@@ -10,19 +12,24 @@ import com.bilboldev.skillfulpixeldungeonplatformer.units.misc.effects.NewClassB
 import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.GunProjectile;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.skills.Skills;
 
-
 public abstract class Gun extends RangedWeapon {
+
+    protected String localizationKey() { return null; }
+
     @Override public String getTrueName() {
-        return Messages.get("custom.newitems." + getClass().getSimpleName().toLowerCase(java.util.Locale.ROOT) + ".name");
+        String key = localizationKey();
+        String localized = key == null ? null : Messages.getOrNull(key + ".name");
+        return localized != null && !localized.trim().isEmpty() ? localized : super.getTrueName();
     }
     @Override public String getTrueDescription() {
-        return Messages.get("custom.newitems." + getClass().getSimpleName().toLowerCase(java.util.Locale.ROOT) + ".description");
+        String key = localizationKey();
+        String localized = key == null ? null : Messages.getOrNull(key + ".description");
+        return localized != null && !localized.trim().isEmpty() ? localized : super.getTrueDescription();
     }
 
     private static int reservedProjectiles;
     private boolean releasing;
     private boolean naturalCompanionProvided;
-
 
     public final void suppressNaturalCompanion() { naturalCompanionProvided = true; }
 
@@ -37,19 +44,17 @@ public abstract class Gun extends RangedWeapon {
     }
 
     private boolean validOwner(Hero hero) {
-        return supports(hero) && hero == UnitHelper.getInstance().getHero() && owner == hero
+        return supports(hero) && (hero == UnitHelper.getInstance().getHero() || PartySession.running() && PartySession.controls(hero)) && owner == hero
                 && hero.getRangedWeapon() == this && !hero.isDead() && hero.getHP() > 0 && !hero.showOnly()
                 && Float.isFinite(hero.x) && Float.isFinite(hero.y) && hero.getRoom() != null
                 && hero.getRoom().equals(MapHelper.getInstance().getActiveRoomIdentifier())
                 && !WindowHelper.getInstance().windowOpen() && !hero.getNewClassActions().isSuspended();
     }
 
-
     public final boolean canAttemptShot(Hero hero) {
         return !releasing && validOwner(hero) && hero.canAttack()
                 && (getAmmo() == 0 || hasProjectileSpace());
     }
-
 
     public final boolean hasProjectileSpace() {
         return GunProjectile.liveCount() + reservedProjectiles + projectilesPerShot() <= GunProjectile.MAX_LIVE;
@@ -61,11 +66,9 @@ public abstract class Gun extends RangedWeapon {
     protected int projectilesPerShot() { return 1; }
     protected GunProjectile buildProjectile(Hero hero, int index) { return buildProjectile(hero); }
 
-
     public final boolean tryFire(Hero hero) {
         return tryFire(hero, 1f);
     }
-
 
     public final boolean tryFire(Hero hero, float damageMultiplier) {
         if (!Float.isFinite(damageMultiplier) || damageMultiplier <= 0f) return false;

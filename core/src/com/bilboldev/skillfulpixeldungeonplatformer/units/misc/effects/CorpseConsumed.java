@@ -12,7 +12,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.levels.rooms.CorpseRecord;
 import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 
-
 public final class CorpseConsumed extends Effect {
     private static final float DURATION = .65f;
     private final Hero hero;
@@ -41,7 +40,7 @@ public final class CorpseConsumed extends Effect {
 
     @Override public void act(float delta) {
         if (!active()) { remaining = 0f; return; }
-        if (WindowHelper.getInstance().windowOpen() || hero.getNewClassActions().isSuspended()) return;
+        if ((com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running() == false && WindowHelper.getInstance().windowOpen()) || hero.getNewClassActions().isSuspended()) return;
         if (Float.isFinite(delta) && delta > 0f) remaining = Math.max(0f, remaining - delta);
         float progress = 1f - remaining / DURATION;
         gs.setAlpha(.88f * (1f - progress * progress * (3f - 2f * progress)));

@@ -24,7 +24,6 @@ public class Interactable extends Unit {
         observeBody(gf.copyDrawnFrame());
     }
 
-
     protected final void observeBody(SpritePose pose) {
         if (pose == null || pose.alpha <= 0f || !isVisible() || isInvisible() || isDead()
                 || !GameSettingsHelper.getInstance().isBackgroundRoomsEnabled()) return;
@@ -73,7 +72,7 @@ public class Interactable extends Unit {
                 facingRight);
     }
 
-    private static final class AnimatedDialoguePortrait extends GameSprite {
+    public static final class AnimatedDialoguePortrait extends GameSprite {
         private final int[] frames;
         private final int clipSizeX;
         private final int clipSizeY;
@@ -81,7 +80,7 @@ public class Interactable extends Unit {
         private final int tileY;
         private final boolean facingRight;
 
-        private AnimatedDialoguePortrait(String spritePath,
+        public AnimatedDialoguePortrait(String spritePath,
                                         float width,
                                         float height,
                                         float alpha,
@@ -98,6 +97,12 @@ public class Interactable extends Unit {
             this.yClipOffset = yClipOffset;
             this.tileY = tileY;
             this.facingRight = facingRight;
+        }
+
+        @Override public int[] partyAnimation() {
+            int[] data = new int[frames.length + 5];
+            data[0] = clipSizeX; data[1] = clipSizeY; data[2] = yClipOffset; data[3] = tileY; data[4] = facingRight ? 1 : 0;
+            System.arraycopy(frames, 0, data, 5, frames.length); return data;
         }
 
         @Override
@@ -124,4 +129,3 @@ public class Interactable extends Unit {
         }
     }
 }
-

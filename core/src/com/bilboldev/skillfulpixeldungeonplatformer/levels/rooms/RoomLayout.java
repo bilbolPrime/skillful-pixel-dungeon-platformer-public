@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
 public final class RoomLayout {
     public static final int GENERATOR_VERSION = 2;
     public enum Role { PLAYABLE, FOREGROUND, DISTANT }
@@ -153,8 +152,10 @@ public final class RoomLayout {
     }
     public Description copy() { return new Description(this); }
 
+    public String signature() { return signature(family); }
 
-    public String signature() {
+    public String partySignature() { return signature("party"); }
+    private String signature(String family) {
         List<String> records = new ArrayList<>();
         records.add("family:" + family + ":" + room.getWidth() + ":" + room.getHeight());
         records.add("piers:" + piersEnabled);

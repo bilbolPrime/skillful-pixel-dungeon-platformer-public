@@ -461,6 +461,7 @@ your badges	windows.wndjournal$badgestab.title_main_menu	Your%20Badges
 your steps echo across the dungeon.	levels.level$feeling.chasm_desc	Your%20steps%20echo%20across%20the%20dungeon.
 zap	items.artifacts.lloydsbeacon.ac_zap	ZAP
 
+# normalized english text	translation key
 play	custom.title.play
 library	custom.title.library
 settings	custom.title.settings
@@ -483,6 +484,7 @@ reach %arg%	custom.generated.reach_arg_9afac0c302
 i acknowledge that the rat king is superior in every way, is stronger than me, is smarter than me, and is faster than me. i will follow his commands in my adventures. i will enteratin him. i will restore his crown and kingdom. all will obey the one true king.	custom.generated.rat_king_contract_5c72c2fef4
 the rat king is just a visual effect and will not assist you in game play. this is pure cosmetics.	custom.generated.rat_king_cosmetics_notice_94a8d4e2bf
 
+# BEGIN AUTO-GENERATED MISSING TRANSLATIONS
 %arg% disarmed	custom.generated.arg_disarmed_148e661cab	%25s%20disarmed
 %arg% is %arg% with %arg% skills	custom.generated.arg_is_arg_with_arg_1411df0151	%25s%20is%20%25s%20with%20%25s%20skills
 %arg% joins you	custom.generated.arg_joins_you_095509ead1	%25s%20joins%20you
@@ -497,7 +499,6 @@ the rat king is just a visual effect and will not assist you in game play. this 
 %arg%\n%arg%: %arg%	custom.generated.arg_narg_arg_8ba7bd2a0e	%25s%5Cn%25s%3A%20%25s
 %arg%\n%arg%: %arg%%arg%	custom.generated.arg_narg_argarg_f82da70eb8	%25s%5Cn%25s%3A%20%25s%25s
 %arg%\n%arg%depth reached: %arg%%arg%\n%arg%fell on %arg%%arg%	custom.generated.arg_nargdepth_reached_argarg_nargfell_1b8ec6d70d	%25s%5Cn%25sDepth%20reached%3A%20%25d%25s%5Cn%25sFell%20on%20%25s%25s
-%arg%\n\n%arg%custom.generated.this_is_a_stack_of_878540b56a%arg%	custom.generated.arg_n_nargcustom_generated_this_is_a_stack_of_878540b56aarg_6f8df6a167	%25s%5Cn%5Cn%25scustom.generated.this_is_a_stack_of_878540b56a%25s
 %arg%\n\n%arg%it takes %arg% skill points to learn this skill.%arg%	custom.generated.arg_n_nargit_takes_arg_skill_points_a83ca6ec85	%25s%5Cn%5Cn%25sIt%20takes%20%25d%20skill%20points%20to%20learn%20this%20skill.%25s
 %arg%\n\n%arg%this skill is locked out.	custom.generated.arg_n_nargthis_skill_is_locked_out_55353a34a3	%25s%5Cn%5Cn%25sThis%20skill%20is%20locked%20out.
 %arg%\n\n%arg%this subclass is unlocked by the tome of mastery dropped by tengu.	custom.generated.arg_n_nargthis_subclass_is_unlocked_by_88f39d7bf7	%25s%5Cn%5Cn%25sThis%20subclass%20is%20unlocked%20by%20the%20Tome%20of%20Mastery%20dropped%20by%20Tengu.
@@ -797,7 +798,7 @@ makes target more vulnerable to damage.\n- target takes %arg%%arg% more damage	c
 mana armor	custom.generated.mana_armor_87a5b8222c
 mana armor broke!	custom.generated.mana_armor_broke_5a640153df
 mana restored	custom.generated.mana_restored_11354ce33c
-many years of conflict has made this hero durable. what hurts others barely scratches this one.\n+%arg%%arg% defence	custom.generated.many_years_of_conflict_has_1b019ff879	Many%20years%20of%20conflict%20has%20made%20this%20hero%20durable.%20What%20hurts%20others%20barely%20scratches%20this%20one.%5Cn%2B%25d%25%25%20defence
+many years of conflict have made this hero durable. what hurts others barely scratches this one.\n+%arg%%arg% defence	custom.generated.many_years_of_conflict_has_1b019ff879	Many%20years%20of%20conflict%20have%20made%20this%20hero%20durable.%20What%20hurts%20others%20barely%20scratches%20this%20one.%5Cn%2B%25d%25%25%20defence
 mass armor	custom.generated.mass_armor_fc55dfb688
 mass mana armor	custom.generated.mass_mana_armor_999d9a26e0
 master	custom.generated.master_4f26aeafdb
@@ -1082,3 +1083,4 @@ you need two identified matching items to reforge.	custom.generated.you_need_two
 your %arg% certainly looks better now.%arg%	custom.generated.your_arg_certainly_looks_better_7dea3ddc8d	Your%20%25s%20certainly%20looks%20better%20now.%25s
 your excess strength adds %arg% bonus damage.	custom.generated.your_excess_strength_adds_arg_8a10d1642c	Your%20excess%20strength%20adds%20%25d%20bonus%20damage.
 your excess strength adds %arg% bonus damage.%arg%	custom.generated.your_excess_strength_adds_arg_4c8330e30d	Your%20excess%20strength%20adds%20%25d%20bonus%20damage.%25s
+# END AUTO-GENERATED MISSING TRANSLATIONS

@@ -97,7 +97,6 @@ public class Level {
         entryDoor = entryRoom.getLevelEntryDoor();
         exitRoom = new ExitRoom(identifierExit).buildFoyer(depth);
 
-
         for(int i = 0; i < rooms; i++){
             identifier = RandomHelper.getInstance().uniqueId();
             Room room = new Room(identifier).planForFloor(depth, i).build();
@@ -105,10 +104,7 @@ public class Level {
             this.rooms.add(room);
         }
 
-
-
         RoomConnections.connectOrdinaryRooms(this.rooms);
-
 
         Room chosenRoom = this.rooms.get(RandomHelper.getInstance().randomInt(this.rooms.size()));
         if (allowsGeneratedRoomWater()) {
@@ -116,14 +112,10 @@ public class Level {
         }
         RoomConnections.connect(chosenRoom, entryRoom);
 
-
-
         chosenRoom = this.rooms.get(RandomHelper.getInstance().randomInt(this.rooms.size()));
         RoomConnections.connect(chosenRoom, exitRoom);
 
-
         addGeneratedSpecialRoom(chooseSpecialRoom(depth));
-
 
         addRoom(entryRoom);
         addRoom(exitRoom);
@@ -578,6 +570,7 @@ public class Level {
     }
 
     private void onRoomEntered(Room room) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.client()) return;
         if (room == null) {
             return;
         }
@@ -623,4 +616,3 @@ public class Level {
         spawnStateFrozen = true;
     }
 }
-

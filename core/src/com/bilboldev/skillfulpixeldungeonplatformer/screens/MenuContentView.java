@@ -7,7 +7,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.misc.buttons.Button;
 import java.util.ArrayList;
 import java.util.List;
 
-
 final class MenuContentView {
     static final float LEFT = 544, BOTTOM = 248, SCALE = 0.74f;
     private final MenuScreenBase content;
@@ -62,6 +61,6 @@ final class MenuContentView {
         @Override public void releasePress() { source.releasePress(); }
         @Override public void cancelPress() { source.cancelPress(); }
         @Override public void click() { if (canClick()) { source.click(); syncControls(); } }
-        @Override public void draw(Batch batch) {                                                         }
+        @Override public void draw(Batch batch) {   }
     }
 }

@@ -119,11 +119,9 @@ public final class DifficultyHelper {
         currentDifficulty = difficulty == null ? Difficulty.NORMAL : difficulty;
     }
 
-
     public float getEnemyDamageMultiplier(Unit source) {
         return source instanceof Mob && !source.isFriendly ? currentDifficulty.getEnemyDamageMultiplier() : 1f;
     }
-
 
     public float scaleEnemyDamage(Unit source, float damage) {
         return damage * getEnemyDamageMultiplier(source);
@@ -155,6 +153,7 @@ public final class DifficultyHelper {
     }
 
     public void recordVictory(HeroClass heroClass) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         HeroClass trackedClass = normalizeTrackedClass(heroClass);
         if (trackedClass == null) {
             return;
@@ -201,21 +200,6 @@ public final class DifficultyHelper {
     }
 
     private Preferences prefs() {
-        return Gdx.app.getPreferences(PREFS_NAME + accountSuffix);
-    }
-
-    private String accountSuffix = "";
-    public void useSteamAccount(String account) { accountSuffix = "-steam-" + account; }
-    public java.util.Set<String> unlockedKeys() {
-        java.util.Set<String> keys = new java.util.TreeSet<>();
-        for (HeroClass hero : HeroClass.values()) for (Difficulty difficulty : Difficulty.values())
-            if (difficulty != Difficulty.NORMAL && isUnlocked(hero, difficulty)) keys.add(hero.name() + ":" + difficulty.name());
-        return keys;
-    }
-    public void mergeUnlocks(java.util.Set<String> keys) {
-        for (String key : keys) {
-            String[] parts = key.split(":");
-            if (parts.length == 2) unlock(HeroClass.valueOf(parts[0]), Difficulty.valueOf(parts[1]));
-        }
+        return Gdx.app.getPreferences(PREFS_NAME);
     }
 }

@@ -17,7 +17,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.windows.TextWindow;
 
 import java.util.ArrayList;
 
-
 public final class MenuRunSlots {
     private static final float LEFT = 1450, WIDTH = 298, HEIGHT = 230, GAP = 20;
     private final MenuHeroRoster roster;
@@ -61,8 +60,6 @@ public final class MenuRunSlots {
         label(batch, Messages.get("desktop.runs.heading"), LEFT, 932, WIDTH * 3 + GAP * 2, 2.8f, DesktopMenuStyle.GOLD);
         label(batch, Messages.get("desktop.runs.new"), 170, 330, 1200, 2.3f, DesktopMenuStyle.INK);
         for (Slot slot : slots) slot.drawSlot(batch, focused);
-        String cloudStatus = com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.status();
-        if (cloudStatus != null) label(batch, cloudStatus, LEFT, 112, WIDTH * 3 + GAP * 2, 1.8f, DesktopMenuStyle.EDGE);
         batch.setPackedColor(packed);
     }
 
@@ -71,7 +68,6 @@ public final class MenuRunSlots {
         FontHelper.getSingleton().writeRaw(new Color(color.r, color.g, color.b, color.a * batch.getColor().a),
                 batch, fit.size, x + (width - fit.width) / 2, top, fit.text);
     }
-
 
     public static int armorTier(SaveHelper.RunSaveData data) {
         String armor = data.inventory.equippedArmorClassName;
@@ -118,11 +114,9 @@ public final class MenuRunSlots {
                 if (latest == null || !saved.runId.equals(latest.runId)) {
                     error("desktop.runs.unavailable"); refresh(); return;
                 }
-                com.bilboldev.skillfulpixeldungeonplatformer.cloud.CloudSaves.resumeSlot(index, latest, () -> {
-                    WindowHelper.getInstance().hideAll();
-                    SkillfulPixelDungeonPlatformer.transition(new LoadingScreen().prepare(
-                            new GameScreen(index, latest), SkillfulPixelDungeonPlatformer.getActiveScreen()));
-                });
+                WindowHelper.getInstance().hideAll();
+                SkillfulPixelDungeonPlatformer.transition(new LoadingScreen().prepare(
+                        new GameScreen(index, latest), SkillfulPixelDungeonPlatformer.getActiveScreen()));
             });
             WindowHelper.getInstance().addWindow(prompt.build());
         }

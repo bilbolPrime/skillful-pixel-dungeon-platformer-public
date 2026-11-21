@@ -1,5 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles;
 
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.*;
@@ -9,7 +11,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.misc.sounds.Sounds;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.Unit;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.hero.Hero;
 import com.bilboldev.skillfulpixeldungeonplatformer.units.mobs.summons.NecromancerMinion;
-
 
 public class NewClassSpellProjectile extends ThrownProjectile {
     public static final int MAX_LIVE = 16;
@@ -46,7 +47,6 @@ public class NewClassSpellProjectile extends ThrownProjectile {
         gs.setColor(new Color(.82f, .72f, 1f, 1f));
     }
 
-
     public static int liveCount() {
         int count = 0;
         for (Unit unit : UnitHelper.getInstance().getUnits()) if (unit instanceof NewClassSpellProjectile) count++;
@@ -74,7 +74,7 @@ public class NewClassSpellProjectile extends ThrownProjectile {
     }
 
     protected final boolean validCaster() {
-        return ownerHero == UnitHelper.getInstance().getHero() && !ownerHero.isDead() && !caster.isDead()
+        return (ownerHero == UnitHelper.getInstance().getHero() || PartySession.running() && PartySession.controls(ownerHero)) && !ownerHero.isDead() && !caster.isDead()
                 && ownerPlacementVersion == ownerHero.getPresentationPlacementVersion()
                 && placementVersion == caster.getPresentationPlacementVersion() && room != null
                 && room.equals(caster.getRoom()) && room.equals(ownerHero.getRoom())
@@ -108,12 +108,16 @@ public class NewClassSpellProjectile extends ThrownProjectile {
         if (UnitHelper.getInstance().attackTarget(caster, target, null, damage, true)) playSound(Sounds.HIT, .4f);
     }
 
+    @Override public void partyVisualStep(float delta, float gravity, float damping) {
+        super.partyVisualStep(delta, gravity, damping);
+        elapsed += PhysicsHelper.boundGameDelta(delta);
+    }
+
     @Override public void act(float delta) {
         if (!validCaster()) markUsed();
         super.act(delta);
         if (isUsed()) return;
         elapsed += PhysicsHelper.boundGameDelta(delta);
-
 
         if (!inRange() || elapsed >= maximumLifetime() || !PhysicsHelper.getInstance().hasSolidLineOfSight(
                 MapHelper.getInstance().getActiveRoom(), startX + 6f, startY + 6f, x + 6f, y + 6f)) {

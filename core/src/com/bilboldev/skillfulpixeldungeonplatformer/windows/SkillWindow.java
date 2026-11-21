@@ -32,8 +32,10 @@ public class SkillWindow extends DescriptionWindow {
 
     ArrayList<ActionButton> actionButtons;
     Skill skill;
+    public Skill partySkill() { return skill; }
     private boolean showUnlockButton;
     private boolean showSetQuickSkillButton;
+    private ArrayList<RedButton> partyButtons;
 
     public SkillWindow(Skill skill) {
         super(skill.getGameSprite().spriteString, buildDescription(skill), 1500, 400);
@@ -78,6 +80,14 @@ public class SkillWindow extends DescriptionWindow {
 
         float buttonX = x + width - ACTION_BUTTON_WIDTH - ACTION_BUTTON_RIGHT_MARGIN;
         float buttonY = y + ACTION_BUTTON_BOTTOM_MARGIN;
+        if (partyButtons != null) {
+            for (RedButton button : partyButtons) {
+                button.setPosition(buttonX, buttonY);
+                actionButtons.add(button);
+                buttonY += ACTION_BUTTON_HEIGHT + ACTION_BUTTON_GAP;
+            }
+            return this;
+        }
         if (showUnlockButton) {
             actionButtons.add(createActionButton(buttonX, buttonY, Messages.get("custom.ui.skill.learn"), new Runnable() {
                 @Override
@@ -123,9 +133,16 @@ public class SkillWindow extends DescriptionWindow {
         return this;
     }
 
-
     public Window addUnlock(){
         showUnlockButton = true;
+        return this;
+    }
+
+    public SkillWindow addPartyChoice(String label, boolean enabled, Runnable action) {
+        if (partyButtons == null) partyButtons = new ArrayList<>();
+        RedButton button = createActionButton(0, 0, label, action);
+        if (!enabled) button.disable();
+        partyButtons.add(button);
         return this;
     }
 
@@ -145,7 +162,6 @@ public class SkillWindow extends DescriptionWindow {
             actionButton.draw(batch);
         }
     }
-
 
     @Override
     public boolean click(float x, float y){
@@ -221,6 +237,7 @@ public class SkillWindow extends DescriptionWindow {
     }
 
     private float getReservedActionButtonHeight() {
+        if (partyButtons != null) return ACTION_BUTTON_BOTTOM_MARGIN + partyButtons.size() * (ACTION_BUTTON_HEIGHT + ACTION_BUTTON_GAP);
         int actionCount = 0;
         if (showUnlockButton) {
             actionCount++;
@@ -249,5 +266,3 @@ public class SkillWindow extends DescriptionWindow {
         }.setText(label);
     }
 }
-
-

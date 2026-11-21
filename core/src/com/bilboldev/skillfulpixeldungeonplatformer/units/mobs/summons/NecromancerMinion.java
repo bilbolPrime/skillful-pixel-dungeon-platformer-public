@@ -18,7 +18,6 @@ import com.bilboldev.skillfulpixeldungeonplatformer.items.weapons.melee.MeleeAtt
 import com.bilboldev.skillfulpixeldungeonplatformer.units.projectiles.NewClassSpellProjectile;
 import java.util.ArrayList;
 
-
 public abstract class NecromancerMinion extends Mob {
     private final String ownerId;
     private final int summonedLevel;
@@ -32,7 +31,6 @@ public abstract class NecromancerMinion extends Mob {
     protected NecromancerMinion(Hero owner) {
         this(owner, owner == null ? 0 : owner.getLevel());
     }
-
 
     protected NecromancerMinion(Hero owner, int createdAtLevel) {
         if (owner == null || owner.getHeroClass() != HeroClass.NECROMANCER || owner.isDead()
@@ -57,12 +55,10 @@ public abstract class NecromancerMinion extends Mob {
         lichApplied = true;
     }
 
-
     public final void restoreLich(Hero hero, boolean savedApplied) {
         lichApplied = savedApplied;
         applyLich(hero);
     }
-
 
     public final void applySpiritBinder(Hero hero) {
         if (spiritBinderApplied || lichApplied || !belongsTo(hero) || !hero.hasSkill(Skills.SPIRIT_BINDER) || isDead() || hp <= 0 || mhp <= 0) return;
@@ -71,7 +67,6 @@ public abstract class NecromancerMinion extends Mob {
         hp = Math.min(mhp, Math.max(1, (int)Math.round((double)hp * mhp / oldMax)));
         spiritBinderApplied = true;
     }
-
 
     public final void restoreSpiritBinder(Hero hero, boolean savedApplied) {
         spiritBinderApplied = savedApplied;
@@ -83,7 +78,8 @@ public abstract class NecromancerMinion extends Mob {
     }
     public final Hero getOwnerHero() {
         if (!UnitHelper.getInstance().getUnits().contains(this)) return null;
-        Hero hero = UnitHelper.getInstance().getHero();
+        Hero hero = com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running()
+                ? com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.owner(ownerId) : UnitHelper.getInstance().getHero();
         return belongsTo(hero) ? hero : null;
     }
 
@@ -91,7 +87,6 @@ public abstract class NecromancerMinion extends Mob {
         super.appear(x, y);
         if (ai instanceof FriendlyAI) ((FriendlyAI)ai).startFollowingAtCurrentPosition();
     }
-
 
     public static int occupiedSlots(Hero hero) {
         int count = 0;
@@ -107,12 +102,10 @@ public abstract class NecromancerMinion extends Mob {
         }
     }
 
-
     public static void clearAll() {
         for (Unit unit : UnitHelper.getInstance().getUnitsSnapshot())
             if (unit instanceof NecromancerMinion) UnitHelper.getInstance().removeUnit(unit);
     }
-
 
     public final void restorePlacement(Hero hero, boolean savedPending) {
         deathTime = platformDropTime = 0f;
@@ -127,7 +120,6 @@ public abstract class NecromancerMinion extends Mob {
             PhysicsHelper.getInstance().syncBodyToUnit(this);
         }
     }
-
 
     public static void transferFor(Hero hero) {
         if (hero == null || hero.isDead() || hero.getHeroClass() != HeroClass.NECROMANCER
@@ -187,7 +179,6 @@ public abstract class NecromancerMinion extends Mob {
                 && hero.y + 15f < y && y > ConstantsHelper.MIN_FLOOR * ConstantsHelper.TILE + 16f
                 && PhysicsHelper.getInstance().isGrounded(this)) {
 
-
             platformDropTime = .25f;
             PhysicsHelper.getInstance().setVerticalSpeed(this, -10f);
         }
@@ -203,14 +194,13 @@ public abstract class NecromancerMinion extends Mob {
         super.drawBodyFilm(batch);
     }
 
-
     @Override public final void makeHostile() { makeFriendly(); }
     @Override public final void confused() {
         movingLeft = movingRight = false;
         if (ai != null) ai.clearTarget();
     }
 
-    @Override protected final void onDeathCommitted() {                                          }
+    @Override protected final void onDeathCommitted() {   }
 
     @Override public final void die() {
         NewClassSpellProjectile.clearFrom(this);

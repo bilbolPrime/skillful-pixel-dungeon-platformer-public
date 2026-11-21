@@ -105,6 +105,7 @@ public class RatKingSupportHelper {
     }
 
     public void recordReachedDepth(int depth) {
+        if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.active()) return;
         if (depth <= getHighestDepthReached()) {
             return;
         }

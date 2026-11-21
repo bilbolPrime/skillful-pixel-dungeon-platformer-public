@@ -19,7 +19,6 @@ public class InteractiveTabbedWindow extends InteractiveWindow {
         tabs = new ArrayList<>();
     }
 
-
     @Override
     public void draw(Batch batch){
         for(Tab tab : tabs){
@@ -85,6 +84,7 @@ public class InteractiveTabbedWindow extends InteractiveWindow {
 
     protected class Tab extends Button{
         protected String name;
+        @Override public String partyLabel() { return name; }
         protected GameSprite gs, background;
         protected float x, y;
         protected boolean selected;
@@ -100,7 +100,6 @@ public class InteractiveTabbedWindow extends InteractiveWindow {
             this.background.setPosition(x, y);
             selected = false;
         }
-
 
         public void draw(Batch batch){
             if(selected){
@@ -154,4 +153,3 @@ public class InteractiveTabbedWindow extends InteractiveWindow {
         }
     }
 }
-

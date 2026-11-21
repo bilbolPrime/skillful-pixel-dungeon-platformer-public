@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.FontHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.InventoryHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.MercenaryHelper;
+import com.bilboldev.skillfulpixeldungeonplatformer.helpers.UnitHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.helpers.WindowHelper;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.EquipableItem;
 import com.bilboldev.skillfulpixeldungeonplatformer.items.Item;
@@ -45,6 +46,15 @@ public class MercenaryWindow extends InteractiveWindow {
     }
 
     private final MercenaryAlly mercenary;
+    public MercenaryAlly partyMercenary() { return mercenary; }
+    @Override public boolean partyValid() { return mercenary != null && !mercenary.isDead() && UnitHelper.getInstance().getUnitsSnapshot().contains(mercenary); }
+    @Override public String partyText() {
+        if (mercenary == null) return "";
+        String name = MercenaryHelper.getDisplayName(mercenary.getMercenaryType(), mercenary.getMercenaryName());
+        return Messages.get("custom.ui.mercenary.status.header", mercenary.getMercenaryLevel(), name, mercenary.getStrength())
+                + "\n" + Messages.get("custom.ui.mercenary.status.hp", mercenary.getHP(), mercenary.getMaxHP())
+                + "\n" + Messages.get("custom.ui.mercenary.status.exp", mercenary.getMercenaryExperienceText());
+    }
     private GameSprite portrait;
 
     public MercenaryWindow(MercenaryAlly mercenary) {
@@ -190,6 +200,7 @@ public class MercenaryWindow extends InteractiveWindow {
     }
 
     private void equipSelectedItem(EquipmentSlot slot, Item item) {
+        if (!partyValid() || getEquipmentItem(slot) != null || !InventoryHelper.getInstance().getItems().contains(item)) return;
         if (slot == EquipmentSlot.WEAPON && item instanceof MeleeWeapon) {
             InventoryHelper.getInstance().removeItem(item);
             prepareEquippedItem(item);
@@ -303,6 +314,9 @@ public class MercenaryWindow extends InteractiveWindow {
         public void clicked() {
             onEquipmentSlotClicked(slot);
         }
+
+        @Override
+        protected float getTextLeftInset() { return SLOT_ICON_SIZE; }
 
         @Override
         public void draw(Batch batch) {

@@ -33,6 +33,8 @@ public class MerchantWindow extends InteractiveWindow {
     private final String merchantTitleText;
 
     String titleDescription;
+    @Override public String partyText() { return merchantTitleText == null ? DEFAULT_TITLE_DESCRIPTION : merchantTitleText; }
+    public GameSprite partyPortrait() { return merchantSprite; }
 
     public MerchantWindow(HeroClass heroClass, float width, float height) {
         this(heroClass, width, height, null, null);
@@ -58,8 +60,6 @@ public class MerchantWindow extends InteractiveWindow {
         merchantSprite.setWidth(200);
         merchantSprite.setHeight(200);
         merchantSprite.setPosition(x + 100, y + height - 300);
-
-
 
         float offsetY = y + height - 400 - 50 - 30;
         float offsetX = x + 100;
@@ -90,8 +90,6 @@ public class MerchantWindow extends InteractiveWindow {
                 offsetY = y + height - 400 - 50 - 30;
             }
         }
-
-
 
         return this;
     }
@@ -131,18 +129,17 @@ public class MerchantWindow extends InteractiveWindow {
         return Math.max(100f, width - TITLE_DESCRIPTION_X - TITLE_DESCRIPTION_RIGHT_PADDING);
     }
 
-
     private class InventoryButton extends ActionButton {
 
         private int nature;
         private String text;
+        @Override public String partyLabel() { return text == null ? "" : text; }
         private boolean selected;
         private Skill skill;
         protected float fontSize = 3;
         private GameSprite gameSprite;
         private boolean equippable;
         private Item item;
-
 
         public InventoryButton(float x, float y, String gsString, String text) {
             super(x, y, 400, 100, "images/misc/grey.png", "images/misc/grey.png");
@@ -157,8 +154,6 @@ public class MerchantWindow extends InteractiveWindow {
             gameSprite = new GameSprite("images/misc/yellow-highlight.png", 400, 100, 0.3f);
             gameSprite.setPosition(x, y);
 
-
-
             this.text = text;
         }
 
@@ -170,7 +165,6 @@ public class MerchantWindow extends InteractiveWindow {
             gameSprite.setPosition(x, y);
             equippable = item instanceof EquipableItem;
         }
-
 
         @Override
         public void draw(Batch batch){
@@ -186,14 +180,10 @@ public class MerchantWindow extends InteractiveWindow {
             }
         }
 
-
-
-
         public InventoryButton setEquipped(boolean equipped){
 
             return this;
         }
-
 
         @Override
         public void click(){
@@ -211,5 +201,3 @@ public class MerchantWindow extends InteractiveWindow {
         super.refresh();
     }
 }
-
-

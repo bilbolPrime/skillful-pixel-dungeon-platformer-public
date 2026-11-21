@@ -96,6 +96,7 @@ public class PauseMenuWindow extends Window {
             buttons.add(new PauseMenuRowButton(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT) {
                 @Override
                 public void clicked() {
+                    if (com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running()) { com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.leave(); return; }
                     if (!SaveHelper.getInstance().saveCurrentRun()) {
                         WindowHelper.getInstance().addWindow(new TextWindow(800f, 120f, "Could not save the current run.").build());
                         return;
@@ -104,7 +105,7 @@ public class PauseMenuWindow extends Window {
                     WindowHelper.getInstance().hideAll();
                     SkillfulPixelDungeonPlatformer.transition(new TitleScreen(), true);
                 }
-            }.setCenteredText("SAVE & EXIT"));
+            }.setCenteredText(com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.running() ? Messages.get("party.leave") : "SAVE & EXIT"));
         }
 
         return this;

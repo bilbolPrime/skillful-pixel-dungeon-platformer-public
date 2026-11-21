@@ -63,6 +63,12 @@ public class ItemOnScreen extends Unit {
         return Float.isNaN(floorY) ? y : floorY;
     }
 
+    public void partyItem(Item item) { this.item = item; }
+    @Override public void partyVisualStep(float delta) {
+        if (floatingUp) { yFloat += delta * 20f; if (yFloat > 0) { yFloat = 0; floatingUp = false; } }
+        else { yFloat -= delta * 20f; if (yFloat < -ConstantsHelper.UNIT_DIMENSIONS / 4) { yFloat = -ConstantsHelper.UNIT_DIMENSIONS / 4; floatingUp = true; } }
+    }
+
     @Override
     public void act(float delta){
         if (!isPlaced()) {
@@ -102,7 +108,6 @@ public class ItemOnScreen extends Unit {
         item.draw(batch);
         rememberDisplayedItem(item.getGameSprite());
     }
-
 
     protected void rememberDisplayedItem(GameSprite displayed) {
         lastDisplayedItem = displayed == null ? null : displayed.copyPose();
@@ -148,4 +153,3 @@ public class ItemOnScreen extends Unit {
         }
     }
 }
-

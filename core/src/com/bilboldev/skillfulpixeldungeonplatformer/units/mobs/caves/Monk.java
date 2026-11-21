@@ -54,8 +54,10 @@ public class Monk extends Mob {
                 if (equippedWeapon instanceof MeleeWeapon
                         && !(equippedWeapon instanceof MeleeAttack)
                         && !(equippedWeapon instanceof Knuckles)) {
-                    ((MeleeWeapon) equippedWeapon).setEquipped(false);
-                    InventoryHelper.getInstance().removeItem(equippedWeapon);
+                    com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession.withOwner(target, () -> {
+                        ((MeleeWeapon)equippedWeapon).setEquipped(false);
+                        InventoryHelper.getInstance().removeItem(equippedWeapon);
+                    });
                     equippedWeapon.drop(target.x, target.y, target.getRoom());
                     EffectsHelper.getInstance().message(target, "My weapon!", Color.WHITE, 0f);
                 }

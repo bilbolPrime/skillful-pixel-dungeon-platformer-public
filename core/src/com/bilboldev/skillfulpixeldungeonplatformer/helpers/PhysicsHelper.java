@@ -1,5 +1,7 @@
 package com.bilboldev.skillfulpixeldungeonplatformer.helpers;
 
+import com.bilboldev.skillfulpixeldungeonplatformer.party.PartySession;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -240,7 +242,6 @@ public final class PhysicsHelper {
         updateBodyActivation();
     }
 
-
     public static float boundGameDelta(float delta) {
         return delta > 0f ? Math.min(delta, MAX_GAME_DELTA) : 0f;
     }
@@ -254,9 +255,17 @@ public final class PhysicsHelper {
         accumulator += delta;
         while (accumulator >= TIME_STEP) {
 
-            Unit hero = UnitHelper.getInstance().getHero();
-            Body heroBody = unitBodies.get(hero);
-            if (heroBody != null) heroBody.setGravityScale(getGravityScale(hero));
+            if (PartySession.running()) {
+                for (int player = 0; player < 2; player++) {
+                    Unit hero = PartySession.player(player);
+                    Body heroBody = unitBodies.get(hero);
+                    if (heroBody != null) heroBody.setGravityScale(getGravityScale(hero));
+                }
+            } else {
+                Unit hero = UnitHelper.getInstance().getHero();
+                Body heroBody = unitBodies.get(hero);
+                if (heroBody != null) heroBody.setGravityScale(getGravityScale(hero));
+            }
             captureRenderTransforms(true);
             world.step(TIME_STEP, 6, 2);
             captureRenderTransforms(false);
@@ -298,7 +307,6 @@ public final class PhysicsHelper {
         body.setTransform(toWorld(unit.x + ConstantsHelper.UNIT_DIMENSIONS / 2f), toWorld(unit.y) + data.halfExtentMeters, 0f);
         resetRenderTransform(body);
     }
-
 
     public void resetRenderTransform(Unit unit) {
         Body body = unit instanceof ThrownProjectile ? projectileBodies.get(unit) : unitBodies.get(unit);
@@ -393,7 +401,6 @@ public final class PhysicsHelper {
         return grounded[0] && Math.abs(body.getLinearVelocity().y) < toWorldSpeed(50f);
     }
 
-
     public boolean hasTerrainFootContact(Unit unit) {
         Body body = unitBodies.get(unit);
         if (body == null || !body.isActive() || unit.isCanFly() || body.getLinearVelocity().y > 0.001f) return false;
@@ -442,7 +449,6 @@ public final class PhysicsHelper {
         return MapHelper.getInstance().calculateFloorY(unit.x, unit.y);
     }
 
-
     public boolean canReachInteraction(Unit hero, float targetX, float targetFloorY) {
         Body body = unitBodies.get(hero);
 
@@ -477,11 +483,9 @@ public final class PhysicsHelper {
         return !blocked[0];
     }
 
-
     public boolean hasCorpseLineOfSight(Room room, float x1, float y1, float x2, float y2) {
         return hasSolidLineOfSight(room, x1, y1, x2, y2);
     }
-
 
     public boolean hasSolidLineOfSight(Room room, float x1, float y1, float x2, float y2) {
         if (room == null || !room.getIdentifier().equals(activeRoomIdentifier)
@@ -499,11 +503,9 @@ public final class PhysicsHelper {
         return !blocked[0];
     }
 
-
     public boolean isCorpseActionSpaceClear(Room room, final Rectangle area) {
         return isTerrainSpaceClear(room, area, false);
     }
-
 
     public boolean isUnitRestoreSpaceClear(Room room, final Rectangle area) {
         return isTerrainSpaceClear(room, area, true);
@@ -597,6 +599,11 @@ public final class PhysicsHelper {
 
         body.setLinearVelocity(body.getLinearVelocity().x, toWorldSpeed(jumpSpeed));
         unit.speedY = jumpSpeed;
+    }
+
+    public void partyVelocity(Unit unit, float vx, float vy) {
+        Body body = unitBodies.get(unit);
+        if (body != null) body.setLinearVelocity(toWorldSpeed(vx), toWorldSpeed(vy));
     }
 
     public void setVerticalSpeed(Unit unit, float verticalSpeed) {
@@ -907,7 +914,7 @@ public final class PhysicsHelper {
         for (Map.Entry<ThrownProjectile, Body> entry : projectileBodies.entrySet()) {
             if (entry.getValue().isActive()) {
                 syncProjectileFromPhysics(entry.getKey());
-                entry.getKey().afterPhysicsStep();
+                PartySession.withOwner(entry.getKey().getOwner(), entry.getKey()::afterPhysicsStep);
             }
         }
     }
@@ -1014,7 +1021,8 @@ public final class PhysicsHelper {
         if (terrainData != null) {
             if (projectile.collidesWithTerrain() && (projectile.hitsBothSidesOfPlatforms()
                     || shouldEnableTerrainContact(projectileFixture.getBody(), terrainData, projectileData))) {
-                projectile.onTerrainCollision();
+                PartySession.withOwner(projectile.getOwner(), projectile::onTerrainCollision);
+                PartySession.contact(projectile, null, 0);
             }
             return;
         }
@@ -1033,7 +1041,9 @@ public final class PhysicsHelper {
             return;
         }
 
-        projectile.onUnitCollision(target);
+        float before = target.getHP();
+        PartySession.withOwner(projectile.getOwner(), () -> projectile.onUnitCollision(target));
+        PartySession.contact(projectile, target, before - target.getHP());
     }
 
     private boolean canHit(Unit source, Unit target) {

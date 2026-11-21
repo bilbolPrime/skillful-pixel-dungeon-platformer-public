@@ -9,6 +9,7 @@ import com.bilboldev.skillfulpixeldungeonplatformer.misc.graphics.GameSprite;
 import java.util.ArrayList;
 
 public class Button {
+    public String partyLabel() { return ""; }
     static float hitMargin = 20;
     public float x;
     public float y;
@@ -41,7 +42,6 @@ public class Button {
         this.width = width;
         this.height = height;
 
-
         this.rec = new Rectangle(x, y, width, height);
         this.recExtended = new Rectangle(x - hitMargin, y - hitMargin, width + 2 * hitMargin, height + 2 * hitMargin);
         this.topOffset = Gdx.graphics.getHeight();
@@ -71,13 +71,6 @@ public class Button {
         }
 
         boolean isTapped = false;
-
-
-
-
-
-
-
 
         batch.draw(isTapped ? pressed : notPressed, x, y);
     }
@@ -154,5 +147,3 @@ public class Button {
         gameSprites = new ArrayList<GameSprite>();
     }
 }
-
-

@@ -22,6 +22,7 @@ public class PauseMenuRowButton extends ActionButton {
     private String centeredLabel = "";
     private String leftLabel = "";
     private String rightLabel = "";
+    @Override public String partyLabel() { return centered ? centeredLabel : leftLabel + " " + rightLabel; }
     private boolean centered = true;
     private boolean showCheckbox;
     private boolean checked;
@@ -112,7 +113,6 @@ public class PauseMenuRowButton extends ActionButton {
     public void setChecked(boolean checked) {
         this.checked = checked;
     }
-
 
     public PauseMenuRowButton setCheckboxHelp(String help) {
         FontHelper fonts = FontHelper.getSingleton();
